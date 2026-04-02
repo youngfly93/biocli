@@ -16,6 +16,9 @@ import { emitHook } from './hooks.js';
 import './databases/ncbi.js';
 import './databases/uniprot.js';
 import './databases/kegg.js';
+import './databases/string-db.js';
+import './databases/ensembl.js';
+import './databases/enrichr.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BUILTIN_CLIS = join(__dirname, 'clis');
