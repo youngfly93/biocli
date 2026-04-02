@@ -80,11 +80,16 @@ export interface CliOptions extends Partial<Omit<CliCommand, 'args' | 'descripti
 // this, the plugin's import creates a separate module instance with its own Map.
 declare global {
   // eslint-disable-next-line no-var
+  var __biocli_registry__: Map<string, CliCommand> | undefined;
+  /** @deprecated Alias for __biocli_registry__ — kept for plugin backward compat. */
+  // eslint-disable-next-line no-var
   var __ncbicli_registry__: Map<string, CliCommand> | undefined;
 }
 
 const _registry: Map<string, CliCommand> =
-  globalThis.__ncbicli_registry__ ??= new Map<string, CliCommand>();
+  globalThis.__biocli_registry__ ??= globalThis.__ncbicli_registry__ ?? new Map<string, CliCommand>();
+// Keep legacy alias in sync
+globalThis.__ncbicli_registry__ = _registry;
 
 // ── Public API ──────────────────────────────────────────────────────────────
 

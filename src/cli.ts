@@ -21,36 +21,34 @@ export function runCli(): void {
   const version = getVersion();
 
   program
-    .name('ncbicli')
-    .description('Query NCBI databases from the terminal')
+    .name('biocli')
+    .description('Query biological databases from the terminal')
     .version(version)
     .enablePositionalOptions()
     .addHelpText('before', `
-  ${chalk.bold.cyan('ncbicli')} ${chalk.dim(`v${version}`)}  ${chalk.dim('─')}  Query NCBI databases from the terminal
-  ${chalk.dim('PubMed · Gene · GEO · SRA · ClinVar · SNP · Taxonomy')}
+  ${chalk.bold.cyan('biocli')} ${chalk.dim(`v${version}`)}  ${chalk.dim('─')}  Query biological databases from the terminal
+  ${chalk.dim('NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr')}
 `)
     .addHelpText('after', `
 ${chalk.bold('Examples:')}
-  ${chalk.cyan('ncbicli pubmed search "CRISPR cancer"')}       Search PubMed articles
-  ${chalk.cyan('ncbicli pubmed fetch 30684591')}               Get article details by PMID
-  ${chalk.cyan('ncbicli pubmed abstract 30684591')}            Get abstract text
-  ${chalk.cyan('ncbicli pubmed cited-by 30684591')}            Find citing articles
-  ${chalk.cyan('ncbicli gene search TP53')}                    Search genes
-  ${chalk.cyan('ncbicli gene info 7157')}                      Gene details by ID
-  ${chalk.cyan('ncbicli geo search "breast cancer RNA-seq"')}  Search GEO datasets
-  ${chalk.cyan('ncbicli sra search "CRISPR human"')}           Search SRA runs
-  ${chalk.cyan('ncbicli clinvar search BRCA1')}                Search clinical variants
-  ${chalk.cyan('ncbicli snp lookup rs334')}                    Look up SNP by rsID
-  ${chalk.cyan('ncbicli taxonomy lookup "Homo sapiens"')}      Taxonomy lookup
+  ${chalk.cyan('biocli pubmed search "CRISPR cancer"')}       Search PubMed articles
+  ${chalk.cyan('biocli pubmed fetch 30684591')}               Get article details by PMID
+  ${chalk.cyan('biocli gene search TP53')}                    Search genes
+  ${chalk.cyan('biocli gene info 7157')}                      Gene details by ID
+  ${chalk.cyan('biocli geo search "breast cancer RNA-seq"')}  Search GEO datasets
+  ${chalk.cyan('biocli sra search "CRISPR human"')}           Search SRA runs
+  ${chalk.cyan('biocli clinvar search BRCA1')}                Search clinical variants
+  ${chalk.cyan('biocli snp lookup rs334')}                    Look up SNP by rsID
+  ${chalk.cyan('biocli taxonomy lookup "Homo sapiens"')}      Taxonomy lookup
 
 ${chalk.bold('Output formats:')}
   -f table ${chalk.dim('(default)')}    -f json     -f csv
   -f yaml                -f md       -f plain
 
 ${chalk.bold('Configuration:')}
-  ${chalk.cyan('ncbicli config set api_key YOUR_KEY')}   Set NCBI API key (increases rate limit to 10 req/s)
-  ${chalk.cyan('ncbicli config set email you@example.com')}
-  ${chalk.cyan('ncbicli config show')}                   Show current config
+  ${chalk.cyan('biocli config set api_key YOUR_KEY')}   Set NCBI API key (increases rate limit to 10 req/s)
+  ${chalk.cyan('biocli config set email you@example.com')}
+  ${chalk.cyan('biocli config show')}                   Show current config
 `);
 
   // ── Hidden: shell completion data endpoint ──────────────────────────────
@@ -98,7 +96,7 @@ ${chalk.bold('Configuration:')}
       }
 
       console.log();
-      console.log(chalk.bold('  ncbicli') + chalk.dim(' — available commands'));
+      console.log(chalk.bold('  biocli') + chalk.dim(' — available commands'));
       console.log();
       for (const [site, cmds] of sites) {
         console.log(chalk.bold.cyan(`  ${site}`));

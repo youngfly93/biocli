@@ -20,7 +20,6 @@ import {
 import type { HttpContext } from './types.js';
 import { pathToFileURL } from 'node:url';
 import { executePipeline } from './pipeline/index.js';
-import { createHttpContext } from './ncbi-fetch.js';
 import {
   AdapterLoadError,
   ArgumentError,
@@ -29,6 +28,7 @@ import {
   getErrorMessage,
 } from './errors.js';
 import { emitHook, type HookContext } from './hooks.js';
+import { createHttpContextForDatabase } from './databases/index.js';
 
 /** Default command timeout in seconds (used when timeoutSeconds is set). */
 const DEFAULT_COMMAND_TIMEOUT = 60;
@@ -180,7 +180,8 @@ export async function executeCommand(
 
   let result: unknown;
   try {
-    const ctx = createHttpContext();
+    const databaseId = cmd.database ?? 'ncbi';
+    const ctx = createHttpContextForDatabase(databaseId);
     const timeout = cmd.timeoutSeconds;
     if (timeout !== undefined && timeout > 0) {
       result = await runWithTimeout(

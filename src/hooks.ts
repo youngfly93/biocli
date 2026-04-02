@@ -33,10 +33,14 @@ export type HookFn = (ctx: HookContext, result?: unknown) => void | Promise<void
 // ── Singleton hook store (shared across module instances via globalThis) ──
 declare global {
   // eslint-disable-next-line no-var
+  var __biocli_hooks__: Map<HookName, HookFn[]> | undefined;
+  /** @deprecated Alias for __biocli_hooks__. */
+  // eslint-disable-next-line no-var
   var __ncbicli_hooks__: Map<HookName, HookFn[]> | undefined;
 }
 const _hooks: Map<HookName, HookFn[]> =
-  globalThis.__ncbicli_hooks__ ??= new Map();
+  globalThis.__biocli_hooks__ ??= globalThis.__ncbicli_hooks__ ?? new Map();
+globalThis.__ncbicli_hooks__ = _hooks;
 
 // ── Registration API (used by plugins) ─────────────────────────────────────
 

@@ -1,22 +1,25 @@
 /**
- * Configuration management for ncbicli.
+ * Configuration management for biocli.
  *
- * Reads and writes ~/.ncbicli/config.yaml for persistent settings
- * such as API key, email, and default output preferences.
+ * Reads and writes ~/.biocli/config.yaml for persistent settings
+ * such as API keys, email, and default output preferences.
  *
- * Priority for credentials:
+ * Priority for NCBI credentials:
  *   1. Environment variables (NCBI_API_KEY, NCBI_EMAIL)
- *   2. Config file (~/.ncbicli/config.yaml)
+ *   2. Config file (~/.biocli/config.yaml)
+ *
+ * Migration: if ~/.ncbicli/config.yaml exists and ~/.biocli/ does not,
+ * the old config is automatically migrated on first load.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, cpSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import yaml from 'js-yaml';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface NcbiConfig {
+export interface BiocliConfig {
   /** NCBI API key — get one at https://www.ncbi.nlm.nih.gov/account/settings/ */
   api_key?: string;
   /** Contact email (recommended by NCBI for E-utilities usage). */
@@ -30,18 +33,40 @@ export interface NcbiConfig {
   };
 }
 
+/** @deprecated Use BiocliConfig instead. */
+export type NcbiConfig = BiocliConfig;
+
 // ── Paths ────────────────────────────────────────────────────────────────────
 
-const CONFIG_DIR = join(homedir(), '.ncbicli');
+const CONFIG_DIR = join(homedir(), '.biocli');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.yaml');
+const LEGACY_CONFIG_DIR = join(homedir(), '.ncbicli');
+const LEGACY_CONFIG_FILE = join(LEGACY_CONFIG_DIR, 'config.yaml');
 
 // ── Public API ───────────────────────────────────────────────────────────────
+
+/**
+ * Migrate legacy ~/.ncbicli/config.yaml → ~/.biocli/config.yaml (one-time).
+ */
+function migrateIfNeeded(): void {
+  if (existsSync(CONFIG_DIR)) return; // already migrated or fresh install
+  if (!existsSync(LEGACY_CONFIG_FILE)) return; // nothing to migrate
+
+  try {
+    mkdirSync(CONFIG_DIR, { recursive: true });
+    cpSync(LEGACY_CONFIG_FILE, CONFIG_FILE);
+    console.error(`Migrated config: ${LEGACY_CONFIG_FILE} → ${CONFIG_FILE}`);
+  } catch {
+    // Non-fatal — user can manually copy
+  }
+}
 
 /**
  * Load the config file from disk. Returns an empty object if the file
  * does not exist or cannot be parsed.
  */
-export function loadConfig(): NcbiConfig {
+export function loadConfig(): BiocliConfig {
+  migrateIfNeeded();
   if (!existsSync(CONFIG_FILE)) return {};
 
   try {
@@ -57,10 +82,10 @@ export function loadConfig(): NcbiConfig {
 }
 
 /**
- * Persist the given config object to ~/.ncbicli/config.yaml.
+ * Persist the given config object to ~/.biocli/config.yaml.
  * Creates the directory if it does not exist.
  */
-export function saveConfig(config: NcbiConfig): void {
+export function saveConfig(config: BiocliConfig): void {
   if (!existsSync(CONFIG_DIR)) {
     mkdirSync(CONFIG_DIR, { recursive: true });
   }

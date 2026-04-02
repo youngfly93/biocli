@@ -1,10 +1,11 @@
 {
-  "name": "@biocli/ncbicli",
-  "version": "0.1.0",
-  "description": "Query NCBI databases from the terminal",
+  "name": "@biocli/cli",
+  "version": "0.2.0",
+  "description": "Query biological databases from the terminal — agent-first bioinformatics CLI",
   "type": "module",
   "main": "dist/main.js",
   "bin": {
+    "biocli": "dist/main.js",
     "ncbicli": "dist/main.js"
   },
   "exports": {

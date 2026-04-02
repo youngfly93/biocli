@@ -220,7 +220,7 @@ export function resolveExitCode(err: unknown): number {
 
 // ── Error rendering ──────────────────────────────────────────────────────────
 
-const ISSUES_URL = 'https://github.com/biocli/ncbicli/issues';
+const ISSUES_URL = 'https://github.com/youngfly93/ncbicli/issues';
 
 function renderError(err: unknown, cmdName: string, verbose: boolean): void {
   if (err instanceof CliError) {

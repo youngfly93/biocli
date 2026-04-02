@@ -26,14 +26,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /** Built-in CLIs directory: dist/clis/ or src/clis/ */
 export const BUILTIN_CLIS_DIR = path.join(__dirname, 'clis');
 
-/** User runtime directory: ~/.ncbicli */
-export const USER_NCBICLI_DIR = path.join(os.homedir(), '.ncbicli');
+/** User runtime directory: ~/.biocli */
+export const USER_BIOCLI_DIR = path.join(os.homedir(), '.biocli');
+/** @deprecated Use USER_BIOCLI_DIR. */
+export const USER_NCBICLI_DIR = USER_BIOCLI_DIR;
 
-/** User CLIs directory: ~/.ncbicli/clis/ */
-export const USER_CLIS_DIR = path.join(USER_NCBICLI_DIR, 'clis');
+/** User CLIs directory: ~/.biocli/clis/ */
+export const USER_CLIS_DIR = path.join(USER_BIOCLI_DIR, 'clis');
 
-/** Plugins directory: ~/.ncbicli/plugins/ */
-export const PLUGINS_DIR = path.join(USER_NCBICLI_DIR, 'plugins');
+/** Plugins directory: ~/.biocli/plugins/ */
+export const PLUGINS_DIR = path.join(USER_BIOCLI_DIR, 'plugins');
 
 /** Matches files that register commands via cli() or lifecycle hooks */
 const PLUGIN_MODULE_PATTERN = /\b(?:cli|onStartup|onBeforeExecute|onAfterExecute)\s*\(/;

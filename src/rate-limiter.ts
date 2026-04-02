@@ -1,14 +1,16 @@
 /**
- * Token-bucket rate limiter for NCBI E-utilities.
+ * Sliding-window rate limiter for biocli database backends.
  *
- * NCBI enforces rate limits:
- *   - Without API key: 3 requests per second
- *   - With API key:   10 requests per second
+ * Each database has its own rate limit:
+ *   - NCBI:    3/s (anonymous), 10/s (with API key)
+ *   - UniProt: 50/s
+ *   - KEGG:    10/s
+ *   - STRING:  1/s
+ *   - Ensembl: 15/s
+ *   - Enrichr: 5/s
  *
- * This module uses a sliding-window approach: it tracks timestamps of
- * recent requests and delays new ones when the window is full.
- * A singleton is maintained via globalThis so that all code paths
- * share the same limiter instance.
+ * Singletons are maintained via globalThis so that all code paths
+ * share the same limiter instances (including across npm-linked plugins).
  */
 
 import { sleep } from './utils.js';
@@ -89,17 +91,40 @@ export class RateLimiter {
   }
 }
 
-// ── Singleton management ─────────────────────────────────────────────────────
+// ── Per-database limiter registry ────────────────────────────────────────────
 
 declare global {
+  // eslint-disable-next-line no-var
+  var __biocli_rate_limiters__: Map<string, RateLimiter> | undefined;
+  // Legacy NCBI singleton (backward compat)
   // eslint-disable-next-line no-var
   var __ncbicli_rate_limiter__: RateLimiter | undefined;
   // eslint-disable-next-line no-var
   var __ncbicli_rate_limiter_has_key__: boolean | undefined;
 }
 
+const _limiters: Map<string, RateLimiter> =
+  globalThis.__biocli_rate_limiters__ ??= new Map();
+
 /**
- * Get (or create) the singleton rate limiter.
+ * Get (or create) a rate limiter for a specific database.
+ *
+ * Each database gets its own independent limiter instance keyed by ID.
+ */
+export function getRateLimiterForDatabase(databaseId: string, maxPerSecond: number): RateLimiter {
+  let limiter = _limiters.get(databaseId);
+  if (!limiter) {
+    limiter = new RateLimiter(maxPerSecond);
+    _limiters.set(databaseId, limiter);
+  }
+  return limiter;
+}
+
+/**
+ * Get (or create) the NCBI rate limiter.
+ *
+ * @deprecated Use getRateLimiterForDatabase('ncbi', rate) instead.
+ *             Kept for backward compatibility with existing NCBI adapters.
  *
  * @param hasApiKey  Whether the user has an NCBI API key configured.
  *                   This determines the rate: 10/s with key, 3/s without.
@@ -107,17 +132,17 @@ declare global {
 export function getRateLimiter(hasApiKey: boolean): RateLimiter {
   const rate = hasApiKey ? 10 : 3;
 
-  if (globalThis.__ncbicli_rate_limiter__) {
-    // If the API key status changed, update the rate
-    if (globalThis.__ncbicli_rate_limiter_has_key__ !== hasApiKey) {
-      globalThis.__ncbicli_rate_limiter__.setRate(rate);
-      globalThis.__ncbicli_rate_limiter_has_key__ = hasApiKey;
-    }
-    return globalThis.__ncbicli_rate_limiter__;
+  // Delegate to the per-database registry
+  const limiter = getRateLimiterForDatabase('ncbi', rate);
+
+  // If the API key status changed, update the rate
+  if (globalThis.__ncbicli_rate_limiter_has_key__ !== hasApiKey) {
+    limiter.setRate(rate);
+    globalThis.__ncbicli_rate_limiter_has_key__ = hasApiKey;
   }
 
-  const limiter = new RateLimiter(rate);
+  // Keep legacy global reference in sync
   globalThis.__ncbicli_rate_limiter__ = limiter;
-  globalThis.__ncbicli_rate_limiter_has_key__ = hasApiKey;
+
   return limiter;
 }

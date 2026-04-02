@@ -12,6 +12,9 @@ import { discoverClis, discoverPlugins } from './discovery.js';
 import { runCli } from './cli.js';
 import { emitHook } from './hooks.js';
 
+// Register database backends (side-effect imports)
+import './databases/ncbi.js';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BUILTIN_CLIS = join(__dirname, 'clis');
 

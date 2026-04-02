@@ -1,9 +1,9 @@
 /**
- * Core type definitions for ncbicli.
+ * Core type definitions for biocli.
  *
- * HttpContext replaces opencli's IPage as the primary execution context
- * passed to every command function. It wraps NCBI-aware HTTP fetching
- * with built-in rate limiting, API key injection, and XML/JSON parsing.
+ * HttpContext is the primary execution context passed to every command
+ * function. It wraps database-aware HTTP fetching with built-in rate
+ * limiting, authentication injection, and response parsing.
  */
 
 // ── Result metadata ────────────────────────────────────────────────────────────
@@ -38,8 +38,10 @@ export function hasResultMeta(v: unknown): v is ResultWithMeta {
   return typeof v === 'object' && v !== null && (v as ResultWithMeta).__resultMeta === true;
 }
 
-/** Options for a single NCBI HTTP request. */
-export interface NcbiFetchOptions {
+// ── Fetch options ─────────────────────────────────────────────────────────────
+
+/** Options for a single HTTP request. Generic across all database backends. */
+export interface FetchOptions {
   /** HTTP method (defaults to 'GET'). */
   method?: string;
   /** Additional HTTP headers. */
@@ -53,21 +55,36 @@ export interface NcbiFetchOptions {
 }
 
 /**
+ * @deprecated Use FetchOptions instead. Kept for backward compatibility
+ * with existing NCBI adapters.
+ */
+export type NcbiFetchOptions = FetchOptions;
+
+// ── HTTP context ──────────────────────────────────────────────────────────────
+
+/**
  * HTTP execution context provided to every command function.
  *
- * This is the ncbicli equivalent of opencli's IPage — instead of browser
- * automation, commands get an HTTP client pre-configured with NCBI
- * credentials, rate limiting, and retry logic.
+ * Each database backend creates its own HttpContext with the appropriate
+ * rate limiter, authentication, and response parsers baked in.
  */
 export interface HttpContext {
+  /** Database backend ID this context is bound to (e.g. 'ncbi', 'uniprot'). */
+  databaseId: string;
   /** Make an HTTP request and return the raw Response. */
-  fetch(url: string, opts?: NcbiFetchOptions): Promise<Response>;
+  fetch(url: string, opts?: FetchOptions): Promise<Response>;
   /** Fetch a URL and parse the response body as XML, returning the parsed object. */
-  fetchXml(url: string, opts?: NcbiFetchOptions): Promise<unknown>;
+  fetchXml(url: string, opts?: FetchOptions): Promise<unknown>;
   /** Fetch a URL and parse the response body as JSON. */
-  fetchJson(url: string, opts?: NcbiFetchOptions): Promise<unknown>;
-  /** NCBI API key, if configured. */
+  fetchJson(url: string, opts?: FetchOptions): Promise<unknown>;
+  /** Fetch a URL and return the raw text body. */
+  fetchText(url: string, opts?: FetchOptions): Promise<string>;
+  /** Database-specific credentials (NCBI: api_key, email; etc.). */
+  credentials?: Record<string, string>;
+
+  // ── NCBI backward-compat aliases ──
+  /** @deprecated Use credentials?.api_key instead. */
   apiKey?: string;
-  /** Contact email, if configured. */
+  /** @deprecated Use credentials?.email instead. */
   email?: string;
 }
