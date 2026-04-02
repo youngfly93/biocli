@@ -4,7 +4,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { resolveOrganism, ORGANISM_DB } from './clis/_shared/organism-db.js';
+import { resolveOrganism } from './clis/_shared/organism-db.js';
+import { ArgumentError } from './errors.js';
 
 describe('resolveOrganism', () => {
   it('resolves common name', () => {
@@ -29,18 +30,19 @@ describe('resolveOrganism', () => {
     expect(result.name).toBe('Drosophila melanogaster');
   });
 
-  it('throws on unknown organism instead of silently defaulting to human', () => {
-    expect(() => resolveOrganism('martian')).toThrow(/Unknown organism/);
+  it('throws ArgumentError on unknown organism (not generic Error)', () => {
+    expect(() => resolveOrganism('martian')).toThrow(ArgumentError);
     expect(() => resolveOrganism('hoomans')).toThrow(/Unknown organism/);
-    expect(() => resolveOrganism('99999')).toThrow(/Unknown organism/);
+    expect(() => resolveOrganism('99999')).toThrow(ArgumentError);
   });
 
-  it('lists supported organisms in error message', () => {
+  it('provides hint with supported organisms', () => {
     try {
       resolveOrganism('unknown');
     } catch (err) {
-      expect((err as Error).message).toContain('human');
-      expect((err as Error).message).toContain('mouse');
+      expect(err).toBeInstanceOf(ArgumentError);
+      expect((err as ArgumentError).hint).toContain('human');
+      expect((err as ArgumentError).hint).toContain('mouse');
     }
   });
 });

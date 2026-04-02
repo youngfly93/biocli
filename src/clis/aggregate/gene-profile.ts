@@ -220,7 +220,9 @@ async function fetchKeggData(
               names[id] = parsed.NAME;
             }
           }
-        } catch { /* batch name fetch non-fatal */ }
+        } catch (err) {
+          errors.push(`KEGG disease names (batch ${i / 10 + 1}): ${err instanceof Error ? err.message : String(err)}`);
+        }
       }
 
       diseases = diseaseIds.map(id => ({ id, name: names[id] ?? '' }));

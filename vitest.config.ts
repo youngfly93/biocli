@@ -15,14 +15,18 @@ export default defineConfig({
         test: {
           name: 'adapter',
           include: ['src/clis/**/*.test.ts'],
+          exclude: ['**/._*'],
           sequence: { groupOrder: 1 },
+          passWithNoTests: true,
         },
       },
       {
         test: {
           name: 'e2e',
           include: ['tests/e2e/**/*.test.ts'],
+          exclude: ['**/._*'],
           sequence: { groupOrder: 2 },
+          passWithNoTests: true,
         },
       },
     ],

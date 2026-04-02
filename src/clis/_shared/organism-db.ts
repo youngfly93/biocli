@@ -7,6 +7,8 @@
  *   - Ensembl species name
  */
 
+import { ArgumentError } from '../../errors.js';
+
 export interface OrganismEntry {
   name: string;         // "Homo sapiens"
   taxId: number;        // 9606
@@ -61,10 +63,10 @@ export function resolveOrganism(input: string): OrganismEntry {
     if (entry.keggOrg === lower) return entry;
   }
 
-  // Unknown organism — fail explicitly
+  // Unknown organism — fail as argument error (exit code 2, not generic error)
   const supported = Object.keys(ORGANISM_DB).join(', ');
-  throw new Error(
-    `Unknown organism: "${input}". Supported: ${supported}. ` +
-    `You can also use scientific names (e.g. "Homo sapiens"), taxonomy IDs (e.g. 9606), or KEGG codes (e.g. hsa).`,
+  throw new ArgumentError(
+    `Unknown organism: "${input}"`,
+    `Supported: ${supported}. Also accepts scientific names (e.g. "Homo sapiens"), taxonomy IDs (e.g. 9606), or KEGG codes (e.g. hsa).`,
   );
 }
