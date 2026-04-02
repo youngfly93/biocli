@@ -19,7 +19,7 @@ import { CliError } from '../../errors.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { buildEutilsUrl } from '../../databases/ncbi.js';
 import { buildUniprotUrl } from '../../databases/uniprot.js';
-import { buildKeggUrl, parseKeggTsv } from '../../databases/kegg.js';
+import { buildKeggUrl, parseKeggTsv, parseKeggEntry } from '../../databases/kegg.js';
 import { buildStringUrl } from '../../databases/string-db.js';
 import { parseGeneSummaries } from '../_shared/xml-helpers.js';
 import { resolveOrganism } from '../_shared/organism-db.js';
@@ -58,27 +58,32 @@ interface GeneProfile {
 async function fetchNcbiGene(ctx: HttpContext, symbol: string, organism: string): Promise<{
   geneId: string; name: string; summary: string; chromosome: string; location: string;
 } | null> {
+  // Fetch top 5 candidates to detect ambiguity
   const searchResult = await ctx.fetchJson(buildEutilsUrl('esearch.fcgi', {
     db: 'gene', term: `${symbol}[Gene Name] AND ${organism}[Organism]`,
-    retmax: '1', retmode: 'json',
+    retmax: '5', retmode: 'json',
   })) as Record<string, unknown>;
 
   const ids: string[] = (searchResult?.esearchresult as Record<string, unknown>)?.idlist as string[] ?? [];
   if (!ids.length) return null;
 
   const summaryResult = await ctx.fetchJson(buildEutilsUrl('esummary.fcgi', {
-    db: 'gene', id: ids[0], retmode: 'json',
+    db: 'gene', id: ids.join(','), retmode: 'json',
   }));
 
   const genes = parseGeneSummaries(summaryResult);
   if (!genes.length) return null;
 
+  // Prefer exact symbol match to avoid returning a wrong gene
+  const exactMatch = genes.find(g => g.symbol.toUpperCase() === symbol.toUpperCase());
+  const best = exactMatch ?? genes[0];
+
   return {
-    geneId: genes[0].geneId,
-    name: genes[0].name,
-    summary: genes[0].summary,
-    chromosome: genes[0].chromosome,
-    location: genes[0].location,
+    geneId: best.geneId,
+    name: best.name,
+    summary: best.summary,
+    chromosome: best.chromosome,
+    location: best.location,
   };
 }
 
@@ -89,15 +94,25 @@ async function fetchUniprotData(ctx: HttpContext, symbol: string, taxId: number)
   goTerms: Array<{ id: string; name: string; aspect: string }>;
   ensemblGeneId?: string;
 } | null> {
+  // Fetch top 5 and pick the exact gene name match
   const query = `gene:${symbol} AND organism_id:${taxId} AND reviewed:true`;
   const data = await ctx.fetchJson(buildUniprotUrl('/uniprotkb/search', {
-    query, format: 'json', size: '1',
+    query, format: 'json', size: '5',
   })) as Record<string, unknown>;
 
   const results = (data?.results ?? []) as Record<string, unknown>[];
   if (!results.length) return null;
 
-  const entry = results[0];
+  // Find exact gene name match among candidates
+  const getGeneName = (e: Record<string, unknown>): string => {
+    const genes = e.genes as Record<string, unknown>[] | undefined;
+    const primary = genes?.[0] as Record<string, unknown> | undefined;
+    const gn = primary?.geneName as Record<string, unknown> | undefined;
+    return String(gn?.value ?? '');
+  };
+
+  const exactMatch = results.find(e => getGeneName(e).toUpperCase() === symbol.toUpperCase());
+  const entry = exactMatch ?? results[0];
   const accession = String(entry.primaryAccession ?? '');
 
   // Function
@@ -142,39 +157,77 @@ async function fetchUniprotData(ctx: HttpContext, symbol: string, taxId: number)
 
 // ── KEGG fetch ────────────────────────────────────────────────────────────────
 
-async function fetchKeggData(ctx: HttpContext, keggOrg: string, geneId: string): Promise<{
+/**
+ * Normalize KEGG pathway IDs: /link/pathway returns "path:hsa04115"
+ * but /list/pathway returns "hsa04115". Strip the "path:" prefix.
+ */
+function normalizeKeggId(id: string): string {
+  return id.replace(/^path:/, '');
+}
+
+async function fetchKeggData(
+  ctx: HttpContext,
+  keggOrg: string,
+  geneId: string,
+  errors: string[],
+): Promise<{
   keggId: string;
   pathways: Array<{ id: string; name: string }>;
   diseases: Array<{ id: string; name: string }>;
-} | null> {
+}> {
   const keggId = `${keggOrg}:${geneId}`;
 
-  // Fetch pathways
+  // Fetch pathways with name resolution
   let pathways: Array<{ id: string; name: string }> = [];
   try {
     const pathText = await ctx.fetchText(buildKeggUrl(`/link/pathway/${keggId}`));
     if (pathText.trim()) {
       const links = parseKeggTsv(pathText);
-      // Get pathway names
       const pathIds = links.map(l => l.value).filter(Boolean);
       if (pathIds.length) {
+        // /list/pathway/hsa returns "hsa04115\tPathway name - Homo sapiens (human)"
         const listText = await ctx.fetchText(buildKeggUrl(`/list/pathway/${keggOrg}`));
         const allPaths = parseKeggTsv(listText);
         const pathMap = new Map(allPaths.map(p => [p.key, p.value.replace(/ - .*$/, '')]));
-        pathways = pathIds.map(id => ({ id, name: pathMap.get(id) ?? id }));
+        pathways = pathIds.map(rawId => {
+          const normalized = normalizeKeggId(rawId);
+          return { id: normalized, name: pathMap.get(normalized) ?? normalized };
+        });
       }
     }
-  } catch { /* non-fatal */ }
+  } catch (err) {
+    errors.push(`KEGG pathways: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
-  // Fetch diseases
+  // Fetch diseases with name resolution (reuse kegg/disease.ts pattern)
   let diseases: Array<{ id: string; name: string }> = [];
   try {
     const diseaseText = await ctx.fetchText(buildKeggUrl(`/link/disease/${keggId}`));
     if (diseaseText.trim()) {
       const links = parseKeggTsv(diseaseText);
-      diseases = links.map(l => ({ id: l.value, name: '' }));
+      const diseaseIds = links.map(l => l.value).filter(Boolean);
+
+      // Batch name resolution: /get accepts up to 10 IDs joined with '+'
+      const names: Record<string, string> = {};
+      for (let i = 0; i < diseaseIds.length; i += 10) {
+        const batch = diseaseIds.slice(i, i + 10);
+        try {
+          const text = await ctx.fetchText(buildKeggUrl(`/get/${batch.join('+')}`));
+          for (const entryText of text.split('///').filter(e => e.trim())) {
+            const parsed = parseKeggEntry(entryText);
+            if (parsed.ENTRY && parsed.NAME) {
+              const id = 'ds:' + parsed.ENTRY.split(/\s+/)[0];
+              names[id] = parsed.NAME;
+            }
+          }
+        } catch { /* batch name fetch non-fatal */ }
+      }
+
+      diseases = diseaseIds.map(id => ({ id, name: names[id] ?? '' }));
     }
-  } catch { /* non-fatal */ }
+  } catch (err) {
+    errors.push(`KEGG diseases: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   return { keggId, pathways, diseases };
 }
@@ -184,23 +237,20 @@ async function fetchKeggData(ctx: HttpContext, keggOrg: string, geneId: string):
 async function fetchStringPartners(ctx: HttpContext, symbol: string, taxId: number): Promise<
   Array<{ partner: string; score: number }>
 > {
-  try {
-    const data = await ctx.fetchJson(buildStringUrl('interaction_partners', {
-      identifiers: symbol,
-      species: String(taxId),
-      limit: '10',
-      required_score: '400',
-    })) as Record<string, unknown>[];
+  // Let errors propagate — Promise.allSettled in the caller handles them
+  const data = await ctx.fetchJson(buildStringUrl('interaction_partners', {
+    identifiers: symbol,
+    species: String(taxId),
+    limit: '10',
+    required_score: '400',
+  })) as Record<string, unknown>[];
 
-    if (!Array.isArray(data)) return [];
+  if (!Array.isArray(data)) return [];
 
-    return data.map(item => ({
-      partner: String(item.preferredName_B ?? ''),
-      score: Number(item.score ?? 0),
-    }));
-  } catch {
-    return [];
-  }
+  return data.map(item => ({
+    partner: String(item.preferredName_B ?? ''),
+    score: Number(item.score ?? 0),
+  }));
 }
 
 // ── Main command ──────────────────────────────────────────────────────────────
@@ -253,14 +303,19 @@ async function buildGeneProfile(
   }
 
   // KEGG (needs NCBI Gene ID first, so sequential)
-  let keggData: Awaited<ReturnType<typeof fetchKeggData>> = null;
+  // Errors are pushed to meta.errors inside fetchKeggData, not silently swallowed
+  let keggData: Awaited<ReturnType<typeof fetchKeggData>> | null = null;
   if (ncbiData?.geneId) {
     try {
-      keggData = await fetchKeggData(keggCtx, keggOrg, ncbiData.geneId);
-      if (keggData) meta.sources.push('KEGG');
+      keggData = await fetchKeggData(keggCtx, keggOrg, ncbiData.geneId, meta.errors);
+      if (keggData.pathways.length || keggData.diseases.length) {
+        meta.sources.push('KEGG');
+      }
     } catch (err) {
       meta.errors.push(`KEGG: ${err instanceof Error ? err.message : String(err)}`);
     }
+  } else {
+    meta.errors.push('KEGG: skipped (no NCBI Gene ID to map from)');
   }
 
   return {

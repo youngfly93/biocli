@@ -7,7 +7,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['src/**/*.test.ts'],
-          exclude: ['src/clis/**/*.test.ts'],
+          exclude: ['src/clis/**/*.test.ts', '**/._*'],
           sequence: { groupOrder: 0 },
         },
       },

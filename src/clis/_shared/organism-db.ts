@@ -31,8 +31,11 @@ export const ORGANISM_DB: Record<string, OrganismEntry> = {
 };
 
 /**
- * Resolve an organism identifier (common name, scientific name, or taxId)
- * to a full OrganismEntry. Defaults to human if not found.
+ * Resolve an organism identifier (common name, scientific name, taxId, or KEGG code)
+ * to a full OrganismEntry.
+ *
+ * Throws if the organism is not recognized — never silently defaults to human,
+ * because that would produce scientifically wrong cross-database queries.
  */
 export function resolveOrganism(input: string): OrganismEntry {
   const lower = input.toLowerCase().trim();
@@ -58,6 +61,10 @@ export function resolveOrganism(input: string): OrganismEntry {
     if (entry.keggOrg === lower) return entry;
   }
 
-  // Default to human
-  return ORGANISM_DB.human;
+  // Unknown organism — fail explicitly
+  const supported = Object.keys(ORGANISM_DB).join(', ');
+  throw new Error(
+    `Unknown organism: "${input}". Supported: ${supported}. ` +
+    `You can also use scientific names (e.g. "Homo sapiens"), taxonomy IDs (e.g. 9606), or KEGG codes (e.g. hsa).`,
+  );
 }

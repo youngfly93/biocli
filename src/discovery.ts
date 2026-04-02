@@ -162,6 +162,7 @@ async function discoverClisFromFs(dir: string): Promise<void> {
       const siteDir = path.join(dir, site);
       const files = await fs.promises.readdir(siteDir);
       await Promise.all(files.map(async (file) => {
+        if (file.startsWith('.')) return; // skip hidden/AppleDouble files
         const filePath = path.join(siteDir, file);
         if (file.endsWith('.yaml') || file.endsWith('.yml')) {
           await registerYamlCli(filePath, site);

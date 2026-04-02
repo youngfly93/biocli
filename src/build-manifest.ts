@@ -206,6 +206,7 @@ export async function buildManifest(): Promise<void> {
     const files = fs.readdirSync(sitePath);
 
     for (const file of files) {
+      if (file.startsWith('.')) continue; // skip hidden/AppleDouble files
       const filePath = path.join(sitePath, file);
 
       if (file.endsWith('.yaml') || file.endsWith('.yml')) {

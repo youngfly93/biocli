@@ -7,6 +7,7 @@ const path = require('path');
 function walk(src, dst) {
   if (!existsSync(src)) return;
   for (const f of readdirSync(src)) {
+    if (f.startsWith('.')) continue; // skip hidden/AppleDouble files
     const sp = path.join(src, f);
     const dp = path.join(dst, f);
     if (statSync(sp).isDirectory()) {
