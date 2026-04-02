@@ -22,7 +22,7 @@ cli({
     { name: 'pmid', positional: true, required: true, help: 'PubMed ID' },
     { name: 'limit', type: 'int', default: 10, help: 'Max results (1-100)' },
   ],
-  columns: ['pmid', 'title', 'authors', 'journal', 'year'],
+  columns: ['pmid', 'title', 'authors', 'journal', 'year', 'doi'],
   func: async (ctx, args) => {
     const pmid = String(args.pmid).trim();
     if (!/^\d+$/.test(pmid)) {

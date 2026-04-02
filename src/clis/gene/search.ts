@@ -10,6 +10,7 @@ import { CliError } from '../../errors.js';
 import { buildEutilsUrl } from '../_shared/eutils.js';
 import { parseGeneSummaries } from '../_shared/xml-helpers.js';
 import { clamp } from '../_shared/common.js';
+import { withMeta } from '../../types.js';
 
 /** Map common organism names to NCBI search terms. */
 const ORGANISM_MAP: Record<string, string> = {
@@ -33,12 +34,12 @@ cli({
   strategy: Strategy.PUBLIC,
   args: [
     { name: 'query', positional: true, required: true, help: 'Gene symbol or keyword (e.g. TP53, BRCA1)' },
-    { name: 'limit', type: 'int', default: 10, help: 'Max results (1-50)' },
+    { name: 'limit', type: 'int', default: 10, help: 'Max results (1-200)' },
     { name: 'organism', default: 'human', help: 'Organism name (e.g. human, mouse, rat, zebrafish)' },
   ],
   columns: ['geneId', 'symbol', 'name', 'organism'],
   func: async (ctx, args) => {
-    const limit = clamp(Number(args.limit), 1, 50);
+    const limit = clamp(Number(args.limit), 1, 200);
     const orgInput = String(args.organism).toLowerCase().trim();
     const organism = ORGANISM_MAP[orgInput] ?? String(args.organism);
 
@@ -57,6 +58,7 @@ cli({
     const result = searchResult as Record<string, unknown>;
     const esearchResult = result?.esearchresult as Record<string, unknown> | undefined;
     const geneIds: string[] = (esearchResult?.idlist as string[] | undefined) ?? [];
+    const totalCount = Number(esearchResult?.count ?? 0);
 
     if (!geneIds.length) {
       throw new CliError(
@@ -78,6 +80,6 @@ cli({
       throw new CliError('PARSE_ERROR', 'Failed to parse gene summary data', 'Try again later');
     }
 
-    return genes;
+    return withMeta(genes, { totalCount, query });
   },
 });

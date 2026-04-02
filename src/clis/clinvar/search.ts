@@ -9,6 +9,7 @@
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
 import { buildEutilsUrl } from '../_shared/eutils.js';
+import { withMeta } from '../../types.js';
 
 cli({
   site: 'clinvar',
@@ -18,17 +19,19 @@ cli({
   strategy: Strategy.PUBLIC,
   args: [
     { name: 'query', positional: true, required: true, help: 'Search query (e.g. "BRCA1", "rs80357906", "breast cancer")' },
-    { name: 'limit', type: 'int', default: 10, help: 'Max results (1-50)' },
+    { name: 'limit', type: 'int', default: 10, help: 'Max results (1-200)' },
   ],
   columns: ['uid', 'title', 'gene', 'significance', 'condition', 'accession'],
   func: async (ctx, args) => {
-    const limit = Math.max(1, Math.min(Number(args.limit), 50));
+    const limit = Math.max(1, Math.min(Number(args.limit), 200));
+    const query = String(args.query);
 
     // Step 1: esearch to get ClinVar IDs
     const searchResult = await ctx.fetchJson(buildEutilsUrl('esearch.fcgi', {
-      db: 'clinvar', term: String(args.query), retmax: String(limit), retmode: 'json',
+      db: 'clinvar', term: query, retmax: String(limit), retmode: 'json',
     })) as Record<string, any>;
     const ids: string[] = searchResult?.esearchresult?.idlist ?? [];
+    const totalCount = Number(searchResult?.esearchresult?.count ?? 0);
     if (!ids.length) throw new CliError('NOT_FOUND', 'No ClinVar entries found');
 
     // Step 2: esummary to get variant details
@@ -37,7 +40,7 @@ cli({
     })) as Record<string, any>;
 
     const uids: string[] = summary?.result?.uids ?? [];
-    return uids.map(uid => {
+    const rows = uids.map(uid => {
       const item = summary.result[uid] ?? {};
       // ClinVar esummary has: title, clinical_significance, genes (array of {symbol}),
       // trait_set (array of {trait_name}), accession, variation_set
@@ -57,5 +60,6 @@ cli({
         accession: item.accession ?? '',
       };
     });
+    return withMeta(rows, { totalCount, query });
   },
 });

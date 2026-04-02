@@ -10,6 +10,7 @@ import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
 import { buildEutilsUrl } from '../_shared/eutils.js';
 import { clamp } from '../_shared/common.js';
+import { withMeta } from '../../types.js';
 
 cli({
   site: 'geo',
@@ -19,12 +20,12 @@ cli({
   strategy: Strategy.PUBLIC,
   args: [
     { name: 'query', positional: true, required: true, help: 'Search query (e.g. "breast cancer RNA-seq")' },
-    { name: 'limit', type: 'int', default: 10, help: 'Max results (1-50)' },
+    { name: 'limit', type: 'int', default: 10, help: 'Max results (1-200)' },
     { name: 'type', default: 'gse', choices: ['gse', 'gds', 'gpl', 'gsm'], help: 'Entry type filter' },
   ],
   columns: ['accession', 'title', 'organism', 'type', 'samples', 'date'],
   func: async (ctx, args) => {
-    const limit = clamp(Number(args.limit), 1, 50);
+    const limit = clamp(Number(args.limit), 1, 200);
     const typeFilter = String(args.type).toUpperCase();
     const term = `${args.query} AND ${typeFilter}[Entry Type]`;
 
@@ -36,9 +37,11 @@ cli({
       retmode: 'json',
     }));
 
+    const query = String(args.query);
     const result = searchResult as Record<string, unknown>;
     const esearchResult = result?.esearchresult as Record<string, unknown> | undefined;
     const ids: string[] = (esearchResult?.idlist as string[] | undefined) ?? [];
+    const totalCount = Number(esearchResult?.count ?? 0);
 
     if (!ids.length) {
       throw new CliError('NOT_FOUND', 'No GEO entries found', 'Try different search terms or a different entry type');
@@ -55,7 +58,7 @@ cli({
     const resultObj = summary?.result as Record<string, unknown> | undefined;
     const uids: string[] = (resultObj?.uids as string[] | undefined) ?? [];
 
-    return uids.map(uid => {
+    const rows = uids.map(uid => {
       const item = (resultObj?.[uid] ?? {}) as Record<string, unknown>;
       return {
         accession: String(item.accession ?? `GDS${uid}`),
@@ -66,5 +69,6 @@ cli({
         date: String(item.pdat ?? ''),
       };
     });
+    return withMeta(rows, { totalCount, query });
   },
 });

@@ -6,6 +6,38 @@
  * with built-in rate limiting, API key injection, and XML/JSON parsing.
  */
 
+// ── Result metadata ────────────────────────────────────────────────────────────
+
+/** Metadata that commands can attach to results for the rendering layer. */
+export interface ResultMeta {
+  /** Total matching items from the API (e.g. esearch count), for "3 of N" display. */
+  totalCount?: number;
+  /** The original search query, used for keyword highlighting. */
+  query?: string;
+}
+
+/**
+ * Wraps a result array with optional display metadata.
+ *
+ * Commands return this via `withMeta(rows, meta)` — the commander-adapter
+ * extracts the meta and passes it to the output renderer.
+ */
+export interface ResultWithMeta<T = unknown> {
+  readonly __resultMeta: true;
+  rows: T[];
+  meta: ResultMeta;
+}
+
+/** Wrap command results with display metadata. */
+export function withMeta<T>(rows: T[], meta: ResultMeta): ResultWithMeta<T> {
+  return { __resultMeta: true as const, rows, meta };
+}
+
+/** Type guard for ResultWithMeta. */
+export function hasResultMeta(v: unknown): v is ResultWithMeta {
+  return typeof v === 'object' && v !== null && (v as ResultWithMeta).__resultMeta === true;
+}
+
 /** Options for a single NCBI HTTP request. */
 export interface NcbiFetchOptions {
   /** HTTP method (defaults to 'GET'). */

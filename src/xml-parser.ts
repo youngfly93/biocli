@@ -70,6 +70,21 @@ const ARRAY_TAGS = new Set([
   'LineageEx',
 ]);
 
+/**
+ * Decode numeric HTML/XML character references: &#xHH; and &#DDD;
+ *
+ * fast-xml-parser decodes the standard 5 XML entities (&amp; &lt; &gt; &apos; &quot;)
+ * but does NOT decode numeric character references (&#x144; &#946; etc.).
+ * NCBI XML frequently uses these for accented characters in author names.
+ */
+function decodeHtmlEntities(text: string): string {
+  return text.replace(/&#x([0-9a-fA-F]+);/g, (_m, hex: string) =>
+    String.fromCodePoint(parseInt(hex, 16)),
+  ).replace(/&#(\d+);/g, (_m, dec: string) =>
+    String.fromCodePoint(parseInt(dec, 10)),
+  );
+}
+
 const defaultParser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
@@ -83,6 +98,14 @@ const defaultParser = new XMLParser({
   trimValues: true,
   parseAttributeValue: true,
   parseTagValue: true,
+  tagValueProcessor: (_tagName: string, tagValue: string) => {
+    if (typeof tagValue === 'string') return decodeHtmlEntities(tagValue);
+    return tagValue;
+  },
+  attributeValueProcessor: (_attrName: string, attrValue: string) => {
+    if (typeof attrValue === 'string') return decodeHtmlEntities(attrValue);
+    return attrValue;
+  },
 });
 
 /**

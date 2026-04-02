@@ -10,6 +10,7 @@ import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
 import { buildEutilsUrl } from '../_shared/eutils.js';
 import { clamp } from '../_shared/common.js';
+import { withMeta } from '../../types.js';
 
 // ── SRA XML extraction helpers ───────────────────────────────────────────────
 
@@ -33,11 +34,11 @@ cli({
   strategy: Strategy.PUBLIC,
   args: [
     { name: 'query', positional: true, required: true, help: 'Search query (e.g. "RNA-seq human liver")' },
-    { name: 'limit', type: 'int', default: 10, help: 'Max results (1-50)' },
+    { name: 'limit', type: 'int', default: 10, help: 'Max results (1-200)' },
   ],
   columns: ['accession', 'title', 'platform', 'organism', 'samples', 'date'],
   func: async (ctx, args) => {
-    const limit = clamp(Number(args.limit), 1, 50);
+    const limit = clamp(Number(args.limit), 1, 200);
 
     // Step 1: esearch to get SRA IDs
     const searchResult = await ctx.fetchJson(buildEutilsUrl('esearch.fcgi', {
@@ -47,9 +48,11 @@ cli({
       retmode: 'json',
     }));
 
+    const query = String(args.query);
     const result = searchResult as Record<string, unknown>;
     const esearchResult = result?.esearchresult as Record<string, unknown> | undefined;
     const ids: string[] = (esearchResult?.idlist as string[] | undefined) ?? [];
+    const totalCount = Number(esearchResult?.count ?? 0);
 
     if (!ids.length) {
       throw new CliError('NOT_FOUND', 'No SRA entries found', 'Try different search terms');
@@ -66,7 +69,7 @@ cli({
     const resultObj = summary?.result as Record<string, unknown> | undefined;
     const uids: string[] = (resultObj?.uids as string[] | undefined) ?? [];
 
-    return uids.map(uid => {
+    const rows = uids.map(uid => {
       const item = (resultObj?.[uid] ?? {}) as Record<string, unknown>;
       const expXml = String(item.expxml ?? '');
       const runsXml = String(item.runs ?? '');
@@ -88,5 +91,6 @@ cli({
         date: String(item.createdate ?? ''),
       };
     });
+    return withMeta(rows, { totalCount, query });
   },
 });

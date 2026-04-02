@@ -15,6 +15,8 @@ import chalk from 'chalk';
 import { type CliCommand, fullName, getRegistry, strategyLabel } from './registry.js';
 import { render as renderOutput } from './output.js';
 import { executeCommand } from './execution.js';
+import { startSpinner } from './spinner.js';
+import { hasResultMeta } from './types.js';
 import {
   CliError,
   EXIT_CODES,
@@ -71,6 +73,8 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
   }
   subCmd
     .option('-f, --format <fmt>', 'Output format: table, plain, json, yaml, md, csv', 'table')
+    .option('-c, --columns <cols>', 'Columns to display (comma-separated, e.g. pmid,title,abstract)')
+    .option('-A, --all-columns', 'Show all available columns', false)
     .option('-v, --verbose', 'Debug output', false);
 
   subCmd.action(async (...actionArgs: unknown[]) => {
@@ -102,9 +106,28 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         console.error(chalk.yellow(`Deprecated: ${message}${replacement}`));
       }
 
-      const result = await executeCommand(cmd, kwargs, verbose);
+      const spinnerLabel = cmd.database
+        ? `Querying ${cmd.database}…`
+        : `Running ${fullName(cmd)}…`;
+      const spinner = startSpinner(spinnerLabel);
+      let result: unknown;
+      try {
+        result = await executeCommand(cmd, kwargs, verbose);
+      } finally {
+        spinner.stop();
+      }
       if (result === null || result === undefined) {
         return;
+      }
+
+      // Extract display metadata if the command returned ResultWithMeta
+      let renderData: unknown = result;
+      let totalCount: number | undefined;
+      let query: string | undefined;
+      if (hasResultMeta(result)) {
+        renderData = result.rows;
+        totalCount = result.meta.totalCount;
+        query = result.meta.query;
       }
 
       const resolved = getRegistry().get(fullName(cmd)) ?? cmd;
@@ -112,15 +135,33 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         format = resolved.defaultFormat;
       }
 
-      if (verbose && (!result || (Array.isArray(result) && result.length === 0))) {
+      if (verbose && (!renderData || (Array.isArray(renderData) && renderData.length === 0))) {
         console.error(chalk.yellow('[Verbose] Warning: Command returned an empty result.'));
       }
-      renderOutput(result, {
+
+      // Resolve which columns to display:
+      //   --columns pmid,title,abstract  →  user-specified subset
+      //   --all-columns / -A             →  all keys from first row
+      //   (default)                       →  adapter-declared columns
+      let displayColumns: string[] | undefined = resolved.columns;
+      const allColumns = optionsRecord.allColumns === true;
+      const userColumns = typeof optionsRecord.columns === 'string' ? optionsRecord.columns : undefined;
+
+      if (userColumns) {
+        displayColumns = userColumns.split(',').map((s: string) => s.trim()).filter(Boolean);
+      } else if (allColumns) {
+        // Show all fields present in the data
+        displayColumns = undefined; // output.ts will derive from row keys
+      }
+
+      renderOutput(renderData, {
         fmt: format,
-        columns: resolved.columns,
+        columns: displayColumns,
         title: `${resolved.site}/${resolved.name}`,
         elapsed: (Date.now() - startTime) / 1000,
         source: fullName(resolved),
+        totalCount,
+        query,
       });
     } catch (err) {
       renderError(err, fullName(cmd), optionsRecord.verbose === true);

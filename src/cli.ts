@@ -18,13 +18,19 @@ import { BUILTIN_CLIS_DIR, USER_CLIS_DIR } from './discovery.js';
 
 export function runCli(): void {
   const program = new Command();
+  const version = getVersion();
+
   program
     .name('ncbicli')
     .description('Query NCBI databases from the terminal')
-    .version(getVersion())
+    .version(version)
     .enablePositionalOptions()
+    .addHelpText('before', `
+  ${chalk.bold.cyan('ncbicli')} ${chalk.dim(`v${version}`)}  ${chalk.dim('─')}  Query NCBI databases from the terminal
+  ${chalk.dim('PubMed · Gene · GEO · SRA · ClinVar · SNP · Taxonomy')}
+`)
     .addHelpText('after', `
-Examples:
+${chalk.bold('Examples:')}
   ${chalk.cyan('ncbicli pubmed search "CRISPR cancer"')}       Search PubMed articles
   ${chalk.cyan('ncbicli pubmed fetch 30684591')}               Get article details by PMID
   ${chalk.cyan('ncbicli pubmed abstract 30684591')}            Get abstract text
@@ -37,11 +43,11 @@ Examples:
   ${chalk.cyan('ncbicli snp lookup rs334')}                    Look up SNP by rsID
   ${chalk.cyan('ncbicli taxonomy lookup "Homo sapiens"')}      Taxonomy lookup
 
-Output formats:
-  -f table  (default)    -f json     -f csv
+${chalk.bold('Output formats:')}
+  -f table ${chalk.dim('(default)')}    -f json     -f csv
   -f yaml                -f md       -f plain
 
-Configuration:
+${chalk.bold('Configuration:')}
   ${chalk.cyan('ncbicli config set api_key YOUR_KEY')}   Set NCBI API key (increases rate limit to 10 req/s)
   ${chalk.cyan('ncbicli config set email you@example.com')}
   ${chalk.cyan('ncbicli config show')}                   Show current config
