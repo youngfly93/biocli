@@ -181,7 +181,10 @@ export async function executeCommand(
   let result: unknown;
   try {
     const databaseId = cmd.database ?? 'ncbi';
-    const ctx = createHttpContextForDatabase(databaseId);
+    // Aggregate commands create their own multi-database contexts internally
+    const ctx = databaseId === 'aggregate'
+      ? { databaseId: 'aggregate', fetch: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchJson: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchXml: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchText: async () => { throw new Error('use createHttpContextForDatabase()'); } } as HttpContext
+      : createHttpContextForDatabase(databaseId);
     const timeout = cmd.timeoutSeconds;
     if (timeout !== undefined && timeout > 0) {
       result = await runWithTimeout(
