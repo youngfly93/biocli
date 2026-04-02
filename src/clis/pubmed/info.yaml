@@ -1,0 +1,22 @@
+site: pubmed
+name: info
+description: PubMed database statistics
+database: pubmed
+strategy: public
+
+pipeline:
+  - fetch:
+      url: https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi
+      params:
+        db: pubmed
+        retmode: json
+
+  - select: einforesult.dbinfo
+
+  - map:
+      database: ${{ item.dbname }}
+      description: ${{ item.description }}
+      count: ${{ item.count }}
+      last_update: ${{ item.lastupdate }}
+
+columns: [database, description, count, last_update]

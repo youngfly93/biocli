@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.ncbicli/
+*.log
+.DS_Store
+._*
+.claude
+CLAUDE.local.md
