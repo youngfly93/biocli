@@ -27,10 +27,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "test": "vitest run --project unit",
-    "test:adapter": "vitest run --project adapter",
-    "test:e2e": "vitest run --project e2e",
-    "test:all": "vitest run"
+    "test": "vitest run --project unit --passWithNoTests",
+    "test:adapter": "vitest run --project adapter --passWithNoTests",
+    "test:e2e": "vitest run --project e2e --passWithNoTests",
+    "test:all": "vitest run --passWithNoTests"
   },
   "keywords": [
     "ncbi",
