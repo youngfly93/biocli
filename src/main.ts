@@ -14,6 +14,8 @@ import { emitHook } from './hooks.js';
 
 // Register database backends (side-effect imports)
 import './databases/ncbi.js';
+import './databases/uniprot.js';
+import './databases/kegg.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BUILTIN_CLIS = join(__dirname, 'clis');
