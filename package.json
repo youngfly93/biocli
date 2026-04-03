@@ -30,7 +30,9 @@
     "test": "vitest run --project unit --passWithNoTests",
     "test:adapter": "vitest run --project adapter --passWithNoTests",
     "test:e2e": "vitest run --project e2e --passWithNoTests",
-    "test:all": "vitest run --passWithNoTests"
+    "test:all": "vitest run --passWithNoTests",
+    "smoke:core": "bash scripts/smoke-core.sh",
+    "smoke:live": "bash scripts/smoke-live.sh"
   },
   "keywords": [
     "ncbi",

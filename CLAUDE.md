@@ -33,10 +33,10 @@ npm run test:all         # All test projects
 - `src/clis/` — NCBI database adapters (pubmed, gene, geo, sra, etc.)
 - `src/pipeline/` — YAML pipeline engine (fetch, map, filter, sort, limit, xml-parse)
 - `src/ncbi-fetch.ts` — NCBI-aware HTTP client with rate limiting and API key injection
-- `src/config.ts` — ~/.ncbicli/config.yaml management
+- `src/config.ts` — ~/.biocli/config.yaml management
 
 ## NCBI API Notes
 
 - Rate limits: 3 req/sec without API key, 10 req/sec with key
 - PubMed efetch only returns XML (no JSON mode)
-- Configure API key: `ncbicli config set api_key YOUR_KEY`
+- Configure API key: `biocli config set api_key YOUR_KEY`

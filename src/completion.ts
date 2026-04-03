@@ -1,5 +1,5 @@
 /**
- * Shell tab-completion support for ncbicli.
+ * Shell tab-completion support for biocli.
  *
  * Provides:
  *  - Shell script generators for bash, zsh, and fish
@@ -23,7 +23,7 @@ const BUILTIN_COMMANDS = [
 /**
  * Return completion candidates given the current command-line words and cursor index.
  *
- * @param words  - The argv after 'ncbicli' (words[0] is the first arg, e.g. site name)
+ * @param words  - The argv after 'biocli' (words[0] is the first arg, e.g. site name)
  * @param cursor - 1-based position of the word being completed (1 = first arg)
  */
 export function getCompletions(words: string[], cursor: number): string[] {
@@ -77,42 +77,42 @@ export function generateCompletion(shell: 'bash' | 'zsh' | 'fish'): string {
 }
 
 function bashCompletionScript(): string {
-  return `# Bash completion for ncbicli
-# Add to ~/.bashrc:  eval "$(ncbicli completion bash)"
-_ncbicli_completions() {
+  return `# Bash completion for biocli
+# Add to ~/.bashrc:  eval "$(biocli completion bash)"
+_biocli_completions() {
   local cur words cword
   _get_comp_words_by_ref -n : cur words cword
 
   local completions
-  completions=$(ncbicli --get-completions --cursor "$cword" "\${words[@]:1}" 2>/dev/null)
+  completions=$(biocli --get-completions --cursor "$cword" "\${words[@]:1}" 2>/dev/null)
 
   COMPREPLY=( $(compgen -W "$completions" -- "$cur") )
   __ltrim_colon_completions "$cur"
 }
-complete -F _ncbicli_completions ncbicli
+complete -F _biocli_completions biocli
 `;
 }
 
 function zshCompletionScript(): string {
-  return `# Zsh completion for ncbicli
-# Add to ~/.zshrc:  eval "$(ncbicli completion zsh)"
-_ncbicli() {
+  return `# Zsh completion for biocli
+# Add to ~/.zshrc:  eval "$(biocli completion zsh)"
+_biocli() {
   local -a completions
   local cword=$((CURRENT - 1))
-  completions=(\${(f)"$(ncbicli --get-completions --cursor "$cword" "\${words[@]:1}" 2>/dev/null)"})
+  completions=(\${(f)"$(biocli --get-completions --cursor "$cword" "\${words[@]:1}" 2>/dev/null)"})
   compadd -a completions
 }
-compdef _ncbicli ncbicli
+compdef _biocli biocli
 `;
 }
 
 function fishCompletionScript(): string {
-  return `# Fish completion for ncbicli
-# Add to ~/.config/fish/config.fish:  ncbicli completion fish | source
-complete -c ncbicli -f -a '(
+  return `# Fish completion for biocli
+# Add to ~/.config/fish/config.fish:  biocli completion fish | source
+complete -c biocli -f -a '(
   set -l tokens (commandline -cop)
   set -l cursor (count (commandline -cop))
-  ncbicli --get-completions --cursor $cursor $tokens[2..] 2>/dev/null
+  biocli --get-completions --cursor $cursor $tokens[2..] 2>/dev/null
 )'
 `;
 }

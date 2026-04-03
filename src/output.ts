@@ -1,7 +1,7 @@
 /**
  * Output formatting: table, card, JSON, Markdown, CSV, YAML, plain.
  *
- * Ported from opencli/src/output.ts for ncbicli.
+ * Ported from opencli/src/output.ts for biocli.
  */
 
 import chalk from 'chalk';

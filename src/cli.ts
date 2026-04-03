@@ -13,6 +13,8 @@ import { getVersion } from './version.js';
 import { printCompletionScript, getCompletions } from './completion.js';
 import { registerAllCommands } from './commander-adapter.js';
 import { validateAll } from './validate.js';
+import { runDoctor, formatDoctorText, formatDoctorJson } from './doctor.js';
+import { biocliResultSchema, resultWithMetaSchema } from './schema.js';
 import { loadConfig, saveConfig, getConfigPath } from './config.js';
 import { BUILTIN_CLIS_DIR, USER_CLIS_DIR } from './discovery.js';
 
@@ -81,8 +83,8 @@ ${chalk.bold('Configuration:')}
         renderOutput(rows, {
           fmt,
           columns: ['command', 'site', 'name', 'aliases', 'description', 'strategy', 'database'],
-          title: 'ncbicli/list',
-          source: 'ncbicli list',
+          title: 'biocli/list',
+          source: 'biocli list',
         });
         return;
       }
@@ -155,7 +157,7 @@ ${chalk.bold('Configuration:')}
 
   const configCmd = program
     .command('config')
-    .description('Manage ncbicli configuration');
+    .description('Manage biocli configuration');
 
   configCmd
     .command('show')
@@ -168,7 +170,7 @@ ${chalk.bold('Configuration:')}
       if (display.api_key) {
         display.api_key = display.api_key.slice(0, 4) + '****' + display.api_key.slice(-4);
       }
-      renderOutput([display], { fmt: opts.format, title: 'ncbicli/config' });
+      renderOutput([display], { fmt: opts.format, title: 'biocli/config' });
     });
 
   configCmd
@@ -213,6 +215,32 @@ ${chalk.bold('Configuration:')}
     .description('Output shell completion script (bash, zsh, fish)')
     .action((shell?: string) => {
       printCompletionScript(shell ?? 'bash');
+    });
+
+  // ── Built-in: schema ───────────────────────────────────────────────────────
+
+  program
+    .command('schema [type]')
+    .description('Output JSON Schema for biocli result types (default: result, or: meta)')
+    .action((type?: string) => {
+      const schema = type === 'meta' ? resultWithMetaSchema : biocliResultSchema;
+      console.log(JSON.stringify(schema, null, 2));
+    });
+
+  // ── Built-in: doctor ───────────────────────────────────────────────────────
+
+  program
+    .command('doctor')
+    .description('Diagnose biocli configuration and backend connectivity')
+    .option('-f, --format <fmt>', 'Output format: text, json', 'text')
+    .action(async (opts) => {
+      const { checks, allPassed } = await runDoctor();
+      if (opts.format === 'json') {
+        console.log(formatDoctorJson(checks, allPassed));
+      } else {
+        console.log(formatDoctorText(checks, allPassed));
+      }
+      if (!allPassed) process.exitCode = 1;
     });
 
   // ── Register dynamic adapter commands ─────────────────────────────────────

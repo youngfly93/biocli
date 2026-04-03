@@ -1,5 +1,5 @@
 /**
- * Simple utility functions for ncbicli.
+ * Simple utility functions for biocli.
  */
 
 /** Clamp a numeric value to the inclusive range [min, max]. */

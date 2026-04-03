@@ -1,10 +1,13 @@
 /**
+ * @experimental This API is pre-v1.0 and may change without notice.
+ * See PLUGIN_DEV.md and docs/decisions/001-plugin-ecosystem.md.
+ *
  * Public API re-exports for plugin authors and external consumers.
  *
- * Import from '@biocli/ncbicli/registry' to register commands:
+ * Import from '@biocli/cli/registry' to register commands:
  *
  * ```ts
- * import { cli, Strategy } from '@biocli/ncbicli/registry';
+ * import { cli, Strategy } from '@biocli/cli/registry';
  * ```
  */
 

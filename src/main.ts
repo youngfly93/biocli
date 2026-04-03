@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ncbicli entry point.
+ * biocli entry point.
  *
  * Discovers built-in and user CLI definitions, loads plugins,
  * fires the onStartup hook, then hands off to Commander.

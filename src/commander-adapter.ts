@@ -99,7 +99,7 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
 
       const verbose = optionsRecord.verbose === true;
       let format = typeof optionsRecord.format === 'string' ? optionsRecord.format : 'table';
-      if (verbose) process.env.NCBICLI_VERBOSE = '1';
+      if (verbose) process.env.BIOCLI_VERBOSE = '1';
       if (cmd.deprecated) {
         const message = typeof cmd.deprecated === 'string' ? cmd.deprecated : `${fullName(cmd)} is deprecated.`;
         const replacement = cmd.replacedBy ? ` Use ${cmd.replacedBy} instead.` : '';
@@ -133,6 +133,11 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       const resolved = getRegistry().get(fullName(cmd)) ?? cmd;
       if (format === 'table' && resolved.defaultFormat) {
         format = resolved.defaultFormat;
+      }
+
+      // Auto-detect pipe: output JSON when stdout is not a terminal
+      if (format === 'table' && !process.stdout.isTTY) {
+        format = 'json';
       }
 
       if (verbose && (!renderData || (Array.isArray(renderData) && renderData.length === 0))) {
@@ -220,7 +225,7 @@ export function resolveExitCode(err: unknown): number {
 
 // ── Error rendering ──────────────────────────────────────────────────────────
 
-const ISSUES_URL = 'https://github.com/youngfly93/ncbicli/issues';
+const ISSUES_URL = 'https://github.com/youngfly93/biocli/issues';
 
 function renderError(err: unknown, cmdName: string, verbose: boolean): void {
   if (err instanceof CliError) {

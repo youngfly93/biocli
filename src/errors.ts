@@ -1,5 +1,5 @@
 /**
- * Unified error types for ncbicli.
+ * Unified error types for biocli.
  *
  * All errors thrown by the framework should extend CliError so that
  * the top-level handler can render consistent, helpful output with
@@ -7,7 +7,7 @@
  *
  * ## Exit codes
  *
- * ncbicli follows Unix conventions (sysexits.h) for process exit codes:
+ * biocli follows Unix conventions (sysexits.h) for process exit codes:
  *
  *   0   Success
  *   1   Generic / unexpected error
@@ -106,7 +106,7 @@ export class RateLimitError extends CliError {
     super(
       'RATE_LIMITED',
       message ?? 'NCBI API rate limit exceeded',
-      hint ?? 'Add an API key (ncbicli config set api_key YOUR_KEY) to increase the rate limit from 3 to 10 requests/sec',
+      hint ?? 'Add an API key (biocli config set api_key YOUR_KEY) to increase the rate limit from 3 to 10 requests/sec',
       EXIT_CODES.TEMPFAIL,
     );
   }

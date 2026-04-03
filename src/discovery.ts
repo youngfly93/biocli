@@ -127,7 +127,7 @@ async function loadFromManifest(manifestPath: string, clisDir: string): Promise<
     }
     return true;
   } catch (err) {
-    console.error(`[ncbicli] Failed to load manifest ${manifestPath}: ${getErrorMessage(err)}`);
+    console.error(`[biocli] Failed to load manifest ${manifestPath}: ${getErrorMessage(err)}`);
     return false;
   }
 }
@@ -172,7 +172,7 @@ async function discoverClisFromFs(dir: string): Promise<void> {
         ) {
           if (!(await isCliModule(filePath))) return;
           await import(pathToFileURL(filePath).href).catch((err) => {
-            console.error(`[ncbicli] Failed to load module ${filePath}: ${getErrorMessage(err)}`);
+            console.error(`[biocli] Failed to load module ${filePath}: ${getErrorMessage(err)}`);
           });
         }
       }));
@@ -187,14 +187,14 @@ async function registerYamlCli(filePath: string, defaultSite: string): Promise<v
     if (!isRecord(def)) return;
     parseYamlCli(def as YamlCliDefinition, filePath, defaultSite);
   } catch (err) {
-    console.error(`[ncbicli] Failed to parse YAML ${filePath}: ${getErrorMessage(err)}`);
+    console.error(`[biocli] Failed to parse YAML ${filePath}: ${getErrorMessage(err)}`);
   }
 }
 
 // ── Plugin discovery ────────────────────────────────────────────────────────
 
 /**
- * Discover and load plugins from ~/.ncbicli/plugins/.
+ * Discover and load plugins from ~/.biocli/plugins/.
  *
  * Each plugin is either:
  * - A directory with a package.json (npm package)
@@ -222,7 +222,7 @@ export async function discoverPlugins(): Promise<void> {
         const mainPath = path.resolve(fullPath, mainFile);
         await import(pathToFileURL(mainPath).href);
       } catch (err) {
-        console.error(`[ncbicli] Failed to load plugin ${entry.name}: ${getErrorMessage(err)}`);
+        console.error(`[biocli] Failed to load plugin ${entry.name}: ${getErrorMessage(err)}`);
       }
     } else if (
       (entry.name.endsWith('.js') && !entry.name.endsWith('.d.js')) ||
@@ -235,7 +235,7 @@ export async function discoverPlugins(): Promise<void> {
           await import(pathToFileURL(fullPath).href);
         }
       } catch (err) {
-        console.error(`[ncbicli] Failed to load plugin ${entry.name}: ${getErrorMessage(err)}`);
+        console.error(`[biocli] Failed to load plugin ${entry.name}: ${getErrorMessage(err)}`);
       }
     }
   }

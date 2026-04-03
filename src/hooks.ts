@@ -1,5 +1,5 @@
 /**
- * Plugin lifecycle hooks: allows plugins to tap into ncbicli's execution lifecycle.
+ * Plugin lifecycle hooks: allows plugins to tap into biocli's execution lifecycle.
  *
  * Hooks use globalThis (like the command registry) to guarantee a single shared
  * instance across all module copies — critical when TS plugins are loaded via
@@ -66,7 +66,7 @@ export function onAfterExecute(fn: HookFn): void {
   addHook('onAfterExecute', fn);
 }
 
-// ── Emit API (used internally by ncbicli core) ─────────────────────────────
+// ── Emit API (used internally by biocli core) ──────────────────────────────
 
 /**
  * Trigger all registered handlers for a hook.
@@ -80,7 +80,7 @@ export async function emitHook(name: HookName, ctx: HookContext, result?: unknow
     try {
       await fn(ctx, result);
     } catch (err) {
-      console.error(`[ncbicli] Hook ${name} handler failed: ${err instanceof Error ? err.message : String(err)}`);
+      console.error(`[biocli] Hook ${name} handler failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 }

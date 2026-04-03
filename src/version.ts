@@ -1,5 +1,5 @@
 /**
- * Version string reader for ncbicli.
+ * Version string reader for biocli.
  *
  * Reads the version from package.json at runtime. Handles both
  * development (src/) and production (dist/) directory layouts.
@@ -12,7 +12,7 @@ import { dirname, join } from 'node:path';
 let _version: string | undefined;
 
 /**
- * Return the current ncbicli version string from package.json.
+ * Return the current biocli version string from package.json.
  *
  * The result is cached after the first call. Falls back to '0.0.0'
  * if package.json cannot be found or parsed.
