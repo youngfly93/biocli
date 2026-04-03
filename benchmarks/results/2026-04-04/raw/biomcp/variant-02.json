@@ -1,1 +1,57 @@
-{"gene":"HBB","clinical_significance":"pathogenic","impact":"HIGH"}
+{
+  "gene": "HBB",
+  "id": "chr11:g.5248232T>A",
+  "hgvs_p": "p.E7V",
+  "hgvs_c": "c.20A>T",
+  "rsid": "rs334",
+  "significance": "Pathogenic",
+  "gnomad_af": 0.00347958,
+  "allele_frequency_raw": 0.00347958,
+  "allele_frequency_percent": "0.3480%",
+  "consequence": "missense_variant",
+  "cadd_score": 7.277,
+  "sift_pred": "Deleterious",
+  "polyphen_pred": "Benign",
+  "_meta": {
+    "evidence_urls": [
+      {
+        "label": "dbSNP",
+        "url": "https://www.ncbi.nlm.nih.gov/snp/rs334"
+      },
+      {
+        "label": "gnomAD",
+        "url": "https://gnomad.broadinstitute.org/variant/rs334"
+      }
+    ],
+    "next_commands": [
+      "biomcp get gene HBB",
+      "biomcp search drug --target HBB",
+      "biomcp variant trials chr11:g.5248232T>A",
+      "biomcp variant articles chr11:g.5248232T>A"
+    ],
+    "section_sources": [
+      {
+        "key": "identity",
+        "label": "Identity",
+        "sources": [
+          "MyVariant.info",
+          "ClinVar"
+        ]
+      },
+      {
+        "key": "population",
+        "label": "Population",
+        "sources": [
+          "gnomAD via MyVariant.info"
+        ]
+      },
+      {
+        "key": "expanded_predictions",
+        "label": "Expanded Predictions",
+        "sources": [
+          "MyVariant.info"
+        ]
+      }
+    ]
+  }
+}

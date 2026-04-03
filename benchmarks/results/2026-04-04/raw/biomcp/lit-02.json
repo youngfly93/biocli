@@ -1,1 +1,104 @@
-{"title":"TP53 paper","abstract":"Full abstract text","journal":"Cells","year":"2023","doi":"10.3390/cells12030512"}
+{
+  "pmid": "36766853",
+  "pmcid": "PMC9914165",
+  "doi": "10.3390/cells12030512",
+  "title": "The Role of TP53 in Adaptation and Evolution.",
+  "authors": [
+    "Voskarides K",
+    "Giannopoulou N"
+  ],
+  "journal": "Cells",
+  "date": "2023-02-03",
+  "citation_count": 80,
+  "publication_type": "Review",
+  "open_access": true,
+  "abstract_text": "The TP53 gene is a major player in cancer formation, and it is considered the most important tumor suppressor gene. The p53 protein acts as a transcription factor, and it is involved in DNA repair, senescence, cell-cycle control, autophagy, and apoptosis. Beyond cancer, there is evidence that TP53 is associated with fertility, aging, and longevity. Additionally, more evidence exists that genetic variants in TP53 are associated with environmental adaptation. Special TP53 amino-acid residues or pathogenic TP53 mutations seem to be adaptive for animals living in hypoxic and cold environments or having been exposed to starvation, respectively. At the somatic level, it has recently been proven that multiple cancer genes, including TP53, are under positive selection in healthy human tissues. It is not clear why these driver mutations do not transform these tissues into cancerous ones. Other studies have shown that elephants have multiple TP53 copies, probably this being the reason for the very low cancer incidence in these large animals. This may explain the famous Peto's paradox. This review discusses in detail the multilevel role of TP53 in adaptation, according to the published evidence. This role is complicated, and it extends from cells to individuals and to populations.",
+  "annotations": {
+    "genes": [
+      {
+        "text": "TP53",
+        "count": 9
+      },
+      {
+        "text": "p53",
+        "count": 1
+      }
+    ],
+    "diseases": [
+      {
+        "text": "cancer",
+        "count": 4
+      },
+      {
+        "text": "cancerous",
+        "count": 1
+      },
+      {
+        "text": "hypoxic",
+        "count": 1
+      },
+      {
+        "text": "tumor",
+        "count": 1
+      }
+    ]
+  },
+  "pubtator_fallback": false,
+  "_meta": {
+    "evidence_urls": [
+      {
+        "label": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36766853/"
+      },
+      {
+        "label": "PMC",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9914165/"
+      }
+    ],
+    "next_commands": [
+      "biomcp get gene TP53",
+      "biomcp get gene p53",
+      "biomcp search disease --query cancer",
+      "biomcp search disease --query cancerous",
+      "biomcp search disease --query hypoxic",
+      "biomcp search disease --query tumor",
+      "biomcp article entities 36766853",
+      "biomcp article citations 36766853 --limit 3",
+      "biomcp article references 36766853 --limit 3",
+      "biomcp article recommendations 36766853 --limit 3"
+    ],
+    "section_sources": [
+      {
+        "key": "bibliography",
+        "label": "Bibliography",
+        "sources": [
+          "PubMed",
+          "Europe PMC"
+        ]
+      },
+      {
+        "key": "authors",
+        "label": "Authors",
+        "sources": [
+          "PubMed",
+          "Europe PMC"
+        ]
+      },
+      {
+        "key": "abstract",
+        "label": "Abstract",
+        "sources": [
+          "PubMed",
+          "Europe PMC"
+        ]
+      },
+      {
+        "key": "annotations",
+        "label": "PubTator Annotations",
+        "sources": [
+          "PubTator3"
+        ]
+      }
+    ]
+  }
+}

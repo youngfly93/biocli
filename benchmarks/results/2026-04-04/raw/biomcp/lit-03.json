@@ -1,1 +1,102 @@
-{"title":"TP53 paper","pmid":"36766853"}
+[
+  {
+    "requested_id": "36766853",
+    "pmid": "36766853",
+    "pmcid": "PMC9914165",
+    "doi": "10.3390/cells12030512",
+    "title": "The Role of TP53 in Adaptation and Evolution.",
+    "journal": "Cells",
+    "year": 2023,
+    "entity_summary": {
+      "genes": [
+        {
+          "text": "TP53",
+          "count": 9
+        },
+        {
+          "text": "p53",
+          "count": 1
+        }
+      ],
+      "diseases": [
+        {
+          "text": "cancer",
+          "count": 4
+        },
+        {
+          "text": "cancerous",
+          "count": 1
+        },
+        {
+          "text": "hypoxic",
+          "count": 1
+        }
+      ]
+    },
+    "tldr": "The multilevel role of TP53 in adaptation is discussed, according to the published evidence, which is complicated, and it extends from cells to individuals and to populations.",
+    "citation_count": 104,
+    "influential_citation_count": 1
+  },
+  {
+    "requested_id": "35022513",
+    "pmid": "35022513",
+    "pmcid": "PMC8755718",
+    "doi": "10.1038/s42003-021-02983-5",
+    "title": "SARS-CoV-2 infection induces a pro-inflammatory cytokine response through cGAS-STING and NF-kappaB.",
+    "journal": "Commun Biol",
+    "year": 2022,
+    "entity_summary": {
+      "genes": [
+        {
+          "text": "NF-kappaB",
+          "count": 4
+        },
+        {
+          "text": "STING",
+          "count": 4
+        },
+        {
+          "text": "cGAS",
+          "count": 3
+        }
+      ],
+      "diseases": [
+        {
+          "text": "infected",
+          "count": 3
+        },
+        {
+          "text": "inflammatory",
+          "count": 3
+        },
+        {
+          "text": "inflammatory cytokines",
+          "count": 2
+        }
+      ]
+    },
+    "tldr": "Results show that SARS-CoV-2 directs a cGAS-STING mediated, NF-κB-driven inflammatory immune response in human epithelial cells that likely contributes to inflammatory responses seen in patients and could be therapeutically targeted to suppress severe disease symptoms.",
+    "citation_count": 205,
+    "influential_citation_count": 5
+  },
+  {
+    "requested_id": "34234131",
+    "pmid": "34234131",
+    "pmcid": "PMC8263750",
+    "doi": "10.1038/s41467-021-24435-8",
+    "title": "Mapping mutations to the SARS-CoV-2 RBD that escape binding by different classes of antibodies.",
+    "journal": "Nat Commun",
+    "year": 2021,
+    "entity_summary": {
+      "diseases": [
+        {
+          "text": "infection",
+          "count": 1
+        }
+      ]
+    },
+    "tldr": "Deep mutational scanning is used to identify mutations in the RBD that escape human monoclonal antibodies or convalescent plasmas that may escape neutralization by antibodies in SARS-CoV-2 mutants.",
+    "citation_count": 386,
+    "influential_citation_count": 24
+  }
+]

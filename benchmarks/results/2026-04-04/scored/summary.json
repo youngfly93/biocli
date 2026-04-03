@@ -341,11 +341,11 @@
         "category": "gene",
         "title": "Gene comprehensive dossier",
         "maxScore": 7,
-        "score": 3,
+        "score": 2,
         "criteria": [
           {
             "criterion": "Returns gene symbol and NCBI Gene ID",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Includes protein function description",
@@ -379,7 +379,7 @@
         "category": "gene",
         "title": "Multi-gene enrichment",
         "maxScore": 4,
-        "score": 4,
+        "score": 3,
         "criteria": [
           {
             "criterion": "Accepts comma-separated gene list",
@@ -391,7 +391,7 @@
           },
           {
             "criterion": "Includes p-values or scores",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Output is structured JSON",
@@ -405,19 +405,19 @@
         "category": "gene",
         "title": "Gene sequence download",
         "maxScore": 3,
-        "score": 3,
+        "score": 0,
         "criteria": [
           {
             "criterion": "Returns valid FASTA format",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Sequence is for TP53/p53",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Can save to file",
-            "met": true
+            "met": false
           }
         ],
         "notes": ""
@@ -453,7 +453,7 @@
         "category": "variant",
         "title": "Variant with clinical context",
         "maxScore": 5,
-        "score": 0,
+        "score": 1,
         "criteria": [
           {
             "criterion": "Returns gene (HBB)",
@@ -465,7 +465,7 @@
           },
           {
             "criterion": "Returns functional impact",
-            "met": false
+            "met": true
           },
           {
             "criterion": "Returns protein context",
@@ -661,7 +661,7 @@
       "outputUsability": 6,
       "efficiency": 6
     },
-    "totalWeighted": 27
+    "totalWeighted": 24
   },
   {
     "tool": "biomcp",
@@ -673,7 +673,7 @@
         "category": "gene",
         "title": "Gene comprehensive dossier",
         "maxScore": 7,
-        "score": 6,
+        "score": 3,
         "criteria": [
           {
             "criterion": "Returns gene symbol and NCBI Gene ID",
@@ -681,15 +681,15 @@
           },
           {
             "criterion": "Includes protein function description",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Includes at least 3 KEGG pathways",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Includes protein interaction partners",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Includes recent PubMed literature",
@@ -711,7 +711,7 @@
         "category": "gene",
         "title": "Multi-gene enrichment",
         "maxScore": 4,
-        "score": 4,
+        "score": 2,
         "criteria": [
           {
             "criterion": "Accepts comma-separated gene list",
@@ -719,11 +719,11 @@
           },
           {
             "criterion": "Returns enriched pathways/GO terms",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Includes p-values or scores",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Output is structured JSON",
@@ -785,7 +785,7 @@
         "category": "variant",
         "title": "Variant with clinical context",
         "maxScore": 5,
-        "score": 3,
+        "score": 2,
         "criteria": [
           {
             "criterion": "Returns gene (HBB)",
@@ -797,7 +797,7 @@
           },
           {
             "criterion": "Returns functional impact",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Returns protein context",
@@ -815,15 +815,15 @@
         "category": "variant",
         "title": "SNP basic lookup",
         "maxScore": 3,
-        "score": 3,
+        "score": 1,
         "criteria": [
           {
             "criterion": "Returns rsID, gene, chromosome, position",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Returns allele information",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Output is structured JSON",
@@ -837,11 +837,11 @@
         "category": "literature",
         "title": "Literature brief",
         "maxScore": 4,
-        "score": 4,
+        "score": 3,
         "criteria": [
           {
             "criterion": "Returns at least 3 articles",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Includes titles and abstracts",
@@ -993,6 +993,6 @@
       "outputUsability": 7,
       "efficiency": 7
     },
-    "totalWeighted": 51
+    "totalWeighted": 45
   }
 ]

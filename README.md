@@ -48,17 +48,17 @@ Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON ou
 
 > **gget** excels at sequence analysis (BLAST, AlphaFold, MUSCLE). **BioMCP** covers more biomedical entities (drugs, trials, diseases). **EDirect** has the deepest NCBI Entrez integration. **biocli** is the only one that combines query + download + data preparation into agent-orchestrated workflows.
 
-### Benchmark (2026-04-04)
+### Benchmark (2026-04-04, real execution)
 
-12 real biology tasks, 7 scoring dimensions. [Full methodology →](benchmarks/README.md)
+12 biology tasks, 7 scoring dimensions. All tools installed and executed locally. [Full methodology →](benchmarks/README.md)
 
-| Tool | Task Success | Agent Readiness | Workflow Depth | Safety | Reproducibility | **Total** |
-|------|:---:|:---:|:---:|:---:|:---:|:---:|
-| **biocli** | 46/49 | 10/10 | 10/10 | 9/10 | 10/10 | **95/100** |
-| BioMCP | 30/49 | 6/10 | 4/10 | 3/10 | 2/10 | 51/100 |
-| gget | 12/49 | 3/10 | 2/10 | 2/10 | 1/10 | 27/100 |
+| Tool | Version | Task Success | Agent Readiness | Workflow Depth | Safety | Reproducibility | **Total** |
+|------|---------|:---:|:---:|:---:|:---:|:---:|:---:|
+| **biocli** | 0.2.0 | 46/49 | 10/10 | 10/10 | 9/10 | 10/10 | **95/100** |
+| BioMCP | 0.8.19 | 21/49 | 6/10 | 4/10 | 3/10 | 2/10 | 45/100 |
+| gget | 0.30.3 | 8/49 | 3/10 | 2/10 | 2/10 | 1/10 | 24/100 |
 
-> Benchmark covers gene dossiers, variant interpretation, literature search, dataset discovery, and data preparation workflows. Raw results and scoring scripts are in [`benchmarks/`](benchmarks/).
+> All three tools were installed (`npm install -g @biocli/cli`, `pip install gget`, `pip install biomcp-cli`) and executed on the same machine with the same inputs. Raw stdout/stderr, scoring scripts, and runner scripts are in [`benchmarks/`](benchmarks/). BioMCP excels at biomedical entity breadth (drugs, trials, diseases) not covered by this task set; gget excels at sequence analysis (BLAST, AlphaFold) not covered here.
 
 ## Quick start
 

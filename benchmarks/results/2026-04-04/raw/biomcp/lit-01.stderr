@@ -1,0 +1,1 @@
+[2m2026-04-03T16:51:33.074049Z[0m [33m WARN[0m [2mbiomcp_cli::entities::article[0m[2m:[0m Semantic Scholar article search leg failed [3merr[0m[2m=[0mApi { api: "semantic_scholar", message: "Rate limited by Semantic Scholar. Set S2_API_KEY for a dedicated rate limit. See https://www.semanticscholar.org/product/api" } [3mquery[0m[2m=[0m"TP53 apoptosis"

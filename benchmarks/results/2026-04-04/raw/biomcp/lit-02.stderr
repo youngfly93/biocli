@@ -1,0 +1,1 @@
+[2m2026-04-03T16:51:38.512677Z[0m [33m WARN[0m [2mbiomcp_cli::entities::article[0m[2m:[0m Semantic Scholar enrichment failed [3merr[0m[2m=[0mApi { api: "semantic_scholar", message: "Rate limited by Semantic Scholar. Set S2_API_KEY for a dedicated rate limit. See https://www.semanticscholar.org/product/api" } [3mlookup_id[0m[2m=[0m"PMID:36766853"
