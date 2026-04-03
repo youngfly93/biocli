@@ -33,8 +33,9 @@ $BIOCLI string partners TP53 -f json --limit 1 | node -e "const d=JSON.parse(req
 echo "OK"
 
 echo -n "  doctor... "
-# doctor may exit 1 if optional checks (api key) are missing; just verify JSON output is valid
-$BIOCLI doctor -f json 2>/dev/null | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); if(!d.checks) throw 'bad'" || true
+# doctor may exit nonzero if backends are unreachable; capture output and validate JSON separately
+doctor_out=$($BIOCLI doctor -f json 2>/dev/null || true)
+echo "$doctor_out" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); if(!d.checks || !d.checks.length) throw 'bad doctor output'"
 echo "OK"
 
 echo ""

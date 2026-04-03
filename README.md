@@ -5,7 +5,7 @@ Query biological databases from the terminal. Agent-first design.
 ```
 biocli v0.2.0
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr
-35 commands · 6 database backends · 5 workflow commands
+40 commands · 6 database backends · 6 workflow commands · 4 download commands
 ```
 
 ## Install
@@ -55,6 +55,7 @@ biocli aggregate gene-profile TP53
 |---------|---------|----------|
 | `aggregate gene-dossier <gene>` | NCBI+UniProt+KEGG+STRING+PubMed+ClinVar | Complete gene intelligence report |
 | `aggregate variant-dossier <variant>` | dbSNP+ClinVar+Ensembl VEP | Variant interpretation |
+| `aggregate variant-interpret <variant>` | dbSNP+ClinVar+VEP+UniProt | Variant interpretation with clinical context |
 | `aggregate literature-brief <query>` | PubMed | Literature summary with abstracts |
 | `aggregate enrichment <genes>` | Enrichr+STRING | Pathway/GO enrichment analysis |
 | `aggregate gene-profile <gene>` | NCBI+UniProt+KEGG+STRING | Gene profile (no literature) |
@@ -64,13 +65,13 @@ biocli aggregate gene-profile TP53
 | Database | Commands |
 |----------|----------|
 | **PubMed** | `pubmed search`, `fetch`, `abstract`, `cited-by`, `related`, `info` |
-| **Gene** | `gene search`, `info` |
-| **GEO** | `geo search`, `dataset`, `samples` |
-| **SRA** | `sra search`, `run` |
+| **Gene** | `gene search`, `info`, `fetch` (FASTA download) |
+| **GEO** | `geo search`, `dataset`, `samples`, `download` |
+| **SRA** | `sra search`, `run`, `download` (FASTQ via ENA/sra-tools) |
 | **ClinVar** | `clinvar search`, `variant` |
 | **SNP** | `snp lookup` |
 | **Taxonomy** | `taxonomy lookup` |
-| **UniProt** | `uniprot search`, `fetch` |
+| **UniProt** | `uniprot search`, `fetch`, `sequence` (FASTA download) |
 | **KEGG** | `kegg pathway`, `link`, `disease`, `convert` |
 | **STRING** | `string partners`, `network`, `enrichment` |
 | **Ensembl** | `ensembl lookup`, `vep`, `xrefs` |

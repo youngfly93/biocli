@@ -57,18 +57,21 @@ function commandExists(cmd: string): boolean {
   }
 }
 
-/** Download a file with progress indication. */
-async function downloadFile(url: string, destPath: string): Promise<{ ok: boolean; size: number }> {
+/** Download a file. Returns { ok, size, notFound } to distinguish 404 from real errors. */
+async function downloadFile(url: string, destPath: string): Promise<{ ok: boolean; size: number; notFound: boolean }> {
   const response = await fetch(url);
+  if (response.status === 404) {
+    return { ok: false, size: 0, notFound: true };
+  }
   if (!response.ok || !response.body) {
-    return { ok: false, size: 0 };
+    return { ok: false, size: 0, notFound: false };
   }
 
   const writable = createWriteStream(destPath);
   await pipeline(Readable.fromWeb(response.body as any), writable);
 
   const contentLength = response.headers.get('content-length');
-  return { ok: true, size: contentLength ? Number(contentLength) : 0 };
+  return { ok: true, size: contentLength ? Number(contentLength) : 0, notFound: false };
 }
 
 function formatSize(bytes: number): string {
@@ -111,7 +114,7 @@ cli({
     if (method === 'ena') {
       const urls = buildEnaFastqUrls(accession);
       const rows: { file: string; size: string; status: string }[] = [];
-      let anySuccess = false;
+      const errors: string[] = [];
 
       for (const url of urls) {
         const fileName = url.split('/').pop()!;
@@ -121,18 +124,32 @@ cli({
           const result = await downloadFile(url, destPath);
           if (result.ok) {
             rows.push({ file: fileName, size: formatSize(result.size), status: `saved → ${destPath}` });
-            anySuccess = true;
+          } else if (!result.notFound) {
+            // Non-404 failure is a real error (network issue, server error)
+            errors.push(`${fileName}: HTTP error`);
+            rows.push({ file: fileName, size: '', status: 'failed' });
           }
-          // 404 is normal for single-end (no _1/_2) or paired-end (no plain .fastq.gz)
-        } catch {
-          // Skip failed URLs silently — ENA returns 404 for non-existent files
+          // 404 is expected: single-end has no _1/_2, paired-end has no plain .fastq.gz
+        } catch (err) {
+          // Network/write errors are real failures, not expected 404s
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`${fileName}: ${msg}`);
+          rows.push({ file: fileName, size: '', status: `error: ${msg}` });
         }
       }
 
-      if (!anySuccess) {
+      const successCount = rows.filter(r => r.status.startsWith('saved')).length;
+
+      if (successCount === 0) {
         throw new CliError('NOT_FOUND',
           `FASTQ files not available on ENA for ${accession}`,
           'The run may not be mirrored to ENA yet. Try: biocli sra download ' + accession + ' --method sra-tools');
+      }
+
+      if (errors.length > 0) {
+        throw new CliError('API_ERROR',
+          `Partial download failure for ${accession}: ${errors.join('; ')}`,
+          'Some files failed to download. Check network connectivity and retry.');
       }
 
       return rows;
