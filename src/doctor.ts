@@ -70,8 +70,8 @@ function checkConfig(): CheckResult[] {
     results.push({
       name: 'API key',
       value: 'not set',
-      ok: false,
-      detail: '3 req/s (set with: biocli config set api_key YOUR_KEY)',
+      ok: true,
+      detail: '3 req/s — optional (biocli config set api_key YOUR_KEY for 10 req/s)',
     });
   }
 
@@ -79,8 +79,8 @@ function checkConfig(): CheckResult[] {
   results.push({
     name: 'Email',
     value: email ?? 'not set',
-    ok: !!email,
-    detail: email ? undefined : 'Recommended for NCBI (biocli config set email YOUR_EMAIL)',
+    ok: true,
+    detail: email ? undefined : 'Optional — recommended for NCBI (biocli config set email YOUR_EMAIL)',
   });
 
   return results;
