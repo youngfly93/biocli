@@ -22,18 +22,21 @@ import { execSync } from 'node:child_process';
 
 /** Build ENA FASTQ download URLs for an SRR accession. */
 function buildEnaFastqUrls(accession: string): string[] {
-  // ENA URL pattern: /vol1/fastq/SRR123/[00N/]SRR1234567/
-  // The sub-directory depends on the accession length:
-  //   <= 9 digits: no sub-directory
-  //   10 digits:  /00N/ where N = last digit
-  //   11 digits:  /0NN/ where NN = last 2 digits
-  const prefix = accession.slice(0, 6); // e.g. SRR123
-  const digits = accession.replace(/^[A-Z]+/, '');
+  // ENA URL pattern: /vol1/fastq/SRR123/[NNN/]SRR1234567/
+  // Sub-directory depends on total accession length:
+  //   <= 9 chars (e.g. SRR039885):  no sub-directory
+  //   10 chars  (e.g. SRR1039508): /00N/ where N = last digit
+  //   11 chars  (e.g. SRR10395085): /0NN/ where NN = last 2 digits
+  //   >= 12 chars: /NNN/ where NNN = last 3 digits
+  const prefix = accession.slice(0, 6); // e.g. SRR103
 
   let subDir = '';
-  if (digits.length >= 10) {
-    const pad = digits.length === 10 ? `00${digits.slice(-1)}` : `0${digits.slice(-2)}`;
-    subDir = `/${pad}`;
+  if (accession.length === 10) {
+    subDir = `/00${accession.slice(-1)}`;
+  } else if (accession.length === 11) {
+    subDir = `/0${accession.slice(-2)}`;
+  } else if (accession.length >= 12) {
+    subDir = `/${accession.slice(-3)}`;
   }
 
   const base = `https://ftp.sra.ebi.ac.uk/vol1/fastq/${prefix}${subDir}/${accession}`;
