@@ -12,6 +12,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { parseBatchInput, mergeBatchResults } from './batch.js';
 import { type CliCommand, fullName, getRegistry, strategyLabel } from './registry.js';
 import { render as renderOutput } from './output.js';
 import { executeCommand } from './execution.js';
@@ -58,11 +59,12 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
   if (cmd.aliases?.length) subCmd.aliases(cmd.aliases);
 
   // Register positional args first, then named options
+  // Positional args are always registered as optional with Commander —
+  // required checks are done in the action handler to allow --input batch mode
   const positionalArgs: typeof cmd.args = [];
   for (const arg of cmd.args) {
     if (arg.positional) {
-      const bracket = arg.required ? `<${arg.name}>` : `[${arg.name}]`;
-      subCmd.argument(bracket, arg.help ?? '');
+      subCmd.argument(`[${arg.name}]`, arg.help ?? '');
       positionalArgs.push(arg);
     } else {
       const flag = arg.required ? `--${arg.name} <value>` : `--${arg.name} [value]`;
@@ -75,7 +77,9 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
     .option('-f, --format <fmt>', 'Output format: table, plain, json, yaml, md, csv', 'table')
     .option('-c, --columns <cols>', 'Columns to display (comma-separated, e.g. pmid,title,abstract)')
     .option('-A, --all-columns', 'Show all available columns', false)
-    .option('-v, --verbose', 'Debug output', false);
+    .option('-v, --verbose', 'Debug output', false)
+    .option('--input <file>', 'Batch input: file with one ID per line, or - for stdin')
+    .option('--no-cache', 'Skip cache and fetch fresh data');
 
   subCmd.action(async (...actionArgs: unknown[]) => {
     const actionOpts = actionArgs[positionalArgs.length] ?? {};
@@ -98,6 +102,19 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       }
 
       const verbose = optionsRecord.verbose === true;
+      const inputFile = typeof optionsRecord.input === 'string' ? optionsRecord.input : undefined;
+
+      // Validate required positional args (unless --input provides batch input)
+      if (!inputFile) {
+        for (const arg of positionalArgs) {
+          if (arg.required && (kwargs[arg.name] === undefined || kwargs[arg.name] === null || kwargs[arg.name] === '')) {
+            console.error(chalk.red(`error: missing required argument '${arg.name}'`));
+            process.exitCode = 1;
+            return;
+          }
+        }
+      }
+
       let format = typeof optionsRecord.format === 'string' ? optionsRecord.format : 'table';
       if (verbose) process.env.BIOCLI_VERBOSE = '1';
       if (cmd.deprecated) {
@@ -106,15 +123,55 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         console.error(chalk.yellow(`Deprecated: ${message}${replacement}`));
       }
 
-      const spinnerLabel = cmd.database
-        ? `Querying ${cmd.database}…`
-        : `Running ${fullName(cmd)}…`;
-      const spinner = startSpinner(spinnerLabel);
+      // Commander's --no-cache sets optionsRecord.cache to false
+      const noCache = optionsRecord.cache === false;
+
+      // ── Batch mode: --input or comma-separated positional ────────────
+      const primaryArg = positionalArgs[0]; // first positional = primary ID/query
+      const batchItems = primaryArg
+        ? parseBatchInput(kwargs[primaryArg.name] as string | undefined, inputFile)
+        : null;
+
       let result: unknown;
-      try {
-        result = await executeCommand(cmd, kwargs, verbose);
-      } finally {
-        spinner.stop();
+      if (batchItems && primaryArg) {
+        const spinnerLabel = `Batch ${fullName(cmd)} (${batchItems.length} items)…`;
+        const spinner = startSpinner(spinnerLabel);
+        const batchResults: unknown[] = [];
+        const errors: string[] = [];
+        try {
+          for (const item of batchItems) {
+            try {
+              const batchKwargs = { ...kwargs, [primaryArg.name]: item };
+              const r = await executeCommand(cmd, batchKwargs, verbose, { noCache });
+              if (r !== null && r !== undefined) batchResults.push(r);
+            } catch (err) {
+              errors.push(`${item}: ${err instanceof Error ? err.message : String(err)}`);
+              if (verbose) console.error(chalk.yellow(`[Batch] ${item} failed: ${err instanceof Error ? err.message : String(err)}`));
+            }
+          }
+        } finally {
+          spinner.stop();
+        }
+        if (errors.length > 0) {
+          console.error(chalk.yellow(`[Batch] ${errors.length}/${batchItems.length} failed`));
+          if (verbose) errors.forEach(e => console.error(chalk.dim(`  ${e}`)));
+        }
+        if (!batchResults.length) {
+          console.error(chalk.red(`All ${batchItems.length} batch items failed.`));
+          process.exitCode = 1;
+          return;
+        }
+        result = mergeBatchResults(batchResults);
+      } else {
+        const spinnerLabel = cmd.database
+          ? `Querying ${cmd.database}…`
+          : `Running ${fullName(cmd)}…`;
+        const spinner = startSpinner(spinnerLabel);
+        try {
+          result = await executeCommand(cmd, kwargs, verbose, { noCache });
+        } finally {
+          spinner.stop();
+        }
       }
       if (result === null || result === undefined) {
         return;

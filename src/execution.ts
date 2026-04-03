@@ -29,6 +29,7 @@ import {
 } from './errors.js';
 import { emitHook, type HookContext } from './hooks.js';
 import { createHttpContextForDatabase } from './databases/index.js';
+import { buildCacheKey, getCached, setCached } from './cache.js';
 
 /** Default command timeout in seconds (used when timeoutSeconds is set). */
 const DEFAULT_COMMAND_TIMEOUT = 60;
@@ -160,6 +161,7 @@ export async function executeCommand(
   cmd: CliCommand,
   rawKwargs: CommandArgs,
   debug: boolean = false,
+  opts: { noCache?: boolean } = {},
 ): Promise<unknown> {
   let kwargs: CommandArgs;
   try {
@@ -178,9 +180,22 @@ export async function executeCommand(
   };
   await emitHook('onBeforeExecute', hookCtx);
 
+  // ── Cache check ───────────────────────────────────────────────────────
+  const databaseId = cmd.database ?? 'ncbi';
+  const cacheKey = buildCacheKey(databaseId, fullName(cmd), kwargs);
+  if (!opts.noCache && databaseId !== 'aggregate') {
+    const cached = getCached(databaseId, fullName(cmd), cacheKey);
+    if (cached !== null) {
+      if (debug) console.error(`[Cache] HIT ${cacheKey}`);
+      hookCtx.finishedAt = Date.now();
+      await emitHook('onAfterExecute', hookCtx, cached);
+      return cached;
+    }
+    if (debug) console.error(`[Cache] MISS ${cacheKey}`);
+  }
+
   let result: unknown;
   try {
-    const databaseId = cmd.database ?? 'ncbi';
     // Aggregate commands create their own multi-database contexts internally
     const ctx = databaseId === 'aggregate'
       ? { databaseId: 'aggregate', fetch: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchJson: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchXml: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchText: async () => { throw new Error('use createHttpContextForDatabase()'); } } as HttpContext
@@ -200,6 +215,11 @@ export async function executeCommand(
     hookCtx.finishedAt = Date.now();
     await emitHook('onAfterExecute', hookCtx);
     throw err;
+  }
+
+  // ── Cache store ──────────────────────────────────────────────────────
+  if (!opts.noCache && databaseId !== 'aggregate' && result !== null && result !== undefined) {
+    try { setCached(databaseId, fullName(cmd), cacheKey, result); } catch { /* non-fatal */ }
   }
 
   hookCtx.finishedAt = Date.now();

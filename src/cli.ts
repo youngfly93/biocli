@@ -17,6 +17,7 @@ import { runDoctor, formatDoctorText, formatDoctorJson } from './doctor.js';
 import { biocliResultSchema, resultWithMetaSchema } from './schema.js';
 import { runVerify, formatVerifyText, formatVerifyJson } from './verify.js';
 import { loadConfig, saveConfig, getConfigPath } from './config.js';
+import { getStats as getCacheStats, clearCache } from './cache.js';
 import { BUILTIN_CLIS_DIR, USER_CLIS_DIR } from './discovery.js';
 
 export function runCli(): void {
@@ -278,6 +279,43 @@ ${chalk.bold('Configuration:')}
         console.log(formatVerifyText(result));
       }
       if (!result.allPassed) process.exitCode = 1;
+    });
+
+  // ── Built-in: cache ────────────────────────────────────────────────────────
+
+  const cacheCmd = program
+    .command('cache')
+    .description('Manage local response cache');
+
+  cacheCmd
+    .command('stats')
+    .description('Show cache statistics')
+    .option('-f, --format <fmt>', 'Output format: text, json', 'text')
+    .action((opts) => {
+      const stats = getCacheStats();
+      if (opts.format === 'json') {
+        console.log(JSON.stringify(stats, null, 2));
+      } else {
+        console.log();
+        console.log(chalk.bold('  biocli cache stats'));
+        console.log();
+        console.log(`  Entries     ${stats.totalEntries}`);
+        console.log(`  Size        ${(stats.totalSizeBytes / 1024).toFixed(1)} KB`);
+        if (stats.oldestEntry) console.log(`  Oldest      ${stats.oldestEntry}`);
+        if (stats.newestEntry) console.log(`  Newest      ${stats.newestEntry}`);
+        if (Object.keys(stats.databases).length > 0) {
+          console.log(`  Databases   ${Object.entries(stats.databases).map(([k, v]) => `${k}(${v})`).join(', ')}`);
+        }
+        console.log();
+      }
+    });
+
+  cacheCmd
+    .command('clear')
+    .description('Clear all cached responses')
+    .action(() => {
+      const count = clearCache();
+      console.log(chalk.green(`Cleared ${count} cache entries.`));
     });
 
   // ── Register dynamic adapter commands ─────────────────────────────────────
