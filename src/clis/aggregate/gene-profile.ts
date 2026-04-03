@@ -16,6 +16,7 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
+import { wrapResult } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { buildEutilsUrl } from '../../databases/ncbi.js';
 import { buildUniprotUrl } from '../../databases/uniprot.js';
@@ -27,16 +28,9 @@ import type { HttpContext } from '../../types.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface GeneProfile {
+interface GeneProfileData {
   symbol: string;
   name: string;
-  organism: string;
-  ids: {
-    ncbiGeneId?: string;
-    uniprotAccession?: string;
-    keggId?: string;
-    ensemblGeneId?: string;
-  };
   summary: string;
   chromosome: string;
   location: string;
@@ -46,11 +40,6 @@ interface GeneProfile {
   goTerms: Array<{ id: string; name: string; aspect: string }>;
   interactions: Array<{ partner: string; score: number }>;
   diseases: Array<{ id: string; name: string; source: string }>;
-  _meta: {
-    sources: string[];
-    queriedAt: string;
-    errors: string[];
-  };
 }
 
 // ── NCBI Gene fetch ───────────────────────────────────────────────────────────
@@ -262,7 +251,7 @@ async function buildGeneProfile(
   organismName: string,
   taxId: number,
   keggOrg: string,
-): Promise<GeneProfile> {
+): Promise<ReturnType<typeof wrapResult>> {
   const meta = { sources: [] as string[], queriedAt: new Date().toISOString(), errors: [] as string[] };
 
   const ncbiCtx = createHttpContextForDatabase('ncbi');
@@ -320,16 +309,9 @@ async function buildGeneProfile(
     meta.errors.push('KEGG: skipped (no NCBI Gene ID to map from)');
   }
 
-  return {
+  const profileData: GeneProfileData = {
     symbol,
     name: ncbiData?.name ?? '',
-    organism: organismName,
-    ids: {
-      ncbiGeneId: ncbiData?.geneId,
-      uniprotAccession: uniprotData?.accession,
-      keggId: keggData?.keggId,
-      ensemblGeneId: uniprotData?.ensemblGeneId,
-    },
     summary: ncbiData?.summary ?? '',
     chromosome: ncbiData?.chromosome ?? '',
     location: ncbiData?.location ?? '',
@@ -339,8 +321,21 @@ async function buildGeneProfile(
     goTerms: uniprotData?.goTerms ?? [],
     interactions,
     diseases: (keggData?.diseases ?? []).map(d => ({ ...d, source: 'KEGG' })),
-    _meta: meta,
   };
+
+  const ids: Record<string, string> = {};
+  if (ncbiData?.geneId) ids.ncbiGeneId = ncbiData.geneId;
+  if (uniprotData?.accession) ids.uniprotAccession = uniprotData.accession;
+  if (keggData?.keggId) ids.keggId = keggData.keggId;
+  if (uniprotData?.ensemblGeneId) ids.ensemblGeneId = uniprotData.ensemblGeneId;
+
+  return wrapResult(profileData, {
+    ids,
+    sources: meta.sources,
+    warnings: meta.errors,
+    organism: organismName,
+    query: symbol,
+  });
 }
 
 cli({
@@ -365,11 +360,11 @@ cli({
     const org = resolveOrganism(String(args.organism));
 
     if (genes.length === 1) {
-      return [await buildGeneProfile(genes[0], org.name, org.taxId, org.keggOrg)];
+      return await buildGeneProfile(genes[0], org.name, org.taxId, org.keggOrg);
     }
 
     // Batch: process genes sequentially to respect rate limits
-    const profiles: GeneProfile[] = [];
+    const profiles = [];
     for (const gene of genes) {
       profiles.push(await buildGeneProfile(gene, org.name, org.taxId, org.keggOrg));
     }

@@ -10,7 +10,7 @@ import { CliError } from '../../errors.js';
 import { submitGeneList, getEnrichment } from '../../databases/enrichr.js';
 import { buildStringUrl, encodeStringIds } from '../../databases/string-db.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
-import { withMeta } from '../../types.js';
+import { wrapResult } from '../../types.js';
 
 interface EnrichmentResult {
   term: string;
@@ -114,6 +114,11 @@ cli({
     // Sort by p-value
     rows.sort((a, b) => parseFloat(a.pValue) - parseFloat(b.pValue));
 
-    return withMeta(rows, { totalCount: rows.length, query: geneList.join(',') });
+    const activeSources = [...new Set(rows.map(r => r.source))];
+    return wrapResult(rows, {
+      sources: activeSources,
+      warnings: errors,
+      query: geneList.join(','),
+    });
   },
 });

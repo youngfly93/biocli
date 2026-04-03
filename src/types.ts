@@ -38,6 +38,47 @@ export function hasResultMeta(v: unknown): v is ResultWithMeta {
   return typeof v === 'object' && v !== null && (v as ResultWithMeta).__resultMeta === true;
 }
 
+// ── Agent-first result schema ──────────────────────────────────────────────────
+
+/**
+ * Standard result envelope for aggregation/workflow commands.
+ *
+ * Every high-level biocli command should return this shape so that
+ * AI agents and downstream scripts can consume results reliably.
+ */
+export interface BiocliResult<T = unknown> {
+  /** Primary result data. */
+  data: T;
+  /** Cross-database identifiers for the queried entity. */
+  ids: Record<string, string>;
+  /** Which databases contributed data. */
+  sources: string[];
+  /** Non-fatal issues: partial failures, ambiguous matches, missing fields. */
+  warnings: string[];
+  /** ISO timestamp of when the query was executed. */
+  queriedAt: string;
+  /** Organism context (scientific name). */
+  organism?: string;
+  /** The original query input. */
+  query: string;
+}
+
+/** Create a BiocliResult envelope. */
+export function wrapResult<T>(
+  data: T,
+  opts: { ids?: Record<string, string>; sources?: string[]; warnings?: string[]; organism?: string; query: string },
+): BiocliResult<T> {
+  return {
+    data,
+    ids: opts.ids ?? {},
+    sources: opts.sources ?? [],
+    warnings: opts.warnings ?? [],
+    queriedAt: new Date().toISOString(),
+    organism: opts.organism,
+    query: opts.query,
+  };
+}
+
 // ── Fetch options ─────────────────────────────────────────────────────────────
 
 /** Options for a single HTTP request. Generic across all database backends. */
