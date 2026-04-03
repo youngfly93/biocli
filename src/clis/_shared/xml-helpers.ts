@@ -44,7 +44,7 @@ function str(v: unknown): string {
   if (v === undefined || v === null) return '';
   if (typeof v === 'string') return v;
   if (typeof v === 'number') return String(v);
-  // fast-xml-parser may produce { '#text': 'value' } for mixed-content nodes
+  // fast-xml-parser may produce { '#text': 'value' } for text-only nodes
   if (isRecord(v) && '#text' in v) return String(v['#text']);
   return String(v);
 }

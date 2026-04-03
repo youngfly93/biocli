@@ -26,7 +26,7 @@ biocli is designed for **AI agents** (Claude, GPT, etc.) to query biology databa
 biocli aggregate gene-dossier TP53 -f json
 ```
 
-Returns a unified JSON with gene summary, protein function, 51 KEGG pathways, 173 GO terms, 10 protein interactions, recent literature, and clinical variants — sourced from NCBI, UniProt, KEGG, STRING, PubMed, and ClinVar in parallel.
+Returns a unified JSON with gene summary, protein function, KEGG pathways, GO terms, protein interactions, recent literature, and clinical variants — sourced from NCBI, UniProt, KEGG, STRING, PubMed, and ClinVar in parallel.
 
 ## Quick start
 

@@ -184,8 +184,9 @@ cli({
       warnings.push(`NCBI Gene: ${ncbiResult.status === 'rejected' ? ncbiResult.reason : 'not found'}`);
     }
 
-    // Extract UniProt
+    // Extract UniProt (function + GO terms)
     let uniprotFunc = '';
+    let goTerms: Array<{ id: string; name: string; aspect: string }> = [];
     if (uniprotResult.status === 'fulfilled' && uniprotResult.value) {
       const entry = uniprotResult.value as Record<string, unknown>;
       ids.uniprotAccession = String(entry.primaryAccession ?? '');
@@ -193,6 +194,21 @@ cli({
       const fc = comments.find(c => c.commentType === 'FUNCTION');
       const texts = (fc?.texts ?? []) as Record<string, unknown>[];
       uniprotFunc = texts.map(t => String(t.value ?? '')).join(' ');
+
+      // Extract GO terms from cross-references
+      const xrefs = (entry.uniProtKBCrossReferences ?? []) as Record<string, unknown>[];
+      goTerms = xrefs
+        .filter(x => x.database === 'GO')
+        .map(x => {
+          const id = String(x.id ?? '');
+          const props = (x.properties ?? []) as Record<string, unknown>[];
+          const termProp = props.find(p => p.key === 'GoTerm');
+          const term = String(termProp?.value ?? '');
+          const aspectMap: Record<string, string> = { C: 'CC', F: 'MF', P: 'BP' };
+          const [aspect, ...nameParts] = term.split(':');
+          return { id, name: nameParts.join(':'), aspect: aspectMap[aspect] ?? aspect };
+        });
+
       sources.push('UniProt');
     } else {
       warnings.push(`UniProt: ${uniprotResult.status === 'rejected' ? uniprotResult.reason : 'not found'}`);
@@ -239,6 +255,7 @@ cli({
       chromosome: String(ncbiGene?.chromosome ?? ''),
       location: String(ncbiGene?.location ?? ''),
       pathways,
+      goTerms,
       interactions,
       recentLiterature: literature,
       clinicalVariants: clinvar,

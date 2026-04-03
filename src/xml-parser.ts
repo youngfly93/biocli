@@ -85,6 +85,12 @@ function decodeHtmlEntities(text: string): string {
   );
 }
 
+/**
+ * Inline markup tags that appear inside PubMed text fields.
+ * Stripped from raw XML before parsing to prevent text loss.
+ */
+const INLINE_TAG_RE = /<\/?(i|b|u|sup|sub|em|strong|italic|bold)(\s[^>]*)?\/?>/gi;
+
 const defaultParser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
@@ -111,9 +117,15 @@ const defaultParser = new XMLParser({
 /**
  * Parse an XML string into a JavaScript object using NCBI-tuned settings.
  *
+ * Pre-strips inline markup tags (<i>, <b>, <sup>, etc.) so their text
+ * content is preserved in the parent element's #text node.
+ *
  * @param xml  Raw XML response body from NCBI.
  * @returns    Parsed object tree.
  */
 export function parseXml(xml: string): unknown {
-  return defaultParser.parse(xml);
+  // Strip inline formatting tags before parsing to prevent text loss.
+  // e.g. "The Role of<i>TP53</i>in cancer" → "The Role of TP53 in cancer"
+  const cleaned = xml.replace(INLINE_TAG_RE, '');
+  return defaultParser.parse(cleaned);
 }
