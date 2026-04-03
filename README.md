@@ -52,11 +52,28 @@ Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON ou
 
 12 biology tasks, 7 scoring dimensions. All tools installed and executed locally. [Full methodology →](benchmarks/README.md)
 
+<p align="center">
+  <img src="benchmarks/results/2026-04-04/plots/total_scores.png" width="420" alt="Overall benchmark scores">
+</p>
+
 | Tool | Version | Task Success | Agent Readiness | Workflow Depth | Safety | Reproducibility | **Total** |
 |------|---------|:---:|:---:|:---:|:---:|:---:|:---:|
 | **biocli** | 0.2.0 | 46/49 | 10/10 | 10/10 | 9/10 | 10/10 | **95/100** |
 | BioMCP | 0.8.19 | 21/49 | 6/10 | 4/10 | 3/10 | 2/10 | 45/100 |
 | gget | 0.30.3 | 8/49 | 3/10 | 2/10 | 2/10 | 1/10 | 24/100 |
+
+<details>
+<summary>Detailed breakdown by dimension and category</summary>
+
+<p align="center">
+  <img src="benchmarks/results/2026-04-04/plots/dimensions.png" width="560" alt="Cross-cutting quality dimensions">
+</p>
+
+<p align="center">
+  <img src="benchmarks/results/2026-04-04/plots/task_categories.png" width="500" alt="Task success by category">
+</p>
+
+</details>
 
 > All three tools were installed (`npm install -g @biocli/cli`, `pip install gget`, `pip install biomcp-cli`) and executed on the same machine with the same inputs. Raw stdout/stderr, scoring scripts, and runner scripts are in [`benchmarks/`](benchmarks/). BioMCP excels at biomedical entity breadth (drugs, trials, diseases) not covered by this task set; gget excels at sequence analysis (BLAST, AlphaFold) not covered here.
 
