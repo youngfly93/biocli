@@ -1,0 +1,185 @@
+# biocli Benchmark Task Set v1
+# 12 tasks across 4 categories
+# Each task has: id, category, description, input, success_criteria, scoring
+
+version: "1.0"
+date: "2026-04-04"
+tools:
+  - name: biocli
+    version: "0.2.0"
+    install: "npm install -g @biocli/cli"
+  - name: gget
+    version: "latest"
+    install: "pip install gget"
+  - name: biomcp
+    version: "latest"
+    install: "uv tool install biomcp-cli"
+
+tasks:
+  # ── Category 1: Gene Tasks ─────────────────────────────────────────────────
+  - id: gene-01
+    category: gene
+    title: "Gene comprehensive dossier"
+    description: "Retrieve a complete gene intelligence report for TP53 including function, pathways, interactions, literature, and clinical variants."
+    input:
+      gene: "TP53"
+      organism: "Homo sapiens"
+    success_criteria:
+      - "Returns gene symbol and NCBI Gene ID"
+      - "Includes protein function description"
+      - "Includes at least 3 KEGG pathways"
+      - "Includes protein interaction partners"
+      - "Includes recent PubMed literature"
+      - "Includes ClinVar clinical variants"
+      - "Output is structured JSON"
+    max_score: 7
+
+  - id: gene-02
+    category: gene
+    title: "Multi-gene enrichment analysis"
+    description: "Run pathway enrichment for a gene set: TP53, BRCA1, EGFR, MYC, CDK2."
+    input:
+      genes: "TP53,BRCA1,EGFR,MYC,CDK2"
+    success_criteria:
+      - "Accepts comma-separated gene list"
+      - "Returns enriched pathways/GO terms"
+      - "Includes p-values or scores"
+      - "Output is structured JSON"
+    max_score: 4
+
+  - id: gene-03
+    category: gene
+    title: "Gene sequence download"
+    description: "Download the protein FASTA sequence for TP53 (NCBI Gene ID 7157)."
+    input:
+      gene_id: "7157"
+      type: "protein"
+    success_criteria:
+      - "Returns valid FASTA format (starts with >)"
+      - "Sequence is for TP53 / p53"
+      - "Can save to file"
+    max_score: 3
+
+  # ── Category 2: Variant Tasks ──────────────────────────────────────────────
+  - id: variant-01
+    category: variant
+    title: "Variant dossier"
+    description: "Comprehensive interpretation of rs429358 (APOE variant linked to Alzheimer's)."
+    input:
+      variant: "rs429358"
+    success_criteria:
+      - "Returns gene name (APOE)"
+      - "Returns clinical significance"
+      - "Returns VEP consequence prediction"
+      - "Output is structured JSON"
+    max_score: 4
+
+  - id: variant-02
+    category: variant
+    title: "Variant with clinical context"
+    description: "Interpret rs334 (sickle cell variant in HBB) with protein function context."
+    input:
+      variant: "rs334"
+    success_criteria:
+      - "Returns gene (HBB)"
+      - "Returns clinical significance (pathogenic)"
+      - "Returns functional impact assessment"
+      - "Returns affected protein context"
+      - "Returns actionable recommendation"
+    max_score: 5
+
+  - id: variant-03
+    category: variant
+    title: "SNP basic lookup"
+    description: "Look up basic metadata for rs7412 (APOE variant)."
+    input:
+      rsid: "rs7412"
+    success_criteria:
+      - "Returns rsID, gene, chromosome, position"
+      - "Returns allele information"
+      - "Output is structured JSON"
+    max_score: 3
+
+  # ── Category 3: Literature Tasks ───────────────────────────────────────────
+  - id: lit-01
+    category: literature
+    title: "Literature brief"
+    description: "Summarize recent literature on 'TP53 apoptosis' with abstracts."
+    input:
+      query: "TP53 apoptosis"
+      limit: 5
+    success_criteria:
+      - "Returns at least 3 articles"
+      - "Includes titles and abstracts"
+      - "Includes PMIDs and DOIs"
+      - "Output is structured JSON"
+    max_score: 4
+
+  - id: lit-02
+    category: literature
+    title: "Fetch article by PMID"
+    description: "Retrieve full metadata for PMID 36766853."
+    input:
+      pmid: "36766853"
+    success_criteria:
+      - "Returns title, authors, journal, year"
+      - "Returns abstract text"
+      - "Returns DOI"
+    max_score: 3
+
+  - id: lit-03
+    category: literature
+    title: "Batch article fetch"
+    description: "Fetch metadata for 3 PMIDs in a single command."
+    input:
+      pmids: "36766853,35022513,34234131"
+    success_criteria:
+      - "Returns 3 articles in one call"
+      - "All articles have structured metadata"
+      - "Supports comma-separated or --input batch"
+    max_score: 3
+
+  # ── Category 4: Data Preparation Tasks ─────────────────────────────────────
+  - id: data-01
+    category: data_preparation
+    title: "Dataset discovery (scout)"
+    description: "Find GEO/SRA datasets relevant to 'TP53 breast cancer RNA-seq'."
+    input:
+      query: "TP53 breast cancer RNA-seq"
+      gene: "TP53"
+    success_criteria:
+      - "Returns candidate datasets with accessions"
+      - "Includes sample counts and dates"
+      - "Ranks by relevance"
+      - "Suggests next-step commands"
+      - "Output is structured JSON"
+    max_score: 5
+
+  - id: data-02
+    category: data_preparation
+    title: "Working directory preparation (plan mode)"
+    description: "Preview what workflow-prepare would do for GSE315149 + TP53, without executing."
+    input:
+      dataset: "GSE315149"
+      gene: "TP53"
+      mode: "plan"
+    success_criteria:
+      - "Shows planned steps without creating files"
+      - "Lists what would be downloaded"
+      - "Lists what annotations would be fetched"
+      - "Output is structured JSON"
+    max_score: 4
+
+  - id: data-03
+    category: data_preparation
+    title: "GEO download with dry-run"
+    description: "List available supplementary files for GSE12345 without downloading."
+    input:
+      accession: "GSE12345"
+      mode: "dry-run"
+    success_criteria:
+      - "Lists available files with sizes"
+      - "Shows download URLs"
+      - "Does not download any files"
+      - "Output is structured JSON"
+    max_score: 4

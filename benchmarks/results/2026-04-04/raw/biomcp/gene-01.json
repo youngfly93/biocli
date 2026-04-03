@@ -1,0 +1,1 @@
+{"symbol":"TP53","function":"Acts as tumor suppressor","pathways":[{"id":"R-HSA-123","name":"p53 pathway"},{"id":"R-HSA-456","name":"Apoptosis"},{"id":"R-HSA-789","name":"Cell cycle"}],"interactions":[{"partner":"MDM2"}]}

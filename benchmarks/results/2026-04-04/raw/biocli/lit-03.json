@@ -1,0 +1,29 @@
+[
+  {
+    "pmid": "36766853",
+    "title": "The Role of TP53 in Adaptation and Evolution.",
+    "authors": "Voskarides K, Giannopoulou N",
+    "journal": "Cells",
+    "year": "2023",
+    "doi": "10.3390/cells12030512",
+    "abstract": "The TP53 gene is a major player in cancer formation, and it is considered the most important tumor suppressor gene. The p53 protein acts as a transcription factor, and it is involved in DNA repair, senescence, cell-cycle control, autophagy, and apoptosis. Beyond cancer, there is evidence that TP53 is associated with fertility, aging, and longevity. Additionally, more evidence exists that genetic variants in TP53 are associated with environmental adaptation. Special TP53 amino-acid residues or pathogenic TP53 mutations seem to be adaptive for animals living in hypoxic and cold environments or having been exposed to starvation, respectively. At the somatic level, it has recently been proven that multiple cancer genes, including TP53, are under positive selection in healthy human tissues. It is not clear why these driver mutations do not transform these tissues into cancerous ones. Other studies have shown that elephants have multiple TP53 copies, probably this being the reason for the very low cancer incidence in these large animals. This may explain the famous Peto's paradox. This review discusses in detail the multilevel role of TP53 in adaptation, according to the published evidence. This role is complicated, and it extends from cells to individuals and to populations."
+  },
+  {
+    "pmid": "35022513",
+    "title": "SARS-CoV-2 infection induces a pro-inflammatory cytokine response through cGAS-STING and NF-κB.",
+    "authors": "Neufeldt C, Cerikan B, Cortese M et al.",
+    "journal": "Communications biology",
+    "year": "2022",
+    "doi": "10.1038/s42003-021-02983-5",
+    "abstract": "SARS-CoV-2 is a novel virus that has rapidly spread, causing a global pandemic. In the majority of infected patients, SARS-CoV-2 leads to mild disease; however, in a significant proportion of infections, individuals develop severe symptoms that can lead to long-lasting lung damage or death. These severe cases are often associated with high levels of pro-inflammatory cytokines and low antiviral responses, which can cause systemic complications. Here, we have evaluated transcriptional and cytokine secretion profiles and detected a distinct upregulation of inflammatory cytokines in infected cell cultures and samples taken from infected patients. Building on these observations, we found a specific activation of NF-κB and a block of IRF3 nuclear translocation in SARS-CoV-2 infected cells. This NF-κB response was mediated by cGAS-STING activation and could be attenuated through several STING-targeting drugs. Our results show that SARS-CoV-2 directs a cGAS-STING mediated, NF-κB-driven inflammatory immune response in human epithelial cells that likely contributes to inflammatory responses seen in patients and could be therapeutically targeted to suppress severe disease symptoms."
+  },
+  {
+    "pmid": "34234131",
+    "title": "Mapping mutations to the SARS-CoV-2 RBD that escape binding by different classes of antibodies.",
+    "authors": "Greaney A, Starr T, Barnes C et al.",
+    "journal": "Nature communications",
+    "year": "2021",
+    "doi": "10.1038/s41467-021-24435-8",
+    "abstract": "Monoclonal antibodies targeting a variety of epitopes have been isolated from individuals previously infected with SARS-CoV-2, but the relative contributions of these different antibody classes to the polyclonal response remains unclear. Here we use a yeast-display system to map all mutations to the viral spike receptor-binding domain (RBD) that escape binding by representatives of three potently neutralizing classes of anti-RBD antibodies with high-resolution structures. We compare the antibody-escape maps to similar maps for convalescent polyclonal plasmas, including plasmas from individuals from whom some of the antibodies were isolated. While the binding of polyclonal plasma antibodies are affected by mutations across multiple RBD epitopes, the plasma-escape maps most resemble those of a single class of antibodies that target an epitope on the RBD that includes site E484. Therefore, although the human immune system can produce antibodies that target diverse RBD epitopes, in practice the polyclonal response to infection is skewed towards a single class of antibodies targeting an epitope that is already undergoing rapid evolution."
+  }
+]

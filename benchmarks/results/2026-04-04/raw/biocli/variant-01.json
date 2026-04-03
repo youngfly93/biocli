@@ -1,0 +1,108 @@
+{
+  "data": {
+    "variant": "rs429358",
+    "gene": "APOE",
+    "chromosome": "19",
+    "position": "19:44908684",
+    "vepConsequences": [
+      {
+        "gene": "APOE",
+        "transcript": "ENST00000252486",
+        "consequence": "missense_variant",
+        "impact": "MODERATE",
+        "aminoAcids": "C/R",
+        "codons": "Tgc/Cgc",
+        "biotype": "protein_coding",
+        "canonical": true
+      },
+      {
+        "gene": "TOMM40",
+        "transcript": "ENST00000426677",
+        "consequence": "downstream_gene_variant",
+        "impact": "MODIFIER",
+        "aminoAcids": "",
+        "codons": "",
+        "biotype": "protein_coding",
+        "canonical": true
+      },
+      {
+        "gene": "TOMM40",
+        "transcript": "ENST00000252487",
+        "consequence": "downstream_gene_variant",
+        "impact": "MODIFIER",
+        "aminoAcids": "",
+        "codons": "",
+        "biotype": "protein_coding",
+        "canonical": false
+      },
+      {
+        "gene": "TOMM40",
+        "transcript": "ENST00000405636",
+        "consequence": "downstream_gene_variant",
+        "impact": "MODIFIER",
+        "aminoAcids": "",
+        "codons": "",
+        "biotype": "protein_coding",
+        "canonical": false
+      },
+      {
+        "gene": "APOE",
+        "transcript": "ENST00000425718",
+        "consequence": "missense_variant",
+        "impact": "MODERATE",
+        "aminoAcids": "C/R",
+        "codons": "Tgc/Cgc",
+        "biotype": "protein_coding",
+        "canonical": false
+      }
+    ],
+    "clinicalVariants": [
+      {
+        "title": "NM_000041.4(APOE):c.388= (p.Cys130=)",
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000694742"
+      },
+      {
+        "title": "NM_000041.4:c.[388=;460C>A526=]",
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000694585"
+      },
+      {
+        "title": "NM_000041.3(APOE):c.[305C>G;388T>C]",
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000441269"
+      },
+      {
+        "title": "NM_000041.3(APOE):c.[137T>C;388T>C]",
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000441268"
+      },
+      {
+        "title": "NM_000041.3(APOE):c.[388T>C;805C>G]",
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000441267"
+      }
+    ],
+    "dbsnp": {
+      "alleles": "HGVS=NC_000019.10:g.44908684T>C,NC_000019.9:g.45411941T>C,NG_007084.2:g.7903T>C,NM_000041.4:c.388T>C,NM_000041.3:c.388T>C,NM_000041.2:c.388T>C,NM_001302688.2:c.466T>C,NM_001302688.1:c.466T>C,NM_001302690.2:c.388T>C,NM_001302690.1:c.388T>C,NM_001302691.2:c.388T>C,NM_001302691.1:c.388T>C,NM_001302689.2:c.388T>C,NM_001302689.1:c.388T>C,NP_000032.1:p.Cys130Arg,NP_001289617.1:p.Cys156Arg,NP_001289619.1:p.Cys130Arg,NP_001289620.1:p.Cys130Arg,NP_001289618.1:p.Cys130Arg|SEQ=[T/C]|LEN=1|GENE=APOE:348",
+      "maf": ""
+    }
+  },
+  "ids": {
+    "rsId": "rs429358",
+    "gene": "APOE"
+  },
+  "sources": [
+    "dbSNP",
+    "ClinVar",
+    "Ensembl VEP"
+  ],
+  "warnings": [],
+  "queriedAt": "2026-04-03T16:44:04.954Z",
+  "query": "rs429358"
+}

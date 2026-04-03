@@ -1,0 +1,133 @@
+{
+  "data": {
+    "candidates": [
+      {
+        "rank": 1,
+        "accession": "GSE306117",
+        "title": "Distinct genomic and immunologic tumor evolution in germline TP53-driven breast cancers",
+        "organism": "Homo sapiens",
+        "type": "GSE",
+        "samples": 74,
+        "date": "2026/01/01",
+        "relevance": "gene in title",
+        "source": "GEO"
+      },
+      {
+        "rank": 2,
+        "accession": "GSE268514",
+        "title": "Integrative genomic analysis of Korean high-grade serous ovarian cancer",
+        "organism": "Homo sapiens",
+        "type": "GSE",
+        "samples": 161,
+        "date": "2024/06/01",
+        "relevance": "keyword match",
+        "source": "GEO"
+      },
+      {
+        "rank": 3,
+        "accession": "GSE303326",
+        "title": "Variation at the R181 residue of p53 confer loss of p53 DNA binding cooperativity with the retention of mitochondrial-associated apoptosis",
+        "organism": "Homo sapiens",
+        "type": "GSE",
+        "samples": 54,
+        "date": "2025/08/27",
+        "relevance": "keyword match",
+        "source": "GEO"
+      },
+      {
+        "rank": 4,
+        "accession": "GSE292363",
+        "title": "p53 drives epigenetic programs associated with luminal cell identity in breast cancer [RNA-seq]",
+        "organism": "Homo sapiens",
+        "type": "GSE",
+        "samples": 23,
+        "date": "2025/11/13",
+        "relevance": "keyword match",
+        "source": "GEO"
+      },
+      {
+        "rank": 5,
+        "accession": "GSE279092",
+        "title": "G6PC3 promotes genome maintenance and is a candidate mammary tumor suppressor",
+        "organism": "Homo sapiens",
+        "type": "GSE",
+        "samples": 6,
+        "date": "2025/04/15",
+        "relevance": "keyword match",
+        "source": "GEO"
+      },
+      {
+        "rank": 6,
+        "accession": "SRR34342077",
+        "title": "GSM9085113: siCHRNA5 and siTP53 2; Homo sapiens; RNA-Seq",
+        "organism": "",
+        "type": "SRA",
+        "samples": 1,
+        "date": "2025/10/13",
+        "relevance": "keyword match",
+        "source": "SRA"
+      },
+      {
+        "rank": 7,
+        "accession": "SRR34342078",
+        "title": "GSM9085112: siCHRNA5 and siTP53 1; Homo sapiens; RNA-Seq",
+        "organism": "",
+        "type": "SRA",
+        "samples": 1,
+        "date": "2025/10/13",
+        "relevance": "keyword match",
+        "source": "SRA"
+      },
+      {
+        "rank": 8,
+        "accession": "SRR34342079",
+        "title": "GSM9085111: siTP53 2; Homo sapiens; RNA-Seq",
+        "organism": "",
+        "type": "SRA",
+        "samples": 1,
+        "date": "2025/10/13",
+        "relevance": "keyword match",
+        "source": "SRA"
+      },
+      {
+        "rank": 9,
+        "accession": "SRR34342080",
+        "title": "GSM9085110: siTP53 1; Homo sapiens; RNA-Seq",
+        "organism": "",
+        "type": "SRA",
+        "samples": 1,
+        "date": "2025/10/13",
+        "relevance": "keyword match",
+        "source": "SRA"
+      },
+      {
+        "rank": 10,
+        "accession": "SRR29841146",
+        "title": "GSM8398292: p53KO, Day 21 rep 3; Homo sapiens; RNA-Seq",
+        "organism": "",
+        "type": "SRA",
+        "samples": 1,
+        "date": "2024/08/31",
+        "relevance": "keyword match",
+        "source": "SRA"
+      }
+    ],
+    "summary": "Found 5 GEO + 5 SRA candidates for \"TP53 breast cancer RNA-seq\"",
+    "nextSteps": [
+      "biocli geo download GSE306117 --list-only",
+      "biocli geo download GSE268514 --list-only",
+      "biocli geo download GSE303326 --list-only"
+    ]
+  },
+  "ids": {
+    "gene": "TP53"
+  },
+  "sources": [
+    "GEO",
+    "SRA"
+  ],
+  "warnings": [],
+  "queriedAt": "2026-04-03T16:44:16.996Z",
+  "organism": "Homo sapiens",
+  "query": "TP53 breast cancer RNA-seq"
+}

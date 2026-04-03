@@ -1,0 +1,114 @@
+{
+  "data": {
+    "variant": "rs334",
+    "gene": "HBB",
+    "chromosome": "11",
+    "position": "11:5227002",
+    "interpretation": {
+      "clinicalSignificance": "",
+      "functionalImpact": "Possibly damaging — amino acid change that may affect protein function",
+      "consequence": "missense_variant",
+      "affectedGene": "HBB",
+      "proteinFunction": "No function annotation available",
+      "conditions": [],
+      "evidenceSources": [
+        "dbSNP",
+        "ClinVar",
+        "Ensembl VEP",
+        "UniProt"
+      ],
+      "recommendation": "Clinical significance is uncertain. Consider functional studies or additional evidence."
+    },
+    "vepConsequences": [
+      {
+        "gene": "HBB",
+        "transcript": "ENST00000335295",
+        "consequence": "missense_variant",
+        "impact": "MODERATE",
+        "aminoAcids": "E/V",
+        "biotype": "protein_coding",
+        "canonical": true
+      },
+      {
+        "gene": "HBB",
+        "transcript": "ENST00000335295",
+        "consequence": "missense_variant",
+        "impact": "MODERATE",
+        "aminoAcids": "E/G",
+        "biotype": "protein_coding",
+        "canonical": true
+      },
+      {
+        "gene": "HBB",
+        "transcript": "ENST00000335295",
+        "consequence": "missense_variant",
+        "impact": "MODERATE",
+        "aminoAcids": "E/A",
+        "biotype": "protein_coding",
+        "canonical": true
+      },
+      {
+        "gene": "HBB",
+        "transcript": "ENST00000380315",
+        "consequence": "missense_variant",
+        "impact": "MODERATE",
+        "aminoAcids": "E/V",
+        "biotype": "protein_coding",
+        "canonical": false
+      },
+      {
+        "gene": "HBB",
+        "transcript": "ENST00000380315",
+        "consequence": "missense_variant",
+        "impact": "MODERATE",
+        "aminoAcids": "E/G",
+        "biotype": "protein_coding",
+        "canonical": false
+      }
+    ],
+    "clinicalVariants": [
+      {
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000446748"
+      },
+      {
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000446747"
+      },
+      {
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000446738"
+      },
+      {
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000446737"
+      },
+      {
+        "significance": "",
+        "condition": "",
+        "accession": "VCV000446736"
+      }
+    ],
+    "dbsnp": {
+      "alleles": "HGVS=NC_000011.10:g.5227002T>A,NC_000011.10:g.5227002T>C,NC_000011.10:g.5227002T>G,NC_000011.9:g.5248232T>A,NC_000011.9:g.5248232T>C,NC_000011.9:g.5248232T>G,NG_000007.3:g.70614A>T,NG_000007.3:g.70614A>G,NG_000007.3:g.70614A>C,NG_059281.1:g.5070A>T,NG_059281.1:g.5070A>G,NG_059281.1:g.5070A>C,NM_000518.5:c.20A>T,NM_000518.5:c.20A>G,NM_000518.5:c.20A>C,NM_000518.4:c.20A>T,NM_000518.4:c.20A>G,NM_000518.4:c.20A>C,NG_046672.1:g.4937T>A,NG_046672.1:g.4937T>C,NG_046672.1:g.4937T>G,NG_042296.1:g.533T>A,NG_042296.1:g.533T>C,NG_042296.1:g.533T>G,NP_000509.1:p.Glu7Val,NP_000509.1:p.Glu7Gly,NP_000509.1:p.Glu7Ala|SEQ=[T/A/C/G]|LEN=1|GENE=HBB:3043"
+    }
+  },
+  "ids": {
+    "rsId": "rs334",
+    "gene": "HBB",
+    "uniprotAccession": "A0A0J9YWK4"
+  },
+  "sources": [
+    "dbSNP",
+    "ClinVar",
+    "Ensembl VEP",
+    "UniProt"
+  ],
+  "warnings": [],
+  "queriedAt": "2026-04-03T16:44:08.747Z",
+  "query": "rs334"
+}
