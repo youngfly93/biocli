@@ -29,7 +29,8 @@ import {
 } from './errors.js';
 import { emitHook, type HookContext } from './hooks.js';
 import { createHttpContextForDatabase } from './databases/index.js';
-import { buildCacheKey, getCached, setCached } from './cache.js';
+import { buildCacheKey, getCached, setCached, getDefaultTtlMs } from './cache.js';
+import { loadConfig } from './config.js';
 
 /** Default command timeout in seconds (used when timeoutSeconds is set). */
 const DEFAULT_COMMAND_TIMEOUT = 60;
@@ -183,8 +184,11 @@ export async function executeCommand(
   // ── Cache check ───────────────────────────────────────────────────────
   const databaseId = cmd.database ?? 'ncbi';
   const cacheKey = buildCacheKey(databaseId, fullName(cmd), kwargs);
-  if (!opts.noCache && databaseId !== 'aggregate') {
-    const cached = getCached(databaseId, fullName(cmd), cacheKey);
+  const cacheConfig = loadConfig().cache;
+  const cacheEnabled = (cacheConfig?.enabled ?? true) && !opts.noCache;
+  const cacheTtlMs = (cacheConfig?.ttl ?? 24) * 60 * 60 * 1000;
+  if (cacheEnabled && databaseId !== 'aggregate') {
+    const cached = getCached(databaseId, fullName(cmd), cacheKey, cacheTtlMs);
     if (cached !== null) {
       if (debug) console.error(`[Cache] HIT ${cacheKey}`);
       hookCtx.finishedAt = Date.now();
@@ -218,8 +222,8 @@ export async function executeCommand(
   }
 
   // ── Cache store ──────────────────────────────────────────────────────
-  if (!opts.noCache && databaseId !== 'aggregate' && result !== null && result !== undefined) {
-    try { setCached(databaseId, fullName(cmd), cacheKey, result); } catch { /* non-fatal */ }
+  if (cacheEnabled && databaseId !== 'aggregate' && result !== null && result !== undefined) {
+    try { setCached(databaseId, fullName(cmd), cacheKey, result, cacheTtlMs); } catch { /* non-fatal */ }
   }
 
   hookCtx.finishedAt = Date.now();

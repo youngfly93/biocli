@@ -139,15 +139,28 @@ cli({
               summary: entry?.summary ?? '',
             };
 
-            // UniProt protein info
+            // UniProt protein info — use reviewed:true + exact symbol match (same as gene-profile)
             try {
               const uniprotCtx = createHttpContextForDatabase('uniprot');
               const upResult = await uniprotCtx.fetchJson(
-                buildUniprotUrl('/uniprotkb/search', { query: `gene_exact:${gene} AND organism_id:9606`, format: 'json', size: '1' }),
+                buildUniprotUrl('/uniprotkb/search', {
+                  query: `gene:${gene} AND organism_id:9606 AND reviewed:true`,
+                  format: 'json',
+                  size: '5',
+                }),
               ) as Record<string, unknown>;
               const upEntries = (upResult?.results ?? []) as Record<string, unknown>[];
               if (upEntries.length > 0) {
-                annotation.uniprotAccession = upEntries[0].primaryAccession ?? '';
+                // Find exact gene name match among candidates
+                const getGeneName = (e: Record<string, unknown>): string => {
+                  const gs = e.genes as Record<string, unknown>[] | undefined;
+                  const gn = gs?.[0] as Record<string, unknown> | undefined;
+                  const name = gn?.geneName as Record<string, unknown> | undefined;
+                  return String(name?.value ?? '');
+                };
+                const exactMatch = upEntries.find(e => getGeneName(e).toUpperCase() === gene.toUpperCase());
+                const best = exactMatch ?? upEntries[0];
+                annotation.uniprotAccession = best.primaryAccession ?? '';
                 sources.push('UniProt');
               }
             } catch { /* non-fatal */ }
@@ -165,15 +178,22 @@ cli({
         steps.push({ step: 'gene-annotations', status: 'done', detail: `${geneAnnotations.length} gene(s) → annotations/genes.json` });
       }
 
-      // KEGG pathways for genes
+      // KEGG pathways for genes — use NCBI Gene IDs (stable) instead of symbols
       try {
         const keggCtx = createHttpContextForDatabase('kegg');
         const allPathways: Record<string, unknown>[] = [];
-        for (const gene of genes) {
-          const linkText = await keggCtx.fetchText(buildKeggUrl(`/link/pathway/hsa:${gene}`));
-          if (linkText) {
-            const links = parseKeggTsv(linkText);
-            allPathways.push(...links.map(l => ({ gene, pathway: l.value })));
+        for (const annot of geneAnnotations) {
+          const geneId = annot.ncbiGeneId as string | undefined;
+          const symbol = annot.symbol as string;
+          if (!geneId) continue;
+          try {
+            const linkText = await keggCtx.fetchText(buildKeggUrl(`/link/pathway/hsa:${geneId}`));
+            if (linkText && linkText.trim()) {
+              const links = parseKeggTsv(linkText);
+              allPathways.push(...links.map(l => ({ gene: symbol, ncbiGeneId: geneId, pathway: l.value })));
+            }
+          } catch {
+            warnings.push(`KEGG pathway for ${symbol} (hsa:${geneId}): no results`);
           }
         }
         if (allPathways.length > 0) {

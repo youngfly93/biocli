@@ -212,9 +212,20 @@ ${chalk.bold('Configuration:')}
           process.exitCode = 1;
           return;
         }
+      } else if (key === 'cache.enabled') {
+        config.cache = config.cache ?? {};
+        config.cache.enabled = value.toLowerCase() === 'true' || value === '1';
+      } else if (key === 'cache.ttl') {
+        config.cache = config.cache ?? {};
+        config.cache.ttl = parseInt(value, 10);
+        if (isNaN(config.cache.ttl) || config.cache.ttl <= 0) {
+          console.error(chalk.red(`Invalid cache TTL: "${value}". Must be a positive number (hours).`));
+          process.exitCode = 1;
+          return;
+        }
       } else {
         console.error(chalk.red(`Unknown config key: "${key}".`));
-        console.error(chalk.dim('Valid keys: api_key, email, defaults.format, defaults.limit'));
+        console.error(chalk.dim('Valid keys: api_key, email, defaults.format, defaults.limit, cache.enabled, cache.ttl'));
         process.exitCode = 1;
         return;
       }

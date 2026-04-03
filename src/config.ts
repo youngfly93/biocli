@@ -31,6 +31,13 @@ export interface BiocliConfig {
     /** Default maximum number of results to return. */
     limit?: number;
   };
+  /** Cache settings. */
+  cache?: {
+    /** Whether caching is enabled (default: true). */
+    enabled?: boolean;
+    /** Cache TTL in hours (default: 24). */
+    ttl?: number;
+  };
 }
 
 /** @deprecated Use BiocliConfig instead. */
