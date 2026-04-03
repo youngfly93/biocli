@@ -15,6 +15,7 @@ import { registerAllCommands } from './commander-adapter.js';
 import { validateAll } from './validate.js';
 import { runDoctor, formatDoctorText, formatDoctorJson } from './doctor.js';
 import { biocliResultSchema, resultWithMetaSchema } from './schema.js';
+import { runVerify, formatVerifyText, formatVerifyJson } from './verify.js';
 import { loadConfig, saveConfig, getConfigPath } from './config.js';
 import { BUILTIN_CLIS_DIR, USER_CLIS_DIR } from './discovery.js';
 
@@ -71,15 +72,34 @@ ${chalk.bold('Configuration:')}
       const fmt = opts.json && opts.format === 'table' ? 'json' : opts.format;
 
       if (fmt !== 'table') {
-        const rows = commands.map(c => ({
-          command: fullName(c),
-          site: c.site,
-          name: c.name,
-          aliases: c.aliases?.join(', ') ?? '',
-          description: c.description,
-          strategy: strategyLabel(c),
-          database: c.database ?? '',
-        }));
+        const downloadNames = new Set(['download', 'fetch', 'sequence']);
+        const rows = commands.map(c => {
+          const tags: string[] = [];
+          if (c.database === 'aggregate') tags.push('workflow');
+          else if (downloadNames.has(c.name)) tags.push('download');
+          else tags.push('query');
+          return {
+            command: fullName(c),
+            site: c.site,
+            name: c.name,
+            aliases: c.aliases?.join(', ') ?? '',
+            description: c.description,
+            strategy: strategyLabel(c),
+            database: c.database ?? '',
+            args: c.args.map(a => ({
+              name: a.name,
+              ...(a.type ? { type: a.type } : {}),
+              ...(a.required ? { required: true } : {}),
+              ...(a.positional ? { positional: true } : {}),
+              ...(a.default !== undefined ? { default: a.default } : {}),
+              ...(a.choices ? { choices: a.choices } : {}),
+              ...(a.help ? { help: a.help } : {}),
+            })),
+            defaultFormat: c.defaultFormat ?? 'table',
+            columns: c.columns ?? [],
+            tags,
+          };
+        });
         renderOutput(rows, {
           fmt,
           columns: ['command', 'site', 'name', 'aliases', 'description', 'strategy', 'database'],
@@ -241,6 +261,23 @@ ${chalk.bold('Configuration:')}
         console.log(formatDoctorText(checks, allPassed));
       }
       if (!allPassed) process.exitCode = 1;
+    });
+
+  // ── Built-in: verify ───────────────────────────────────────────────────────
+
+  program
+    .command('verify')
+    .description('Run all checks: validate + doctor (+ optional smoke)')
+    .option('--smoke', 'Also run core smoke tests')
+    .option('-f, --format <fmt>', 'Output format: text, json', 'text')
+    .action(async (opts) => {
+      const result = await runVerify({ smoke: opts.smoke });
+      if (opts.format === 'json') {
+        console.log(formatVerifyJson(result));
+      } else {
+        console.log(formatVerifyText(result));
+      }
+      if (!result.allPassed) process.exitCode = 1;
     });
 
   // ── Register dynamic adapter commands ─────────────────────────────────────

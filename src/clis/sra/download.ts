@@ -21,7 +21,7 @@ import { Readable } from 'node:stream';
 import { execSync } from 'node:child_process';
 
 /** Build ENA FASTQ download URLs for an SRR accession. */
-function buildEnaFastqUrls(accession: string): string[] {
+export function buildEnaFastqUrls(accession: string): string[] {
   // ENA URL pattern: /vol1/fastq/SRR123/[NNN/]SRR1234567/
   // Sub-directory depends on total accession length:
   //   <= 9 chars (e.g. SRR039885):  no sub-directory
@@ -74,7 +74,17 @@ async function downloadFile(url: string, destPath: string): Promise<{ ok: boolea
   return { ok: true, size: contentLength ? Number(contentLength) : 0, notFound: false };
 }
 
-function formatSize(bytes: number): string {
+/** Parse a human-readable size string (e.g. "500M", "2G") to bytes. */
+export function parseMaxSize(value: string): number {
+  const match = value.trim().match(/^(\d+(?:\.\d+)?)\s*([KMGT]?)B?$/i);
+  if (!match) return NaN;
+  const num = parseFloat(match[1]);
+  const unit = (match[2] || '').toUpperCase();
+  const multipliers: Record<string, number> = { '': 1, K: 1024, M: 1024 ** 2, G: 1024 ** 3, T: 1024 ** 4 };
+  return num * (multipliers[unit] ?? 1);
+}
+
+export function formatSize(bytes: number): string {
   if (bytes === 0) return 'unknown size';
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -93,12 +103,21 @@ cli({
     { name: 'accession', positional: true, required: true, help: 'SRA run accession (e.g. SRR1234567)' },
     { name: 'outdir', default: '.', help: 'Output directory (default: current directory)' },
     { name: 'method', default: 'ena', choices: ['ena', 'sra-tools'], help: 'Download method' },
+    { name: 'dry-run', type: 'boolean', default: false, help: 'Show download URLs without downloading' },
+    { name: 'max-size', help: 'Max file size to download (e.g. "500M", "2G"). Larger files are skipped.' },
   ],
   columns: ['file', 'size', 'status'],
   func: async (_ctx, args) => {
     const accession = String(args.accession).trim();
     const outdir = String(args.outdir);
     const method = String(args.method);
+    const dryRun = Boolean(args['dry-run']);
+    const maxSizeStr = args['max-size'] ? String(args['max-size']) : undefined;
+    const maxSizeBytes = maxSizeStr ? parseMaxSize(maxSizeStr) : Infinity;
+
+    if (maxSizeStr && Number.isNaN(maxSizeBytes)) {
+      throw new CliError('ARGUMENT', `Invalid --max-size value: "${maxSizeStr}"`, 'Use format like "500M", "2G", "1024K"');
+    }
 
     if (!/^[SDE]RR\d+$/i.test(accession)) {
       throw new CliError('ARGUMENT',
@@ -120,22 +139,52 @@ cli({
         const fileName = url.split('/').pop()!;
         const destPath = join(outdir, fileName);
 
+        // Dry-run: probe with HEAD, report URL and size without downloading
+        if (dryRun) {
+          try {
+            const head = await fetch(url, { method: 'HEAD' });
+            if (head.ok) {
+              const size = Number(head.headers.get('content-length') ?? 0);
+              rows.push({ file: fileName, size: formatSize(size), status: `→ ${url}` });
+            }
+            // 404 → skip silently (expected for single/paired mismatch)
+          } catch { /* skip */ }
+          continue;
+        }
+
         try {
+          // Max-size check: HEAD request first to get size
+          if (maxSizeBytes < Infinity) {
+            const head = await fetch(url, { method: 'HEAD' });
+            if (head.status === 404) continue; // expected
+            if (!head.ok) { errors.push(`${fileName}: HTTP ${head.status}`); rows.push({ file: fileName, size: '', status: 'failed' }); continue; }
+            const size = Number(head.headers.get('content-length') ?? 0);
+            if (size > maxSizeBytes) {
+              rows.push({ file: fileName, size: formatSize(size), status: `skipped (exceeds --max-size ${maxSizeStr})` });
+              continue;
+            }
+          }
+
           const result = await downloadFile(url, destPath);
           if (result.ok) {
             rows.push({ file: fileName, size: formatSize(result.size), status: `saved → ${destPath}` });
           } else if (!result.notFound) {
-            // Non-404 failure is a real error (network issue, server error)
             errors.push(`${fileName}: HTTP error`);
             rows.push({ file: fileName, size: '', status: 'failed' });
           }
           // 404 is expected: single-end has no _1/_2, paired-end has no plain .fastq.gz
         } catch (err) {
-          // Network/write errors are real failures, not expected 404s
           const msg = err instanceof Error ? err.message : String(err);
           errors.push(`${fileName}: ${msg}`);
           rows.push({ file: fileName, size: '', status: `error: ${msg}` });
         }
+      }
+
+      if (dryRun) {
+        if (!rows.length) {
+          throw new CliError('NOT_FOUND', `FASTQ files not available on ENA for ${accession}`);
+        }
+        return rows;
       }
 
       const successCount = rows.filter(r => r.status.startsWith('saved')).length;

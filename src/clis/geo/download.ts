@@ -18,14 +18,14 @@ import { Readable } from 'node:stream';
 import { withMeta } from '../../types.js';
 
 /** Build the GEO FTP-over-HTTPS URL for supplementary files. */
-function buildGeoSupplUrl(accession: string): string {
+export function buildGeoSupplUrl(accession: string): string {
   // GSE12345 → series/GSE12nnn/GSE12345/suppl/
   const prefix = accession.slice(0, -3) + 'nnn';
   return `https://ftp.ncbi.nlm.nih.gov/geo/series/${prefix}/${accession}/suppl/`;
 }
 
 /** Parse file list from NCBI FTP directory listing (HTML). */
-function parseFileList(html: string): { name: string; size: string }[] {
+export function parseFileList(html: string): { name: string; size: string }[] {
   const files: { name: string; size: string }[] = [];
   // NCBI FTP HTML listings have <a href="filename">filename</a> followed by size info
   const linkRegex = /<a\s+href="([^"]+)">[^<]+<\/a>\s+[\d-]+\s+[\d:]+\s+([\d.]+[KMG]?)/gi;
@@ -49,6 +49,7 @@ cli({
     { name: 'accession', positional: true, required: true, help: 'GEO Series accession (e.g. GSE12345)' },
     { name: 'outdir', default: '.', help: 'Output directory (default: current directory)' },
     { name: 'list-only', type: 'boolean', default: false, help: 'Only list available files, do not download' },
+    { name: 'dry-run', type: 'boolean', default: false, help: 'Same as --list-only: show files without downloading' },
     { name: 'pattern', help: 'Filter files by pattern (e.g. "counts", "matrix", "tar.gz")' },
   ],
   columns: ['file', 'size', 'status'],
@@ -58,7 +59,7 @@ cli({
       throw new CliError('ARGUMENT', `Invalid GEO accession: "${accession}"`, 'Use a GSE accession (e.g. GSE12345)');
     }
 
-    const listOnly = Boolean(args['list-only']);
+    const listOnly = Boolean(args['list-only']) || Boolean(args['dry-run']);
     const outdir = String(args.outdir);
     const pattern = args.pattern ? String(args.pattern).toLowerCase() : undefined;
 

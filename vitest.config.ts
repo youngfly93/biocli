@@ -29,6 +29,15 @@ export default defineConfig({
           passWithNoTests: true,
         },
       },
+      {
+        test: {
+          name: 'smoke',
+          include: ['tests/smoke/**/*.test.ts'],
+          exclude: ['**/._*'],
+          sequence: { groupOrder: 3 },
+          passWithNoTests: true,
+        },
+      },
     ],
   },
 });
