@@ -223,8 +223,8 @@ cli({
       },
       steps,
     };
-    writeFileSync(join(outdir, 'manifest.json'), JSON.stringify(manifest, null, 2));
     steps.push({ step: 'manifest', status: 'done', detail: `manifest.json → ${outdir}` });
+    writeFileSync(join(outdir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
     return wrapResult({
       outdir,
