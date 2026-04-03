@@ -18,7 +18,37 @@ Requires Node.js >= 20. No API keys needed (optional NCBI key increases rate lim
 
 ## Why biocli
 
-biocli is designed for **AI agents** (Claude, GPT, etc.) to query biology databases faster and more accurately than web browsing. It returns structured JSON that agents can parse directly.
+biocli is the only CLI that takes you from a **research question** to an **analysis-ready working directory** — scout datasets, download data, fetch annotations, all in one pipeline.
+
+```bash
+# Scout relevant datasets for your research question
+biocli aggregate workflow-scout "TP53 breast cancer RNA-seq" --gene TP53
+
+# Prepare a working directory with data + annotations + manifest
+biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
+```
+
+Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache.
+
+## How biocli compares
+
+|  | biocli | gget | BioMCP | EDirect |
+|--|--------|------|--------|---------|
+| Query biological databases | ✅ | ✅ | ✅ | ✅ |
+| Structured JSON output | ✅ | ✅ | ✅ | ❌ |
+| Cross-database aggregation | ✅ | ❌ | ✅ | ❌ |
+| Download GEO/SRA data files | ✅ | ❌ | ❌ | ❌ |
+| Dataset discovery (scout) | ✅ | ❌ | ❌ | ❌ |
+| Working directory prep (prepare) | ✅ | ❌ | ❌ | ❌ |
+| Agent command self-description | ✅ | ❌ | ⚠️ | ❌ |
+| Safe preview (--plan/--dry-run) | ✅ | ❌ | ❌ | ❌ |
+| Per-command JSON Schema | ✅ | ❌ | ❌ | ❌ |
+| Local response cache | ✅ | ❌ | ❌ | ❌ |
+| Batch input (--input) | ✅ | ❌ | ✅ | ✅ |
+
+> **gget** excels at sequence analysis (BLAST, AlphaFold, MUSCLE). **BioMCP** covers more biomedical entities (drugs, trials, diseases). **EDirect** has the deepest NCBI Entrez integration. **biocli** is the only one that combines query + download + data preparation into agent-orchestrated workflows.
+
+## Quick start
 
 **One command replaces 4 browser tabs:**
 
