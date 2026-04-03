@@ -97,10 +97,9 @@ def plot_total_scores(data, outdir):
     ax.grid(False)
     ax.tick_params(axis='x', length=0)
 
-    # Add version labels below tool names
+    # Add version labels well below tool names (avoid overlap)
     versions = {'biocli': 'v0.2.0', 'BioMCP': 'v0.8.19', 'gget': 'v0.30.3'}
-    for i, tool in enumerate(tools):
-        ax.text(i, -6, versions[tool], ha='center', va='top', fontsize=8, color='#888888')
+    ax.set_xticklabels([f'{t}\n{versions[t]}' for t in tools], fontsize=10)
 
     plt.tight_layout()
     path = os.path.join(outdir, 'total_scores.png')
