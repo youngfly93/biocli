@@ -95,6 +95,9 @@ async function pingBackend(name: string, url: string): Promise<CheckResult> {
     clearTimeout(timeout);
     const elapsed = Date.now() - start;
 
+    // Consume and discard body so Node.js can close the connection promptly
+    await response.text().catch(() => {});
+
     if (response.ok) {
       return { name, value: url.split('/').slice(0, 3).join('/'), ok: true, detail: `${elapsed}ms` };
     }
