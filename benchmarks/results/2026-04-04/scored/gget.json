@@ -1,6 +1,6 @@
 {
   "tool": "gget",
-  "version": "",
+  "version": "0.30.3",
   "date": "2026-04-04",
   "tasks": [
     {
@@ -8,7 +8,7 @@
       "category": "gene",
       "title": "Gene comprehensive dossier",
       "maxScore": 7,
-      "score": 2,
+      "score": 1,
       "criteria": [
         {
           "criterion": "Returns gene symbol and NCBI Gene ID",
@@ -32,7 +32,7 @@
         },
         {
           "criterion": "Includes ClinVar clinical variants",
-          "met": true
+          "met": false
         },
         {
           "criterion": "Output is structured JSON",
@@ -46,7 +46,7 @@
       "category": "gene",
       "title": "Multi-gene enrichment",
       "maxScore": 4,
-      "score": 3,
+      "score": 4,
       "criteria": [
         {
           "criterion": "Accepts comma-separated gene list",
@@ -58,7 +58,7 @@
         },
         {
           "criterion": "Includes p-values or scores",
-          "met": false
+          "met": true
         },
         {
           "criterion": "Output is structured JSON",
@@ -328,5 +328,14 @@
     "outputUsability": 6,
     "efficiency": 6
   },
-  "totalWeighted": 24
+  "totalWeighted": 24,
+  "crossCuttingJustifications": {
+    "agentReadiness": "has --json/-j flag (1pt), no help --json (0), no schema (0), no whenToUse (0), no error recovery (0), no batch --input (0), has CLI help text (1pt), has Python API (1pt)",
+    "workflowDepth": "info + seq + enrichr modules (1pt), no cross-db aggregation (0), no scout/prepare (0), can chain via Python (1pt)",
+    "operationalSafety": "basic Python error handling (1pt), no dry-run/plan (0), no max-size (0), stderr warnings (1pt)",
+    "reproducibility": "no cache (0), no manifest (0), no verify (0), consistent JSON output format (1pt)",
+    "outputUsability": "JSON output (2pt), DataFrame/CSV (2pt), but no standard envelope (0), no schema (0), consistent field naming (2pt)",
+    "efficiency": "direct single commands (2pt), Python chaining (2pt), no CLI batch input (0), no aggregation commands (0), fast Ensembl lookups (2pt)"
+  },
+  "scoredAt": "2026-04-04T01:58:49.136Z"
 }

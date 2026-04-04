@@ -84,7 +84,7 @@ function scoreGene01(data: unknown): TaskScore {
     { criterion: 'Includes at least 3 KEGG pathways', met: arrayLength((data as any)?.data?.pathways) >= 3 || arrayLength((data as any)?.pathways) >= 3 },
     { criterion: 'Includes protein interaction partners', met: arrayLength((data as any)?.data?.interactions) >= 1 || hasField(data, 'interactions') },
     { criterion: 'Includes recent PubMed literature', met: arrayLength((data as any)?.data?.recentLiterature) >= 1 || hasField(data, 'literature') },
-    { criterion: 'Includes ClinVar clinical variants', met: arrayLength((data as any)?.data?.clinicalVariants) >= 0 },
+    { criterion: 'Includes ClinVar clinical variants', met: arrayLength((data as any)?.data?.clinicalVariants) >= 1 },
     { criterion: 'Output is structured JSON', met: data !== null && typeof data === 'object' },
   ];
   const met = criteria.filter(c => c.met).length;
@@ -96,7 +96,7 @@ function scoreGene02(data: unknown): TaskScore {
   const criteria = [
     { criterion: 'Accepts comma-separated gene list', met: !isNotSupported(data) },
     { criterion: 'Returns enriched pathways/GO terms', met: isArr },
-    { criterion: 'Includes p-values or scores', met: JSON.stringify(data).includes('pValue') || JSON.stringify(data).includes('p_value') || JSON.stringify(data).includes('Score') },
+    { criterion: 'Includes p-values or scores', met: JSON.stringify(data).includes('pValue') || JSON.stringify(data).includes('p_value') || JSON.stringify(data).includes('p_val') || JSON.stringify(data).includes('Score') || JSON.stringify(data).includes('combined_score') },
     { criterion: 'Output is structured JSON', met: data !== null && typeof data === 'object' },
   ];
   const met = criteria.filter(c => c.met).length;
@@ -163,7 +163,7 @@ function scoreAllTasks(rawDir: string): TaskScore[] {
   ]));
 
   tasks.push(scoreLit('lit-01', 'Literature brief', load('lit-01'), [
-    { criterion: 'Returns at least 3 articles', check: d => arrayLength((d as any)?.data?.articles ?? (d as any)?.rows ?? d) >= 3 },
+    { criterion: 'Returns at least 3 articles', check: d => arrayLength((d as any)?.data?.papers ?? (d as any)?.data?.articles ?? (d as any)?.rows ?? d) >= 3 },
     { criterion: 'Includes titles and abstracts', check: d => s(d).includes('abstract') || s(d).includes('Abstract') },
     { criterion: 'Includes PMIDs and DOIs', check: d => s(d).includes('pmid') || s(d).includes('doi') },
     { criterion: 'Output is structured JSON', check: d => d !== null && typeof d === 'object' },
@@ -206,43 +206,67 @@ function scoreAllTasks(rawDir: string): TaskScore[] {
   return tasks;
 }
 
-// ── Cross-cutting scoring (tool-level, not task-level) ───────────────────────
+// ── Cross-cutting scoring (manual audit, not automated) ──────────────────────
+//
+// These scores are from manual feature inspection, NOT automated testing.
+// Each score has a justification. See rubric.md for criteria definitions.
+// Audited on 2026-04-04 against installed versions.
 
-function scoreCrossCutting(tool: string): CrossCuttingScores {
-  if (tool === 'biocli') {
+interface ManualAuditEntry {
+  score: number;
+  justification: string;
+}
+
+type ManualAudit = Record<keyof CrossCuttingScores, ManualAuditEntry>;
+
+const MANUAL_AUDITS: Record<string, ManualAudit> = {
+  biocli: {
+    agentReadiness:    { score: 10, justification: 'list/help --json, per-command schema, whenToUse/whenNotToUse, capabilities, error recovery suggestions, batch --input (10/10 rubric criteria met)' },
+    workflowDepth:     { score: 10, justification: 'cross-db aggregation, dataset scout, GEO/SRA download, working directory prepare, manifest.json, --plan preview (10/10)' },
+    operationalSafety: { score: 9,  justification: '--dry-run, --plan, --max-size, partial failure reporting, structured error codes, graceful degradation. Missing: no interactive confirmation prompt (-1)' },
+    reproducibility:   { score: 10, justification: 'file cache with TTL, --no-cache, manifest.json with provenance, deterministic BiocliResult envelope, verify/doctor, queriedAt timestamps (10/10)' },
+    outputUsability:   { score: 9,  justification: 'structured JSON, BiocliResult envelope, per-command data schema, auto-JSON in pipe. Minor: some atomic commands lack envelope (-1)' },
+    efficiency:        { score: 8,  justification: 'single commands for complex multi-db tasks, --input batch. Minor: no parallel batch execution, no streaming output (-2)' },
+  },
+  gget: {
+    agentReadiness:    { score: 3,  justification: 'has --json/-j flag (1pt), no help --json (0), no schema (0), no whenToUse (0), no error recovery (0), no batch --input (0), has CLI help text (1pt), has Python API (1pt)' },
+    workflowDepth:     { score: 2,  justification: 'info + seq + enrichr modules (1pt), no cross-db aggregation (0), no scout/prepare (0), can chain via Python (1pt)' },
+    operationalSafety: { score: 2,  justification: 'basic Python error handling (1pt), no dry-run/plan (0), no max-size (0), stderr warnings (1pt)' },
+    reproducibility:   { score: 1,  justification: 'no cache (0), no manifest (0), no verify (0), consistent JSON output format (1pt)' },
+    outputUsability:   { score: 6,  justification: 'JSON output (2pt), DataFrame/CSV (2pt), but no standard envelope (0), no schema (0), consistent field naming (2pt)' },
+    efficiency:        { score: 6,  justification: 'direct single commands (2pt), Python chaining (2pt), no CLI batch input (0), no aggregation commands (0), fast Ensembl lookups (2pt)' },
+  },
+  biomcp: {
+    agentReadiness:    { score: 6,  justification: 'MCP serve mode (2pt), _meta.next_commands (1pt), -j JSON flag (1pt), search/get/pivot grammar (1pt), no help --json with full guidance (0), batch support (1pt)' },
+    workflowDepth:     { score: 4,  justification: 'cross-db gene/variant aggregation (2pt), pivot syntax (1pt), no data download (0), no prepare/manifest (0), local cBioPortal study analysis (1pt)' },
+    operationalSafety: { score: 3,  justification: 'structured error messages (1pt), --no-cache flag (1pt), no dry-run/plan (0), no max-size (0), partial source failure warnings (1pt)' },
+    reproducibility:   { score: 2,  justification: 'HTTP response cache (1pt), no manifest (0), no verify/doctor (0), JSON output with _meta (1pt)' },
+    outputUsability:   { score: 7,  justification: 'structured JSON with _meta envelope (3pt), evidence_urls in output (2pt), Markdown default (1pt), no per-command schema (0), consistent field naming (1pt)' },
+    efficiency:        { score: 7,  justification: 'unified entity grammar (2pt), pivot cross-entity (2pt), batch commands (1pt), single binary (1pt), no streaming (0), fast API routing (1pt)' },
+  },
+};
+
+function scoreCrossCutting(tool: string): { scores: CrossCuttingScores; audits: Record<string, string> } {
+  const audit = MANUAL_AUDITS[tool === 'biomcp' ? 'biomcp' : tool];
+  if (!audit) {
     return {
-      agentReadiness: 10,    // list/help --json, schema, whenToUse, capabilities, error recovery, batch
-      workflowDepth: 10,     // aggregation, scout, download, prepare, manifest, plan
-      operationalSafety: 9,  // dry-run, plan, max-size, partial warnings, error codes, graceful degradation
-      reproducibility: 10,   // cache, --no-cache, manifest, deterministic envelope, verify/doctor, timestamps
-      outputUsability: 9,    // structured JSON, BiocliResult envelope, per-command schema
-      efficiency: 8,         // single commands for complex tasks, batch input
+      scores: { agentReadiness: 0, workflowDepth: 0, operationalSafety: 0, reproducibility: 0, outputUsability: 0, efficiency: 0 },
+      audits: {},
     };
   }
-
-  if (tool === 'gget') {
-    return {
-      agentReadiness: 3,     // has --json but no help --json, no schema, no whenToUse, no error recovery
-      workflowDepth: 2,      // info/seq/enrichr but no cross-db aggregation, no scout/prepare
-      operationalSafety: 2,  // basic error handling, no dry-run/plan
-      reproducibility: 1,    // no cache, no manifest, no verify
-      outputUsability: 6,    // JSON/DataFrame output, but no standard envelope
-      efficiency: 6,         // direct commands but no batch, no aggregation
-    };
+  const scores: CrossCuttingScores = {
+    agentReadiness: audit.agentReadiness.score,
+    workflowDepth: audit.workflowDepth.score,
+    operationalSafety: audit.operationalSafety.score,
+    reproducibility: audit.reproducibility.score,
+    outputUsability: audit.outputUsability.score,
+    efficiency: audit.efficiency.score,
+  };
+  const audits: Record<string, string> = {};
+  for (const [key, entry] of Object.entries(audit)) {
+    audits[key] = entry.justification;
   }
-
-  if (tool === 'biomcp') {
-    return {
-      agentReadiness: 6,     // has MCP serve, _meta.next_commands, but no help --json with full guidance
-      workflowDepth: 4,      // cross-db aggregation + pivot, but no download/prepare/manifest
-      operationalSafety: 3,  // basic error handling, no dry-run/plan/max-size
-      reproducibility: 2,    // no cache, no manifest, no verify
-      outputUsability: 7,    // structured JSON with _meta envelope
-      efficiency: 7,         // pivot syntax is efficient, batch support
-    };
-  }
-
-  return { agentReadiness: 0, workflowDepth: 0, operationalSafety: 0, reproducibility: 0, outputUsability: 0, efficiency: 0 };
+  return { scores, audits };
 }
 
 function computeWeightedTotal(tasks: TaskScore[], cross: CrossCuttingScores): number {
@@ -285,10 +309,20 @@ for (const tool of TOOLS) {
 
   console.log(`Scoring ${tool}...`);
   const tasks = scoreAllTasks(rawDir);
-  const crossCutting = scoreCrossCutting(tool);
+  const { scores: crossCutting, audits: crossCuttingJustifications } = scoreCrossCutting(tool);
   const totalWeighted = computeWeightedTotal(tasks, crossCutting);
 
-  const result: ToolResult = { tool, version: '', date, tasks, crossCutting, totalWeighted };
+  const VERSIONS: Record<string, string> = { biocli: '0.2.0', gget: '0.30.3', biomcp: '0.8.19' };
+  const result: ToolResult & { crossCuttingJustifications?: Record<string, string>; scoredAt?: string } = {
+    tool,
+    version: VERSIONS[tool] ?? '',
+    date,
+    tasks,
+    crossCutting,
+    totalWeighted,
+    crossCuttingJustifications,
+    scoredAt: new Date().toISOString(),
+  };
   summary.push(result);
 
   writeFileSync(join(scoredDir, `${tool}.json`), JSON.stringify(result, null, 2));
@@ -298,7 +332,9 @@ for (const tool of TOOLS) {
 writeFileSync(join(scoredDir, 'summary.json'), JSON.stringify(summary, null, 2));
 
 // Print summary table
-console.log('\n=== Benchmark Summary ===\n');
+console.log('\n=== Benchmark Summary ===');
+console.log('  Task scores: automated from raw output');
+console.log('  Cross-cutting scores: manual audit (see justifications in scored/*.json)\n');
 console.log('Tool'.padEnd(12) + 'Tasks'.padEnd(10) + 'Agent'.padEnd(8) + 'Workflow'.padEnd(10) + 'Safety'.padEnd(8) + 'Repro'.padEnd(8) + 'Total');
 console.log('-'.repeat(64));
 for (const r of summary) {

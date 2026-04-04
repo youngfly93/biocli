@@ -1,6 +1,6 @@
 {
   "tool": "biomcp",
-  "version": "",
+  "version": "0.8.19",
   "date": "2026-04-04",
   "tasks": [
     {
@@ -8,7 +8,7 @@
       "category": "gene",
       "title": "Gene comprehensive dossier",
       "maxScore": 7,
-      "score": 3,
+      "score": 2,
       "criteria": [
         {
           "criterion": "Returns gene symbol and NCBI Gene ID",
@@ -32,7 +32,7 @@
         },
         {
           "criterion": "Includes ClinVar clinical variants",
-          "met": true
+          "met": false
         },
         {
           "criterion": "Output is structured JSON",
@@ -328,5 +328,14 @@
     "outputUsability": 7,
     "efficiency": 7
   },
-  "totalWeighted": 45
+  "totalWeighted": 44,
+  "crossCuttingJustifications": {
+    "agentReadiness": "MCP serve mode (2pt), _meta.next_commands (1pt), -j JSON flag (1pt), search/get/pivot grammar (1pt), no help --json with full guidance (0), batch support (1pt)",
+    "workflowDepth": "cross-db gene/variant aggregation (2pt), pivot syntax (1pt), no data download (0), no prepare/manifest (0), local cBioPortal study analysis (1pt)",
+    "operationalSafety": "structured error messages (1pt), --no-cache flag (1pt), no dry-run/plan (0), no max-size (0), partial source failure warnings (1pt)",
+    "reproducibility": "HTTP response cache (1pt), no manifest (0), no verify/doctor (0), JSON output with _meta (1pt)",
+    "outputUsability": "structured JSON with _meta envelope (3pt), evidence_urls in output (2pt), Markdown default (1pt), no per-command schema (0), consistent field naming (1pt)",
+    "efficiency": "unified entity grammar (2pt), pivot cross-entity (2pt), batch commands (1pt), single binary (1pt), no streaming (0), fast API routing (1pt)"
+  },
+  "scoredAt": "2026-04-04T01:58:49.146Z"
 }

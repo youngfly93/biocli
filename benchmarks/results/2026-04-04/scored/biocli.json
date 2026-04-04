@@ -1,6 +1,6 @@
 {
   "tool": "biocli",
-  "version": "",
+  "version": "0.2.0",
   "date": "2026-04-04",
   "tasks": [
     {
@@ -172,11 +172,11 @@
       "category": "literature",
       "title": "Literature brief",
       "maxScore": 4,
-      "score": 3,
+      "score": 4,
       "criteria": [
         {
           "criterion": "Returns at least 3 articles",
-          "met": false
+          "met": true
         },
         {
           "criterion": "Includes titles and abstracts",
@@ -328,5 +328,14 @@
     "outputUsability": 9,
     "efficiency": 8
   },
-  "totalWeighted": 95
+  "totalWeighted": 96,
+  "crossCuttingJustifications": {
+    "agentReadiness": "list/help --json, per-command schema, whenToUse/whenNotToUse, capabilities, error recovery suggestions, batch --input (10/10 rubric criteria met)",
+    "workflowDepth": "cross-db aggregation, dataset scout, GEO/SRA download, working directory prepare, manifest.json, --plan preview (10/10)",
+    "operationalSafety": "--dry-run, --plan, --max-size, partial failure reporting, structured error codes, graceful degradation. Missing: no interactive confirmation prompt (-1)",
+    "reproducibility": "file cache with TTL, --no-cache, manifest.json with provenance, deterministic BiocliResult envelope, verify/doctor, queriedAt timestamps (10/10)",
+    "outputUsability": "structured JSON, BiocliResult envelope, per-command data schema, auto-JSON in pipe. Minor: some atomic commands lack envelope (-1)",
+    "efficiency": "single commands for complex multi-db tasks, --input batch. Minor: no parallel batch execution, no streaming output (-2)"
+  },
+  "scoredAt": "2026-04-04T01:58:49.126Z"
 }

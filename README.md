@@ -48,9 +48,9 @@ Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON ou
 
 > **gget** excels at sequence analysis (BLAST, AlphaFold, MUSCLE). **BioMCP** covers more biomedical entities (drugs, trials, diseases). **EDirect** has the deepest NCBI Entrez integration. **biocli** is the only one that combines query + download + data preparation into agent-orchestrated workflows.
 
-### Benchmark (2026-04-04, real execution)
+### Benchmark: Agent-First Biological Workflow Tasks (2026-04-04)
 
-12 biology tasks, 7 scoring dimensions. All tools installed and executed locally. [Full methodology →](benchmarks/README.md)
+12 tasks across gene intelligence, variant interpretation, literature search, and data preparation. Task scores are automated from raw output; cross-cutting scores are manual audit with published justifications. [Full methodology →](benchmarks/README.md)
 
 <p align="center">
   <img src="benchmarks/results/2026-04-04/plots/total_scores.png" width="420" alt="Overall benchmark scores">
@@ -58,8 +58,8 @@ Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON ou
 
 | Tool | Version | Task Success | Agent Readiness | Workflow Depth | Safety | Reproducibility | **Total** |
 |------|---------|:---:|:---:|:---:|:---:|:---:|:---:|
-| **biocli** | 0.2.0 | 46/49 | 10/10 | 10/10 | 9/10 | 10/10 | **95/100** |
-| BioMCP | 0.8.19 | 21/49 | 6/10 | 4/10 | 3/10 | 2/10 | 45/100 |
+| **biocli** | 0.2.0 | 47/49 | 10/10 | 10/10 | 9/10 | 10/10 | **96/100** |
+| BioMCP | 0.8.19 | 20/49 | 6/10 | 4/10 | 3/10 | 2/10 | 44/100 |
 | gget | 0.30.3 | 8/49 | 3/10 | 2/10 | 2/10 | 1/10 | 24/100 |
 
 <details>

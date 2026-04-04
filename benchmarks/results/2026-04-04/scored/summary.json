@@ -1,7 +1,7 @@
 [
   {
     "tool": "biocli",
-    "version": "",
+    "version": "0.2.0",
     "date": "2026-04-04",
     "tasks": [
       {
@@ -173,11 +173,11 @@
         "category": "literature",
         "title": "Literature brief",
         "maxScore": 4,
-        "score": 3,
+        "score": 4,
         "criteria": [
           {
             "criterion": "Returns at least 3 articles",
-            "met": false
+            "met": true
           },
           {
             "criterion": "Includes titles and abstracts",
@@ -329,11 +329,20 @@
       "outputUsability": 9,
       "efficiency": 8
     },
-    "totalWeighted": 95
+    "totalWeighted": 96,
+    "crossCuttingJustifications": {
+      "agentReadiness": "list/help --json, per-command schema, whenToUse/whenNotToUse, capabilities, error recovery suggestions, batch --input (10/10 rubric criteria met)",
+      "workflowDepth": "cross-db aggregation, dataset scout, GEO/SRA download, working directory prepare, manifest.json, --plan preview (10/10)",
+      "operationalSafety": "--dry-run, --plan, --max-size, partial failure reporting, structured error codes, graceful degradation. Missing: no interactive confirmation prompt (-1)",
+      "reproducibility": "file cache with TTL, --no-cache, manifest.json with provenance, deterministic BiocliResult envelope, verify/doctor, queriedAt timestamps (10/10)",
+      "outputUsability": "structured JSON, BiocliResult envelope, per-command data schema, auto-JSON in pipe. Minor: some atomic commands lack envelope (-1)",
+      "efficiency": "single commands for complex multi-db tasks, --input batch. Minor: no parallel batch execution, no streaming output (-2)"
+    },
+    "scoredAt": "2026-04-04T01:58:49.126Z"
   },
   {
     "tool": "gget",
-    "version": "",
+    "version": "0.30.3",
     "date": "2026-04-04",
     "tasks": [
       {
@@ -341,7 +350,7 @@
         "category": "gene",
         "title": "Gene comprehensive dossier",
         "maxScore": 7,
-        "score": 2,
+        "score": 1,
         "criteria": [
           {
             "criterion": "Returns gene symbol and NCBI Gene ID",
@@ -365,7 +374,7 @@
           },
           {
             "criterion": "Includes ClinVar clinical variants",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Output is structured JSON",
@@ -379,7 +388,7 @@
         "category": "gene",
         "title": "Multi-gene enrichment",
         "maxScore": 4,
-        "score": 3,
+        "score": 4,
         "criteria": [
           {
             "criterion": "Accepts comma-separated gene list",
@@ -391,7 +400,7 @@
           },
           {
             "criterion": "Includes p-values or scores",
-            "met": false
+            "met": true
           },
           {
             "criterion": "Output is structured JSON",
@@ -661,11 +670,20 @@
       "outputUsability": 6,
       "efficiency": 6
     },
-    "totalWeighted": 24
+    "totalWeighted": 24,
+    "crossCuttingJustifications": {
+      "agentReadiness": "has --json/-j flag (1pt), no help --json (0), no schema (0), no whenToUse (0), no error recovery (0), no batch --input (0), has CLI help text (1pt), has Python API (1pt)",
+      "workflowDepth": "info + seq + enrichr modules (1pt), no cross-db aggregation (0), no scout/prepare (0), can chain via Python (1pt)",
+      "operationalSafety": "basic Python error handling (1pt), no dry-run/plan (0), no max-size (0), stderr warnings (1pt)",
+      "reproducibility": "no cache (0), no manifest (0), no verify (0), consistent JSON output format (1pt)",
+      "outputUsability": "JSON output (2pt), DataFrame/CSV (2pt), but no standard envelope (0), no schema (0), consistent field naming (2pt)",
+      "efficiency": "direct single commands (2pt), Python chaining (2pt), no CLI batch input (0), no aggregation commands (0), fast Ensembl lookups (2pt)"
+    },
+    "scoredAt": "2026-04-04T01:58:49.136Z"
   },
   {
     "tool": "biomcp",
-    "version": "",
+    "version": "0.8.19",
     "date": "2026-04-04",
     "tasks": [
       {
@@ -673,7 +691,7 @@
         "category": "gene",
         "title": "Gene comprehensive dossier",
         "maxScore": 7,
-        "score": 3,
+        "score": 2,
         "criteria": [
           {
             "criterion": "Returns gene symbol and NCBI Gene ID",
@@ -697,7 +715,7 @@
           },
           {
             "criterion": "Includes ClinVar clinical variants",
-            "met": true
+            "met": false
           },
           {
             "criterion": "Output is structured JSON",
@@ -993,6 +1011,15 @@
       "outputUsability": 7,
       "efficiency": 7
     },
-    "totalWeighted": 45
+    "totalWeighted": 44,
+    "crossCuttingJustifications": {
+      "agentReadiness": "MCP serve mode (2pt), _meta.next_commands (1pt), -j JSON flag (1pt), search/get/pivot grammar (1pt), no help --json with full guidance (0), batch support (1pt)",
+      "workflowDepth": "cross-db gene/variant aggregation (2pt), pivot syntax (1pt), no data download (0), no prepare/manifest (0), local cBioPortal study analysis (1pt)",
+      "operationalSafety": "structured error messages (1pt), --no-cache flag (1pt), no dry-run/plan (0), no max-size (0), partial source failure warnings (1pt)",
+      "reproducibility": "HTTP response cache (1pt), no manifest (0), no verify/doctor (0), JSON output with _meta (1pt)",
+      "outputUsability": "structured JSON with _meta envelope (3pt), evidence_urls in output (2pt), Markdown default (1pt), no per-command schema (0), consistent field naming (1pt)",
+      "efficiency": "unified entity grammar (2pt), pivot cross-entity (2pt), batch commands (1pt), single binary (1pt), no streaming (0), fast API routing (1pt)"
+    },
+    "scoredAt": "2026-04-04T01:58:49.146Z"
   }
 ]
