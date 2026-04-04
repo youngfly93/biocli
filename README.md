@@ -11,7 +11,7 @@ NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr
 ## Install
 
 ```bash
-npm install -g @biocli/cli
+npm install -g @yangfei_93sky/biocli
 ```
 
 Requires Node.js >= 20. No API keys needed (optional NCBI key increases rate limit).
@@ -75,7 +75,7 @@ Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON ou
 
 </details>
 
-> All three tools were installed (`npm install -g @biocli/cli`, `pip install gget==0.30.3`, `uv tool install biomcp-cli==0.8.19`) and executed on the same machine with the same inputs. Raw stdout/stderr, scoring scripts, and runner scripts are in [`benchmarks/`](benchmarks/). BioMCP excels at biomedical entity breadth (drugs, trials, diseases) not covered by this task set; gget excels at sequence analysis (BLAST, AlphaFold) not covered here.
+> All three tools were installed (`npm install -g @yangfei_93sky/biocli`, `pip install gget==0.30.3`, `uv tool install biomcp-cli==0.8.19`) and executed on the same machine with the same inputs. Raw stdout/stderr, scoring scripts, and runner scripts are in [`benchmarks/`](benchmarks/). BioMCP excels at biomedical entity breadth (drugs, trials, diseases) not covered by this task set; gget excels at sequence analysis (BLAST, AlphaFold) not covered here.
 
 ## Quick start
 

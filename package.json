@@ -1,5 +1,5 @@
 {
-  "name": "@biocli/cli",
+  "name": "@yangfei_93sky/biocli",
   "version": "0.2.0",
   "description": "Query biological databases from the terminal — agent-first bioinformatics CLI",
   "type": "module",
