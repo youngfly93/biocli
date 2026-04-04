@@ -75,7 +75,7 @@ Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON ou
 
 </details>
 
-> All three tools were installed (`npm install -g @biocli/cli`, `pip install gget`, `pip install biomcp-cli`) and executed on the same machine with the same inputs. Raw stdout/stderr, scoring scripts, and runner scripts are in [`benchmarks/`](benchmarks/). BioMCP excels at biomedical entity breadth (drugs, trials, diseases) not covered by this task set; gget excels at sequence analysis (BLAST, AlphaFold) not covered here.
+> All three tools were installed (`npm install -g @biocli/cli`, `pip install gget==0.30.3`, `uv tool install biomcp-cli==0.8.19`) and executed on the same machine with the same inputs. Raw stdout/stderr, scoring scripts, and runner scripts are in [`benchmarks/`](benchmarks/). BioMCP excels at biomedical entity breadth (drugs, trials, diseases) not covered by this task set; gget excels at sequence analysis (BLAST, AlphaFold) not covered here.
 
 ## Quick start
 
@@ -86,8 +86,6 @@ biocli aggregate gene-dossier TP53 -f json
 ```
 
 Returns a unified JSON with gene summary, protein function, KEGG pathways, GO terms, protein interactions, recent literature, and clinical variants — sourced from NCBI, UniProt, KEGG, STRING, PubMed, and ClinVar in parallel.
-
-## Quick start
 
 ```bash
 # Gene intelligence (NCBI + UniProt + KEGG + STRING + PubMed + ClinVar)

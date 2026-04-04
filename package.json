@@ -4,6 +4,11 @@
   "description": "Query biological databases from the terminal — agent-first bioinformatics CLI",
   "type": "module",
   "main": "dist/main.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "bin": {
     "biocli": "dist/main.js",
     "ncbicli": "dist/main.js"
@@ -17,13 +22,13 @@
   },
   "scripts": {
     "dev": "tsx src/main.ts",
-    "build": "npm run clean-dist && tsc && npm run clean-yaml && npm run copy-yaml && npm run build-manifest",
+    "build": "npm run clean-dist && tsc -p tsconfig.build.json && npm run clean-yaml && npm run copy-yaml && npm run build-manifest",
     "build-manifest": "node dist/build-manifest.js",
     "clean-dist": "node scripts/clean-dist.cjs",
     "clean-yaml": "node scripts/clean-yaml.cjs",
     "copy-yaml": "node scripts/copy-yaml.cjs",
     "start": "node dist/main.js",
-    "postinstall": "node scripts/postinstall.js || true",
+    "postinstall": "node scripts/postinstall.cjs || true",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build",

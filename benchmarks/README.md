@@ -16,8 +16,8 @@ Task definitions: [tasks.yaml](tasks.yaml)
 ```bash
 # 1. Run tasks for each tool
 bash benchmarks/runners/run_biocli.sh
-bash benchmarks/runners/run_gget.sh    # requires: pip install gget
-bash benchmarks/runners/run_biomcp.sh  # requires: uv tool install biomcp-cli
+bash benchmarks/runners/run_gget.sh    # requires: pip install gget==0.30.3
+bash benchmarks/runners/run_biomcp.sh  # requires: uv tool install biomcp-cli==0.8.19
 
 # 2. Score results
 npx tsx benchmarks/scripts/score.ts

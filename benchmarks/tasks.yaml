@@ -9,11 +9,11 @@ tools:
     version: "0.2.0"
     install: "npm install -g @biocli/cli"
   - name: gget
-    version: "latest"
-    install: "pip install gget"
+    version: "0.30.3"
+    install: "pip install gget==0.30.3"
   - name: biomcp
-    version: "latest"
-    install: "uv tool install biomcp-cli"
+    version: "0.8.19"
+    install: "uv tool install biomcp-cli==0.8.19"
 
 tasks:
   # ── Category 1: Gene Tasks ─────────────────────────────────────────────────
