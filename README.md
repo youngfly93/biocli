@@ -5,7 +5,7 @@ Query biological databases from the terminal. Agent-first design.
 ```
 biocli v0.2.0
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr
-42 commands · 6 database backends · 8 workflow commands · 4 download commands
+44 commands · 6 database backends · 10 workflow commands · 4 download commands
 ```
 
 ## Install
@@ -118,6 +118,8 @@ biocli aggregate gene-profile TP53
 | `aggregate gene-profile <gene>` | NCBI+UniProt+KEGG+STRING | Gene profile (no literature) |
 | `aggregate workflow-scout <query>` | GEO+SRA | Scout datasets for a research question |
 | `aggregate workflow-prepare <dataset>` | GEO+NCBI+UniProt+KEGG | Prepare research-ready directory with data + annotations |
+| `aggregate workflow-annotate <genes>` | NCBI+UniProt+KEGG+Enrichr | Annotate gene list → genes.csv + pathways.csv + enrichment.csv + report.md |
+| `aggregate workflow-profile <genes>` | NCBI+UniProt+KEGG+STRING+Enrichr | Gene set functional profile → shared pathways, interactions, GO terms |
 
 ### Database commands (atomic)
 

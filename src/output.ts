@@ -436,8 +436,18 @@ function renderReport(data: unknown, opts: RenderOptions): void {
   console.log('| ' + columns.map(() => '---').join(' | ') + ' |');
   for (const row of rows) {
     const cells = columns.map(c => {
-      const v = String((row as Record<string, unknown>)[c] ?? '');
-      // Truncate long values in report tables
+      const raw = (row as Record<string, unknown>)[c];
+      // Format nested objects/arrays for report readability
+      let v: string;
+      if (Array.isArray(raw)) {
+        v = `${raw.length} items`;
+      } else if (raw !== null && typeof raw === 'object') {
+        v = JSON.stringify(raw);
+      } else {
+        v = String(raw ?? '');
+      }
+      // Truncate long values and escape pipes for Markdown
+      v = v.replace(/\|/g, '\\|');
       return v.length > 80 ? v.slice(0, 80) + '...' : v;
     });
     console.log('| ' + cells.join(' | ') + ' |');

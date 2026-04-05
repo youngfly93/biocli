@@ -152,10 +152,26 @@ cli({
           continue;
         }
 
-        // Resume: skip if file already exists with non-zero size
+        // Resume: skip if file already exists AND matches expected size (HEAD check)
         if (existsSync(destPath) && statSync(destPath).size > 0) {
-          rows.push({ file: fileName, size: formatSize(statSync(destPath).size), status: `skipped (already exists)` });
-          continue;
+          try {
+            const head = await fetch(url, { method: 'HEAD' });
+            if (head.ok) {
+              const expectedSize = Number(head.headers.get('content-length') ?? 0);
+              const localSize = statSync(destPath).size;
+              if (expectedSize > 0 && localSize === expectedSize) {
+                rows.push({ file: fileName, size: formatSize(localSize), status: `skipped (complete, ${formatSize(localSize)})` });
+                continue;
+              } else if (expectedSize > 0 && localSize < expectedSize) {
+                // Incomplete file — delete and re-download
+                const { rmSync } = await import('node:fs');
+                rmSync(destPath);
+              }
+              // localSize > expectedSize or expectedSize unknown: re-download
+            }
+          } catch {
+            // HEAD failed — proceed with download
+          }
         }
 
         try {

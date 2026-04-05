@@ -105,6 +105,16 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       const verbose = optionsRecord.verbose === true;
       const inputFile = typeof optionsRecord.input === 'string' ? optionsRecord.input : undefined;
 
+      // If --input is provided and primary positional arg is empty, read input file
+      // and pass contents as the positional arg value (comma-joined for aggregate commands)
+      if (inputFile && positionalArgs[0] && !kwargs[positionalArgs[0].name]) {
+        const { parseBatchInput: parseInput } = await import('./batch.js');
+        const items = parseInput(undefined, inputFile);
+        if (items && items.length > 0) {
+          kwargs[positionalArgs[0].name] = items.join(',');
+        }
+      }
+
       // Validate required positional args (unless --input provides batch input)
       if (!inputFile) {
         for (const arg of positionalArgs) {
@@ -198,7 +208,7 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         return;
       }
 
-      // Extract display metadata if the command returned ResultWithMeta
+      // Extract display metadata if the command returned ResultWithMeta or BiocliResult
       let renderData: unknown = result;
       let totalCount: number | undefined;
       let query: string | undefined;
@@ -206,6 +216,17 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         renderData = result.rows;
         totalCount = result.meta.totalCount;
         query = result.meta.query;
+      } else if (typeof result === 'object' && result !== null && 'data' in (result as Record<string, unknown>) && 'sources' in (result as Record<string, unknown>)) {
+        // BiocliResult envelope — for report/table/csv, render the data payload
+        const biocliResult = result as Record<string, unknown>;
+        query = String(biocliResult.query ?? '');
+        if (format === 'json' || format === 'yaml' || format === 'yml') {
+          // JSON/YAML: render the full envelope (agent-friendly)
+          renderData = result;
+        } else {
+          // table/csv/report/md: render the data payload
+          renderData = biocliResult.data;
+        }
       }
 
       const resolved = getRegistry().get(fullName(cmd)) ?? cmd;

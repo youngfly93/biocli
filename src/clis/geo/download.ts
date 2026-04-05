@@ -113,10 +113,22 @@ cli({
       const fileUrl = `${supplUrl}${file.name}`;
       const destPath = join(outdir, file.name);
 
-      // Resume: skip if file already exists with non-zero size
+      // Resume: skip only if local file matches expected remote size
       if (existsSync(destPath) && statSync(destPath).size > 0) {
-        rows.push({ file: file.name, size: file.size, status: `skipped (already exists)` });
-        continue;
+        try {
+          const head = await fetch(fileUrl, { method: 'HEAD' });
+          if (head.ok) {
+            const expectedSize = Number(head.headers.get('content-length') ?? 0);
+            const localSize = statSync(destPath).size;
+            if (expectedSize > 0 && localSize === expectedSize) {
+              rows.push({ file: file.name, size: file.size, status: `skipped (complete)` });
+              continue;
+            }
+            // Incomplete or mismatched — will re-download below
+          }
+        } catch {
+          // HEAD failed — proceed with download
+        }
       }
 
       try {
