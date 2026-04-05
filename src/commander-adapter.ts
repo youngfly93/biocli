@@ -105,13 +105,16 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       const verbose = optionsRecord.verbose === true;
       const inputFile = typeof optionsRecord.input === 'string' ? optionsRecord.input : undefined;
 
-      // If --input is provided and primary positional arg is empty, read input file
-      // and pass contents as the positional arg value (comma-joined for aggregate commands)
-      if (inputFile && positionalArgs[0] && !kwargs[positionalArgs[0].name]) {
+      // If --input is provided, read file and inject into positional arg.
+      // Only for commands whose positional arg is named "genes" (multi-entity pattern).
+      // Single-entity commands (gene-dossier, variant-dossier, etc.) use batch mode instead.
+      const primaryArgName = positionalArgs[0]?.name;
+      const supportsInputInject = primaryArgName === 'genes';
+      if (inputFile && supportsInputInject && !kwargs[primaryArgName]) {
         const { parseBatchInput: parseInput } = await import('./batch.js');
         const items = parseInput(undefined, inputFile);
         if (items && items.length > 0) {
-          kwargs[positionalArgs[0].name] = items.join(',');
+          kwargs[primaryArgName] = items.join(',');
         }
       }
 
@@ -209,6 +212,7 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       }
 
       // Extract display metadata if the command returned ResultWithMeta or BiocliResult
+      let biocliResultColumns = false;
       let renderData: unknown = result;
       let totalCount: number | undefined;
       let query: string | undefined;
@@ -224,8 +228,11 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
           // JSON/YAML: render the full envelope (agent-friendly)
           renderData = result;
         } else {
-          // table/csv/report/md: render the data payload
+          // table/csv/report/md: render the data payload with actual keys
           renderData = biocliResult.data;
+          // Override columns to use data's actual keys (command-declared columns
+          // may not match the BiocliResult data payload field names)
+          biocliResultColumns = true;
         }
       }
 
@@ -247,8 +254,9 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       //   --columns pmid,title,abstract  →  user-specified subset
       //   --all-columns / -A             →  all keys from first row
       //   (default)                       →  adapter-declared columns
-      let displayColumns: string[] | undefined = resolved.columns;
-      const allColumns = optionsRecord.allColumns === true;
+      // For BiocliResult data, use actual keys from the data payload
+      let displayColumns: string[] | undefined = biocliResultColumns ? undefined : resolved.columns;
+      const allColumns = optionsRecord.allColumns === true || biocliResultColumns;
       const userColumns = typeof optionsRecord.columns === 'string' ? optionsRecord.columns : undefined;
 
       if (userColumns) {
