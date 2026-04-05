@@ -14,7 +14,7 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
-import { mkdirSync, existsSync, createWriteStream } from 'node:fs';
+import { mkdirSync, existsSync, createWriteStream, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
@@ -149,6 +149,12 @@ cli({
             }
             // 404 → skip silently (expected for single/paired mismatch)
           } catch { /* skip */ }
+          continue;
+        }
+
+        // Resume: skip if file already exists with non-zero size
+        if (existsSync(destPath) && statSync(destPath).size > 0) {
+          rows.push({ file: fileName, size: formatSize(statSync(destPath).size), status: `skipped (already exists)` });
           continue;
         }
 

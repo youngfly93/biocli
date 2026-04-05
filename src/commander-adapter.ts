@@ -79,7 +79,8 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
     .option('-A, --all-columns', 'Show all available columns', false)
     .option('-v, --verbose', 'Debug output', false)
     .option('--input <file>', 'Batch input: file with one ID per line, or - for stdin')
-    .option('--no-cache', 'Skip cache and fetch fresh data');
+    .option('--no-cache', 'Skip cache and fetch fresh data')
+    .option('--retry <n>', 'Retry failed batch items N times (default: 0)', '0');
 
   subCmd.action(async (...actionArgs: unknown[]) => {
     const actionOpts = actionArgs[positionalArgs.length] ?? {};
@@ -134,29 +135,47 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         ? parseBatchInput(kwargs[primaryArg.name] as string | undefined, inputFile)
         : null;
 
+      const retryCount = Math.max(0, parseInt(String(optionsRecord.retry ?? '0'), 10) || 0);
+
       let result: unknown;
       if (batchItems && primaryArg) {
         const spinnerLabel = `Batch ${fullName(cmd)} (${batchItems.length} items)…`;
         const spinner = startSpinner(spinnerLabel);
         const batchResults: unknown[] = [];
-        const errors: string[] = [];
+        let failedItems: string[] = [];
         try {
+          // First pass
           for (const item of batchItems) {
             try {
               const batchKwargs = { ...kwargs, [primaryArg.name]: item };
               const r = await executeCommand(cmd, batchKwargs, verbose, { noCache });
               if (r !== null && r !== undefined) batchResults.push(r);
             } catch (err) {
-              errors.push(`${item}: ${err instanceof Error ? err.message : String(err)}`);
+              failedItems.push(item);
               if (verbose) console.error(chalk.yellow(`[Batch] ${item} failed: ${err instanceof Error ? err.message : String(err)}`));
             }
+          }
+
+          // Retry failed items
+          for (let attempt = 1; attempt <= retryCount && failedItems.length > 0; attempt++) {
+            if (verbose) console.error(chalk.dim(`[Batch] Retry ${attempt}/${retryCount}: ${failedItems.length} item(s)…`));
+            const stillFailed: string[] = [];
+            for (const item of failedItems) {
+              try {
+                const batchKwargs = { ...kwargs, [primaryArg.name]: item };
+                const r = await executeCommand(cmd, batchKwargs, verbose, { noCache: true });
+                if (r !== null && r !== undefined) batchResults.push(r);
+              } catch {
+                stillFailed.push(item);
+              }
+            }
+            failedItems = stillFailed;
           }
         } finally {
           spinner.stop();
         }
-        if (errors.length > 0) {
-          console.error(chalk.yellow(`[Batch] ${errors.length}/${batchItems.length} failed`));
-          if (verbose) errors.forEach(e => console.error(chalk.dim(`  ${e}`)));
+        if (failedItems.length > 0) {
+          console.error(chalk.yellow(`[Batch] ${failedItems.length}/${batchItems.length} failed${retryCount > 0 ? ` (after ${retryCount} retries)` : ''}: ${failedItems.join(', ')}`));
         }
         if (!batchResults.length) {
           console.error(chalk.red(`All ${batchItems.length} batch items failed.`));

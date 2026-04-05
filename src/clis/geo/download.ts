@@ -11,7 +11,7 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
-import { mkdirSync, existsSync, createWriteStream } from 'node:fs';
+import { mkdirSync, existsSync, createWriteStream, statSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
@@ -112,6 +112,12 @@ cli({
     for (const file of files) {
       const fileUrl = `${supplUrl}${file.name}`;
       const destPath = join(outdir, file.name);
+
+      // Resume: skip if file already exists with non-zero size
+      if (existsSync(destPath) && statSync(destPath).size > 0) {
+        rows.push({ file: file.name, size: file.size, status: `skipped (already exists)` });
+        continue;
+      }
 
       try {
         const response = await fetch(fileUrl);
