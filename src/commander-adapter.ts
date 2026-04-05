@@ -127,8 +127,10 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       const noCache = optionsRecord.cache === false;
 
       // ── Batch mode: --input or comma-separated positional ────────────
+      // Skip batch for aggregate commands — they handle their own multi-input parsing
       const primaryArg = positionalArgs[0]; // first positional = primary ID/query
-      const batchItems = primaryArg
+      const skipBatch = cmd.database === 'aggregate';
+      const batchItems = (primaryArg && !skipBatch)
         ? parseBatchInput(kwargs[primaryArg.name] as string | undefined, inputFile)
         : null;
 
