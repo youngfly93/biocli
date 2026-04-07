@@ -35,12 +35,19 @@ cli({
     })) as Record<string, any>;
 
     const item = summary?.result?.[ids[0]] ?? {};
+    // NCBI renamed clinical_significance → germline_classification.description
+    // and moved trait_set under germline_classification (2024/2025).
+    const germline = item.germline_classification ?? {};
     const genes = Array.isArray(item.genes) ? item.genes.map((g: any) => g.symbol).join(', ') : '';
-    const significance = typeof item.clinical_significance === 'object'
-      ? item.clinical_significance?.description ?? ''
-      : String(item.clinical_significance ?? '');
-    const conditions = Array.isArray(item.trait_set)
-      ? item.trait_set.map((t: any) => t.trait_name).join('; ')
+    const significance = String(
+      germline.description
+      ?? (typeof item.clinical_significance === 'object'
+        ? item.clinical_significance?.description ?? ''
+        : item.clinical_significance ?? '')
+    );
+    const traitSet = germline.trait_set ?? item.trait_set;
+    const conditions = Array.isArray(traitSet)
+      ? traitSet.map((t: any) => t.trait_name).join('; ')
       : '';
     const varType = item.obj_type ?? item.variation_type ?? '';
 

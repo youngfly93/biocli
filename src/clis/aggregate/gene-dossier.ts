@@ -83,15 +83,24 @@ async function fetchClinvarSignificance(ctx: HttpContext, symbol: string): Promi
 
   return uids.map(uid => {
     const item = (resultObj?.[uid] ?? {}) as Record<string, unknown>;
-    const sig = typeof item.clinical_significance === 'object'
-      ? (item.clinical_significance as Record<string, unknown>)?.description ?? ''
-      : String(item.clinical_significance ?? '');
-    const traits = Array.isArray(item.trait_set)
-      ? (item.trait_set as Record<string, unknown>[]).map(t => String(t.trait_name ?? '')).join('; ')
+    // NCBI renamed ClinVar esummary fields in 2024/2025:
+    //   clinical_significance → germline_classification.description
+    //   trait_set (top-level) → germline_classification.trait_set
+    // Fall back to legacy field names for compatibility.
+    const germline = (item.germline_classification ?? {}) as Record<string, unknown>;
+    const sig = String(
+      germline.description
+      ?? (typeof item.clinical_significance === 'object'
+        ? (item.clinical_significance as Record<string, unknown>)?.description ?? ''
+        : item.clinical_significance ?? '')
+    );
+    const traitSet = (germline.trait_set ?? item.trait_set) as Record<string, unknown>[] | undefined;
+    const traits = Array.isArray(traitSet)
+      ? traitSet.map(t => String(t.trait_name ?? '')).join('; ')
       : '';
     return {
       title: String(item.title ?? ''),
-      significance: String(sig),
+      significance: sig,
       condition: traits,
       accession: String(item.accession ?? ''),
     };

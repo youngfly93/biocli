@@ -42,14 +42,20 @@ cli({
     const uids: string[] = summary?.result?.uids ?? [];
     const rows = uids.map(uid => {
       const item = summary.result[uid] ?? {};
-      // ClinVar esummary has: title, clinical_significance, genes (array of {symbol}),
-      // trait_set (array of {trait_name}), accession, variation_set
+      // NCBI renamed ClinVar esummary fields in 2024/2025:
+      //   clinical_significance → germline_classification.description
+      //   trait_set (top-level)  → germline_classification.trait_set
+      const germline = item.germline_classification ?? {};
       const genes = Array.isArray(item.genes) ? item.genes.map((g: any) => g.symbol).join(', ') : '';
-      const significance = typeof item.clinical_significance === 'object'
-        ? item.clinical_significance?.description ?? ''
-        : String(item.clinical_significance ?? '');
-      const conditions = Array.isArray(item.trait_set)
-        ? item.trait_set.map((t: any) => t.trait_name).join('; ')
+      const significance = String(
+        germline.description
+        ?? (typeof item.clinical_significance === 'object'
+          ? item.clinical_significance?.description ?? ''
+          : item.clinical_significance ?? '')
+      );
+      const traitSet = germline.trait_set ?? item.trait_set;
+      const conditions = Array.isArray(traitSet)
+        ? traitSet.map((t: any) => t.trait_name).join('; ')
         : '';
       return {
         uid,
