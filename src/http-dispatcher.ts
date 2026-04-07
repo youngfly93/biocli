@@ -18,31 +18,54 @@
  *   3. Enables retry on transient failures
  */
 
-import { Agent, setGlobalDispatcher } from 'undici';
+import { Agent, setGlobalDispatcher, fetch as undiciFetch } from 'undici';
+import { lookup } from 'node:dns';
 
-// Side-effect: install dispatcher at module-load time.
-// This module MUST be the first import in main.ts so it runs before any
-// other module that might call fetch() at top level.
-setGlobalDispatcher(new Agent({
+// CRITICAL: On Node 18+, the global `fetch` uses Node's *bundled* undici,
+// not the one we install via `npm install undici`. setGlobalDispatcher() on
+// our undici instance has NO effect on global fetch(). To use a custom
+// dispatcher, callers MUST use `undiciFetch` (re-exported below) instead
+// of the global `fetch`.
+
+// Default Agent: Happy Eyeballs (try v4/v6 in parallel)
+// Used by fetchWithIPv4Fallback as the "fast path" attempt.
+export const defaultAgent = new Agent({
   connect: {
-    // Happy Eyeballs: try IPv4/IPv6 in parallel, prefer whichever responds first
     autoSelectFamily: true,
     autoSelectFamilyAttemptTimeout: 250,
-    // Per-attempt connect timeout (TCP + TLS handshake)
     timeout: 15_000,
   },
-  // Total time to establish connection across all family attempts
   connectTimeout: 15_000,
-  // Time to wait for response headers after request sent
   headersTimeout: 30_000,
-  // Time to wait for response body to finish streaming
   bodyTimeout: 60_000,
-}));
+});
+
+// Side-effect: also install as global dispatcher. This is mostly cosmetic
+// because Node 18+ global fetch() uses bundled undici, not our installed
+// undici, so setGlobalDispatcher() doesn't affect global fetch(). But it
+// helps any code that DOES use undiciFetch without an explicit dispatcher.
+setGlobalDispatcher(defaultAgent);
 
 // IPv4-only Agent for explicit fallback when default dispatcher fails
-// (e.g. WSL2 with soft-failing IPv6 where autoSelectFamily can't decide)
+// (e.g. WSL2 with soft-failing IPv6 where autoSelectFamily can't decide).
+//
+// CRITICAL: undici's `connect.family: 4` is not enough on its own. undici
+// resolves DNS itself (default family=0, returns A + AAAA), then hands the
+// address list to net.connect. With autoSelectFamily=true (Node default),
+// net.connect will still try v6 in parallel even when family:4 is set.
+//
+// To truly force IPv4 we must:
+//   1. Override the DNS lookup to filter at the resolver layer (only A records)
+//   2. Set autoSelectFamily: false to prevent net.connect from re-racing v6
 export const ipv4Agent = new Agent({
-  connect: { family: 4, timeout: 10_000 },
+  connect: {
+    // Force DNS to only return A records — bypass dual-stack resolution
+    lookup: (hostname, options, cb) =>
+      lookup(hostname, { ...options, family: 4 }, cb),
+    // Disable Happy Eyeballs so net.connect can't pull v6 back in
+    autoSelectFamily: false,
+    timeout: 10_000,
+  },
   connectTimeout: 10_000,
   headersTimeout: 20_000,
   bodyTimeout: 30_000,
@@ -91,11 +114,12 @@ export async function fetchWithIPv4Fallback(
   }
 
   // ── Attempt 1: default dispatcher (autoSelectFamily) ────────────────────
+  // MUST use undiciFetch with explicit dispatcher because Node's global
+  // fetch() uses bundled undici and ignores setGlobalDispatcher() on the
+  // npm-installed undici instance.
   const ac1 = makeChildController();
-  const init1: RequestInit = { ...init, signal: ac1.signal };
-  // Strip any pre-existing dispatcher option
-  delete (init1 as Record<string, unknown>).dispatcher;
-  const defaultAttempt = fetch(url, init1);
+  const init1 = { ...init, signal: ac1.signal, dispatcher: defaultAgent };
+  const defaultAttempt = undiciFetch(url, init1 as Parameters<typeof undiciFetch>[1]) as unknown as Promise<Response>;
   // Suppress unhandled-rejection if we end up abandoning this attempt
   defaultAttempt.catch(() => {});
 
@@ -139,7 +163,7 @@ export async function fetchWithIPv4Fallback(
 
     // Fast fallback path
     const ac2 = makeChildController();
-    return await fetch(url, { ...init, signal: ac2.signal, dispatcher: ipv4Agent } as RequestInit);
+    return await undiciFetch(url, { ...init, signal: ac2.signal, dispatcher: ipv4Agent } as Parameters<typeof undiciFetch>[1]) as unknown as Response;
   }
 
   // earlyOutcome === 'timeout' — default still in flight, start IPv4 in parallel
@@ -148,7 +172,7 @@ export async function fetchWithIPv4Fallback(
   }
 
   const ac2 = makeChildController();
-  const ipv4Attempt = fetch(url, { ...init, signal: ac2.signal, dispatcher: ipv4Agent } as RequestInit);
+  const ipv4Attempt = undiciFetch(url, { ...init, signal: ac2.signal, dispatcher: ipv4Agent } as Parameters<typeof undiciFetch>[1]) as unknown as Promise<Response>;
   ipv4Attempt.catch(() => {});
 
   try {
