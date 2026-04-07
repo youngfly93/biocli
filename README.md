@@ -3,7 +3,7 @@
 Query biological databases from the terminal. Agent-first design.
 
 ```
-biocli v0.3.8
+biocli v0.3.9
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr
 44 commands · 6 database backends · 10 workflow commands · 4 download commands
 ```
