@@ -29,13 +29,18 @@ import { lookup } from 'node:dns';
 
 // Default Agent: Happy Eyeballs (try v4/v6 in parallel)
 // Used by fetchWithIPv4Fallback as the "fast path" attempt.
+//
+// CRITICAL: connectTimeout is short (5s) so that hung loser sockets
+// (e.g. WSL2 v6 connection that won't RST) are torn down quickly even
+// if AbortSignal can't reach the underlying net.connect attempt. Without
+// this, the event loop stays alive for 15s after the user script ends.
 export const defaultAgent = new Agent({
   connect: {
     autoSelectFamily: true,
     autoSelectFamilyAttemptTimeout: 250,
-    timeout: 15_000,
+    timeout: 5_000,
   },
-  connectTimeout: 15_000,
+  connectTimeout: 5_000,
   headersTimeout: 30_000,
   bodyTimeout: 60_000,
 });
@@ -177,11 +182,14 @@ export async function fetchWithIPv4Fallback(
 
   try {
     // Tag each attempt so we know which one won, then ONLY abort the loser.
-    // Aborting the winner would tear down its body stream and cause AbortError
-    // on response.text() / response.json() / response.body.getReader().
-    // (Bug discovered in v0.3.6: race fired correctly, response.status was 200,
-    // but reading the body immediately threw AbortError because both controllers
-    // were aborted indiscriminately.)
+    //
+    // Bug history:
+    //   v0.3.6: aborted both → killed winner's body stream → AbortError on read
+    //   v0.3.7: aborted only loser, but loser's hung v6 socket kept the event
+    //           loop alive for 15s (the old connectTimeout) → "command takes 15s
+    //           to exit even though data returned in 3s"
+    //   v0.3.8: lowered defaultAgent connectTimeout to 5s so hung v6 sockets
+    //           get killed quickly even if AbortSignal can't reach them
     const winner = await Promise.any([
       defaultAttempt.then((r) => ({ tag: 'default' as const, r })),
       ipv4Attempt.then((r) => ({ tag: 'ipv4' as const, r })),
@@ -189,7 +197,7 @@ export async function fetchWithIPv4Fallback(
     if (winner.tag === 'default') {
       ac2.abort(); // loser = ipv4
     } else {
-      ac1.abort(); // loser = default
+      ac1.abort(); // loser = default; underlying v6 socket killed by 5s connectTimeout
     }
     return winner.r;
   } catch (aggregateErr) {
