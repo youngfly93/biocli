@@ -8,6 +8,7 @@
 import chalk from 'chalk';
 import { loadConfig, getConfigPath, getApiKey, getEmail } from './config.js';
 import { getAllBackends } from './databases/index.js';
+import { fetchWithIPv4Fallback } from './http-dispatcher.js';
 import { getRegistry } from './registry.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -93,7 +94,10 @@ async function pingBackend(name: string, url: string): Promise<CheckResult> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), PING_TIMEOUT);
-    const response = await fetch(url, { signal: controller.signal });
+    // Use fetchWithIPv4Fallback so doctor benefits from the same IPv4 retry
+    // logic that protects data-path commands. On WSL2 / dual-stack networks
+    // with broken IPv6, this is the difference between FAIL and OK.
+    const response = await fetchWithIPv4Fallback(url, { signal: controller.signal });
     clearTimeout(timeout);
     const elapsed = Date.now() - start;
 

@@ -39,9 +39,52 @@ setGlobalDispatcher(new Agent({
   bodyTimeout: 60_000,
 }));
 
+// IPv4-only Agent for explicit fallback when default dispatcher fails
+// (e.g. WSL2 with soft-failing IPv6 where autoSelectFamily can't decide)
+export const ipv4Agent = new Agent({
+  connect: { family: 4, timeout: 10_000 },
+  connectTimeout: 10_000,
+  headersTimeout: 20_000,
+  bodyTimeout: 30_000,
+});
+
+/**
+ * Fetch with automatic IPv4 fallback on connect failure.
+ *
+ * Tries the default dispatcher first (which has autoSelectFamily). If that
+ * fails or times out, retries once with the IPv4-only agent. This guarantees
+ * forward progress on networks where IPv6 is soft-broken (WSL2, some VPNs).
+ */
+export async function fetchWithIPv4Fallback(
+  url: string,
+  init: RequestInit & { signal?: AbortSignal } = {},
+): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (err) {
+    // Retry with explicit IPv4 agent on connect failures
+    const cause = (err as Error & { cause?: { code?: string } }).cause;
+    const code = cause?.code;
+    const isConnectError = code === 'UND_ERR_CONNECT_TIMEOUT'
+      || code === 'ECONNREFUSED'
+      || code === 'ECONNRESET'
+      || code === 'ENETUNREACH'
+      || (err as Error).name === 'AbortError';
+
+    if (!isConnectError) throw err;
+
+    if (process.env.BIOCLI_DEBUG_HTTP) {
+      console.error(`[biocli] fetch failed with ${code ?? (err as Error).name}, retrying with IPv4-only`);
+    }
+
+    // Force IPv4 retry — undici-specific dispatcher option
+    return await fetch(url, { ...init, dispatcher: ipv4Agent } as RequestInit);
+  }
+}
+
 // Exported marker so other modules can confirm the dispatcher was installed
 export const dispatcherInstalled = true;
 
 if (process.env.BIOCLI_VERBOSE || process.env.BIOCLI_DEBUG_HTTP) {
-  console.error('[biocli] undici dispatcher installed (autoSelectFamily=true, attemptTimeout=250ms)');
+  console.error('[biocli] undici dispatcher installed (autoSelectFamily=true, attemptTimeout=250ms, IPv4 fallback enabled)');
 }

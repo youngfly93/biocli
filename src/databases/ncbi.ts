@@ -15,6 +15,7 @@ import { getApiKey, getEmail } from '../config.js';
 import { getRateLimiter } from '../rate-limiter.js';
 import { parseXml } from '../xml-parser.js';
 import { RateLimitError, ApiError } from '../errors.js';
+import { fetchWithIPv4Fallback } from '../http-dispatcher.js';
 import { sleep } from '../utils.js';
 import type { HttpContext, FetchOptions } from '../types.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
@@ -84,7 +85,7 @@ export async function ncbiFetch(
   let lastError: Error | undefined;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const response = await fetch(finalUrl, {
+      const response = await fetchWithIPv4Fallback(finalUrl, {
         method: opts?.method ?? 'GET',
         headers: opts?.headers,
         body: opts?.body,
