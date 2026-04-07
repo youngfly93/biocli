@@ -176,11 +176,22 @@ export async function fetchWithIPv4Fallback(
   ipv4Attempt.catch(() => {});
 
   try {
-    const winner = await Promise.any([defaultAttempt, ipv4Attempt]);
-    // Cancel the loser to free its socket
-    ac1.abort();
-    ac2.abort();
-    return winner;
+    // Tag each attempt so we know which one won, then ONLY abort the loser.
+    // Aborting the winner would tear down its body stream and cause AbortError
+    // on response.text() / response.json() / response.body.getReader().
+    // (Bug discovered in v0.3.6: race fired correctly, response.status was 200,
+    // but reading the body immediately threw AbortError because both controllers
+    // were aborted indiscriminately.)
+    const winner = await Promise.any([
+      defaultAttempt.then((r) => ({ tag: 'default' as const, r })),
+      ipv4Attempt.then((r) => ({ tag: 'ipv4' as const, r })),
+    ]);
+    if (winner.tag === 'default') {
+      ac2.abort(); // loser = ipv4
+    } else {
+      ac1.abort(); // loser = default
+    }
+    return winner.r;
   } catch (aggregateErr) {
     if (aggregateErr instanceof AggregateError && aggregateErr.errors.length > 0) {
       throw aggregateErr.errors[0];
