@@ -30,7 +30,9 @@ const PING_ENDPOINTS: Record<string, string> = {
   enrichr: 'https://maayanlab.cloud/Enrichr/datasetStatistics',
 };
 
-const PING_TIMEOUT = 5000;
+// 15s tolerates dual-stack Happy Eyeballs (IPv6 attempt + IPv4 fallback)
+// + slow first-packet on backends like NCBI (3-4s typical)
+const PING_TIMEOUT = 15_000;
 
 // ── Core checks ──────────────────────────────────────────────────────────────
 
@@ -104,10 +106,19 @@ async function pingBackend(name: string, url: string): Promise<CheckResult> {
     return { name, value: url.split('/').slice(0, 3).join('/'), ok: false, detail: `HTTP ${response.status} (${elapsed}ms)` };
   } catch (err) {
     const elapsed = Date.now() - start;
-    const msg = err instanceof Error && err.name === 'AbortError'
-      ? `timeout (${PING_TIMEOUT}ms)`
-      : err instanceof Error ? err.message : String(err);
-    return { name, value: url.split('/').slice(0, 3).join('/'), ok: false, detail: msg };
+    let msg: string;
+    if (err instanceof Error && err.name === 'AbortError') {
+      msg = `timeout (${PING_TIMEOUT}ms)`;
+    } else if (err instanceof Error) {
+      // Surface undici cause code (e.g. UND_ERR_CONNECT_TIMEOUT, ENETUNREACH, ECONNREFUSED)
+      // so users can distinguish "actually unreachable" from "IPv6 fallback failed"
+      const cause = (err as Error & { cause?: { code?: string } }).cause;
+      const code = cause?.code;
+      msg = code ? `${err.message} [${code}]` : err.message;
+    } else {
+      msg = String(err);
+    }
+    return { name, value: url.split('/').slice(0, 3).join('/'), ok: false, detail: `${msg} (${elapsed}ms)` };
   }
 }
 

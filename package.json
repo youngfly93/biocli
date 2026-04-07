@@ -1,6 +1,6 @@
 {
   "name": "@yangfei_93sky/biocli",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Query biological databases from the terminal — agent-first bioinformatics CLI",
   "type": "module",
   "main": "dist/main.js",
@@ -55,7 +55,8 @@
     "cli-table3": "^0.6.5",
     "commander": "^14.0.3",
     "fast-xml-parser": "^4.5.0",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "undici": "^8.0.2"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

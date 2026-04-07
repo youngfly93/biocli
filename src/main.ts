@@ -6,6 +6,11 @@
  * fires the onStartup hook, then hands off to Commander.
  */
 
+import { installGlobalDispatcher } from './http-dispatcher.js';
+
+// Install undici dispatcher BEFORE any fetch() call (fixes WSL2 / dual-stack IPv6 hangs)
+installGlobalDispatcher();
+
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { discoverClis, discoverPlugins } from './discovery.js';
