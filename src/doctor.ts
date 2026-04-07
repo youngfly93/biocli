@@ -108,7 +108,7 @@ async function pingBackend(name: string, url: string): Promise<CheckResult> {
     const elapsed = Date.now() - start;
     let msg: string;
     if (err instanceof Error && err.name === 'AbortError') {
-      msg = `timeout (${PING_TIMEOUT}ms)`;
+      msg = `timeout`;
     } else if (err instanceof Error) {
       // Surface undici cause code (e.g. UND_ERR_CONNECT_TIMEOUT, ENETUNREACH, ECONNREFUSED)
       // so users can distinguish "actually unreachable" from "IPv6 fallback failed"

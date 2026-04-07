@@ -6,10 +6,10 @@
  * fires the onStartup hook, then hands off to Commander.
  */
 
-import { installGlobalDispatcher } from './http-dispatcher.js';
-
-// Install undici dispatcher BEFORE any fetch() call (fixes WSL2 / dual-stack IPv6 hangs)
-installGlobalDispatcher();
+// MUST be the first import: side-effect installs undici dispatcher with
+// autoSelectFamily before any other module evaluation. Fixes WSL2 / dual-stack
+// IPv6 hangs (issue #1).
+import './http-dispatcher.js';
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';

@@ -20,25 +20,28 @@
 
 import { Agent, setGlobalDispatcher } from 'undici';
 
-let installed = false;
+// Side-effect: install dispatcher at module-load time.
+// This module MUST be the first import in main.ts so it runs before any
+// other module that might call fetch() at top level.
+setGlobalDispatcher(new Agent({
+  connect: {
+    // Happy Eyeballs: try IPv4/IPv6 in parallel, prefer whichever responds first
+    autoSelectFamily: true,
+    autoSelectFamilyAttemptTimeout: 250,
+    // Per-attempt connect timeout (TCP + TLS handshake)
+    timeout: 15_000,
+  },
+  // Total time to establish connection across all family attempts
+  connectTimeout: 15_000,
+  // Time to wait for response headers after request sent
+  headersTimeout: 30_000,
+  // Time to wait for response body to finish streaming
+  bodyTimeout: 60_000,
+}));
 
-export function installGlobalDispatcher(): void {
-  if (installed) return;
-  installed = true;
+// Exported marker so other modules can confirm the dispatcher was installed
+export const dispatcherInstalled = true;
 
-  setGlobalDispatcher(new Agent({
-    connect: {
-      // Happy Eyeballs: try IPv4/IPv6 in parallel, prefer whichever responds first
-      autoSelectFamily: true,
-      autoSelectFamilyAttemptTimeout: 250,
-      // Per-attempt connect timeout (TCP + TLS handshake)
-      timeout: 15_000,
-    },
-    // Total time to establish connection across all family attempts
-    connectTimeout: 15_000,
-    // Time to wait for response headers after request sent
-    headersTimeout: 30_000,
-    // Time to wait for response body to finish streaming
-    bodyTimeout: 60_000,
-  }));
+if (process.env.BIOCLI_VERBOSE || process.env.BIOCLI_DEBUG_HTTP) {
+  console.error('[biocli] undici dispatcher installed (autoSelectFamily=true, attemptTimeout=250ms)');
 }
