@@ -48,8 +48,16 @@
     "geo",
     "sra"
   ],
-  "author": "",
+  "author": "youngfly93",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youngfly93/biocli.git"
+  },
+  "homepage": "https://github.com/youngfly93/biocli#readme",
+  "bugs": {
+    "url": "https://github.com/youngfly93/biocli/issues"
+  },
   "dependencies": {
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.5",
