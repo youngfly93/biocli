@@ -7,7 +7,7 @@ date: "2026-04-04"
 tools:
   - name: biocli
     version: "0.2.0"
-    install: "npm install -g @biocli/cli"
+    install: "npm install -g @yangfei_93sky/biocli"
   - name: gget
     version: "0.30.3"
     install: "pip install gget==0.30.3"

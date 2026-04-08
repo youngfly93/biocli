@@ -12,7 +12,7 @@ biocli discovers plugins from `~/.biocli/plugins/`. On startup, it scans this di
 Plugins use the same `cli()` function as built-in adapters:
 
 ```ts
-import { cli, Strategy } from '@biocli/cli/registry';
+import { cli, Strategy } from '@yangfei_93sky/biocli/registry';
 
 cli({
   site: 'myplugin',
@@ -33,7 +33,7 @@ cli({
 Plugins can tap into biocli's execution lifecycle:
 
 ```ts
-import { onStartup, onBeforeExecute, onAfterExecute } from '@biocli/cli/registry';
+import { onStartup, onBeforeExecute, onAfterExecute } from '@yangfei_93sky/biocli/registry';
 
 onStartup(async () => { /* runs after all commands discovered */ });
 onBeforeExecute(async (ctx) => { /* runs before each command */ });
@@ -44,7 +44,7 @@ onAfterExecute(async (ctx, result) => { /* runs after each command */ });
 
 - The plugin API is pre-v1.0 and **may change without notice**
 - No `plugin install/update/uninstall` commands exist yet
-- No semver guarantees for the `@biocli/cli/registry` export
+- No semver guarantees for the `@yangfei_93sky/biocli/registry` export
 - For production use, pin to a specific biocli version
 
 ## Future Plans

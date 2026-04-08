@@ -4,10 +4,10 @@
  *
  * Public API re-exports for plugin authors and external consumers.
  *
- * Import from '@biocli/cli/registry' to register commands:
+ * Import from '@yangfei_93sky/biocli/registry' to register commands:
  *
  * ```ts
- * import { cli, Strategy } from '@biocli/cli/registry';
+ * import { cli, Strategy } from '@yangfei_93sky/biocli/registry';
  * ```
  */
 

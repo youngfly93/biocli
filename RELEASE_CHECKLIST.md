@@ -1,9 +1,9 @@
 # Release Checklist
 
-Release checklist for `@biocli/cli`.
+Release checklist for `@yangfei_93sky/biocli`.
 
 This document is optimized for the current project state:
-- npm package: `@biocli/cli`
+- npm package: `@yangfei_93sky/biocli`
 - binary: `biocli`
 - current release line: `0.x`
 - repository: `youngfly93/biocli`
@@ -220,7 +220,7 @@ Minimum release notes should include:
 In a clean environment, verify the public package:
 
 ```bash
-npm install -g @biocli/cli
+npm install -g @yangfei_93sky/biocli
 biocli --version
 biocli verify --smoke -f json
 ```

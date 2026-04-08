@@ -5,7 +5,7 @@
 
 ## Context
 
-biocli has internal plugin infrastructure: filesystem discovery (`~/.biocli/plugins/`), lifecycle hooks (`onStartup`, `onBeforeExecute`, `onAfterExecute`), and a registry API export (`@biocli/cli/registry`). However, there are no `plugin install/update/uninstall` commands, no published plugin examples, and no stability guarantees.
+biocli has internal plugin infrastructure: filesystem discovery (`~/.biocli/plugins/`), lifecycle hooks (`onStartup`, `onBeforeExecute`, `onAfterExecute`), and a registry API export (`@yangfei_93sky/biocli/registry`). However, there are no `plugin install/update/uninstall` commands, no published plugin examples, and no stability guarantees.
 
 Comparison with opencli (which has a production-ready plugin lifecycle with install, update, uninstall, monorepo support, and published plugins) suggested formalizing this.
 
@@ -22,7 +22,7 @@ Keep the plugin loading mechanism as internal infrastructure. Do not promote it 
 
 ## Consequences
 
-- `@biocli/cli/registry` exports are marked `@experimental`
+- `@yangfei_93sky/biocli/registry` exports are marked `@experimental`
 - PLUGIN_DEV.md carries a stability warning
 - README does not advertise plugin support
 - Revisit after v1.0 when command output schemas are stable and at least 3 users request it
