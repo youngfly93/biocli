@@ -210,7 +210,7 @@ function scoreAllTasks(rawDir: string): TaskScore[] {
 //
 // These scores are from manual feature inspection, NOT automated testing.
 // Each score has a justification. See rubric.md for criteria definitions.
-// Audited on 2026-04-04 against installed versions.
+// Audited on 2026-04-08 against installed versions.
 
 interface ManualAuditEntry {
   score: number;
@@ -312,7 +312,7 @@ for (const tool of TOOLS) {
   const { scores: crossCutting, audits: crossCuttingJustifications } = scoreCrossCutting(tool);
   const totalWeighted = computeWeightedTotal(tasks, crossCutting);
 
-  const VERSIONS: Record<string, string> = { biocli: '0.2.0', gget: '0.30.3', biomcp: '0.8.19' };
+  const VERSIONS: Record<string, string> = { biocli: '0.3.9', gget: '0.30.3', biomcp: '0.8.19' };
   const result: ToolResult & { crossCuttingJustifications?: Record<string, string>; scoredAt?: string } = {
     tool,
     version: VERSIONS[tool] ?? '',

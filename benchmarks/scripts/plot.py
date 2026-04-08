@@ -40,7 +40,7 @@ TOOL_EDGE = {
     'gget': BORDER_COLOR,
 }
 
-VERSIONS = {'biocli': 'v0.2.0', 'BioMCP': 'v0.8.19', 'gget': 'v0.30.3'}
+VERSIONS = {'biocli': 'v0.3.9', 'BioMCP': 'v0.8.19', 'gget': 'v0.30.3'}
 
 DIMENSIONS = [
     ('agentReadiness', 'Agent\nReadiness'),
@@ -126,7 +126,7 @@ def plot_total_scores(data, outdir):
                  color=HIGHLIGHT_TEXT, pad=20)
 
     # Subtitle
-    ax.text(0.5, 1.02, 'Agent-First Biological Workflow Tasks · 2026-04-04',
+    ax.text(0.5, 1.02, 'Agent-First Biological Workflow Tasks · 2026-04-08',
             transform=ax.transAxes, ha='center', va='bottom',
             fontsize=9, color=TEXT_COLOR, fontfamily='monospace')
 
@@ -289,7 +289,7 @@ def plot_task_categories(data, outdir):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    date = sys.argv[1] if len(sys.argv) > 1 else '2026-04-04'
+    date = sys.argv[1] if len(sys.argv) > 1 else '2026-04-08'
     outdir = f'benchmarks/results/{date}/plots'
     os.makedirs(outdir, exist_ok=True)
 

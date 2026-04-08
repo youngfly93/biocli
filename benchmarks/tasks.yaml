@@ -3,10 +3,10 @@
 # Each task has: id, category, description, input, success_criteria, scoring
 
 version: "1.0"
-date: "2026-04-04"
+date: "2026-04-08"
 tools:
   - name: biocli
-    version: "0.2.0"
+    version: "0.3.9"
     install: "npm install -g @yangfei_93sky/biocli"
   - name: gget
     version: "0.30.3"
