@@ -1,0 +1,69 @@
+{
+  "datasets": [
+    [
+      "PXD061458",
+      "CRL3-GMCL1 mediates 53BP1 degradation, promoting evasion from mitotic surveillance upon paclitaxel treatment ",
+      "MassIVE",
+      "Homo sapiens",
+      null,
+      null,
+      "Orbitrap Eclipse",
+      "no publication",
+      "Beatrix M Ueberheide",
+      "2026-01-16",
+      "DatasetType:Proteomics, Germ cell-less protein-like 1, Mitotic Surveillance Pathway, TP53-binding protein 1, paclitaxel treatment"
+    ],
+    [
+      "PXD060074",
+      "Reduced structural rigidity of MDMX protein enhances binding to TP53 mRNA ",
+      "PRIDE",
+      "Homo sapiens",
+      null,
+      "9/11",
+      "LTQ Orbitrap Elite",
+      "<a href=\"https://dx.doi.org/10.1042/bsr20253646\" target=\"_blank\">10.1042/bsr20253646</a>; <a href=\"https://www.ncbi.nlm.nih.gov/pubmed/41230869\" target=\"_blank\">Kucerikova et al. (2025)</a>",
+      "Lucia Martinkova",
+      "2026-01-04",
+      "HDX-MS mapping, MDMX-MDM2 interaction, RING domain, p53 mRNA stabilization"
+    ],
+    [
+      "PXD062127",
+      "Chemotherapy enhances HMGA1 secretion through the mutant p53-CK2 axis in pancreatic ductal adenocarcinoma cells.",
+      "PRIDE",
+      "Homo sapiens",
+      null,
+      "1/10",
+      "TripleTOF 5600",
+      "<a href=\"https://www.ncbi.nlm.nih.gov/pubmed/41145488\" target=\"_blank\">Danzi et al. (2025)</a>; <a href=\"https://dx.doi.org/10.1038/s41419-025-08082-1\" target=\"_blank\">10.1038/s41419-025-08082-1</a>",
+      "Marcello Manfredi",
+      "2025-11-09",
+      "Pancreatic ductal adenocarcinoma, TP53, supernatants, tumor microenvironment"
+    ]
+  ],
+  "result_set": {
+    "datasets_title_list": [
+      "dataset identifier",
+      "title",
+      "repository",
+      "species",
+      "SDRF",
+      "files (raw/total)",
+      "instrument",
+      "publications",
+      "lab head",
+      "announce date",
+      "keywords"
+    ],
+    "n_available_rows": 28,
+    "n_rows_returned": 3,
+    "page_number": 1,
+    "page_size": 3,
+    "n_available_pages": 10
+  },
+  "status": {
+    "description": "Sent 3 datasets",
+    "error_code": null,
+    "status": "OK",
+    "status_code": 200
+  }
+}

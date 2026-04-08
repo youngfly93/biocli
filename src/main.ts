@@ -25,6 +25,8 @@ import './databases/kegg.js';
 import './databases/string-db.js';
 import './databases/ensembl.js';
 import './databases/enrichr.js';
+import './databases/proteomexchange.js';
+import './databases/pride.js';
 
 // Warn on stderr when invoked as the legacy `ncbicli` binary. No-op when
 // invoked as `biocli` or when BIOCLI_NO_DEPRECATION=1 is set.
