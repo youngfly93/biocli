@@ -70,6 +70,22 @@ biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
 
 Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache.
 
+## Who is this for
+
+**biocli is for you if:**
+
+- You run multi-database biological queries and the browser-tab shuffle between NCBI, UniProt, KEGG, STRING, and Ensembl is eating your mornings.
+- You're a grad student, postdoc, or research engineer who wants programmatic access to public biology data without writing a dozen bespoke HTTP clients.
+- You use Claude Code, Codex CLI, Cursor, or any AI coding agent that needs **reliable, structured, self-describing** biological data — not screen-scraped HTML or ad-hoc JSON shapes.
+- You're a proteomics researcher looking for the first CLI with a native Unimod PTM dictionary plus ProteomeXchange / PRIDE federation.
+
+**biocli is *not*:**
+
+- A sequence-analysis framework. No BLAST, no multiple-sequence alignment, no AlphaFold. Use [gget](https://github.com/pachterlab/gget) for sequence-centric workflows.
+- A drug / clinical-trial / disease-entity explorer. Use [BioMCP](https://github.com/genomoncology/biomcp) for deeper biomedical entity breadth.
+- A Bioconductor or Biopython replacement. biocli retrieves data; it does not run statistical models, build plots, or manipulate sequences. Feed its JSON output into your existing analysis framework.
+- A local database or offline store. biocli wraps live REST APIs with a 24-hour local response cache; it does not bulk-download and index anything server-side. The one exception is the `unimod` command family, which queries a local snapshot.
+
 ## Agent-first result schema
 
 All workflow commands (`aggregate *`) return a standard `BiocliResult` envelope:
@@ -94,6 +110,68 @@ All workflow commands (`aggregate *`) return a standard `BiocliResult` envelope:
 - `organism` — species context
 
 Agents that parse biocli output never need to branch on command type — every `aggregate *` command returns the same envelope shape, and `warnings` is the canonical channel for partial-failure signaling.
+
+## Use it with your agent
+
+biocli is designed to be driven directly by an AI coding agent — no MCP server, no custom wrapper, no HTML scraping. The agent runs shell commands and parses JSON.
+
+### Discover capabilities at runtime
+
+```bash
+biocli list -f json          # full catalog of all 55 commands with args, types, defaults, columns
+biocli schema                # JSON Schema for the BiocliResult envelope
+biocli schema meta           # JSON Schema for the result metadata wrapper
+biocli verify --smoke -f json   # preflight: config + doctor + smoke tests in one call
+```
+
+`biocli list -f json` returns one object per command with fields like:
+
+```json
+{
+  "command": "aggregate/gene-dossier",
+  "description": "Complete gene intelligence report (profile + literature + clinical)",
+  "database": "aggregate",
+  "args": [
+    { "name": "gene", "type": "str", "required": true, "positional": true, "help": "Gene symbol (e.g. TP53)" },
+    { "name": "organism", "type": "str", "default": "human", "help": "Organism (e.g. human, mouse)" },
+    { "name": "papers", "type": "int", "default": 5, "help": "Number of recent papers to include" }
+  ],
+  "tags": ["workflow"]
+}
+```
+
+An agent can extract the schema for any command without touching documentation:
+
+```bash
+biocli list -f json | jq '.[] | select(.name=="gene-dossier")'
+```
+
+### From Python (via `subprocess`)
+
+```python
+import json, subprocess
+
+result = json.loads(subprocess.check_output([
+    "biocli", "aggregate", "gene-dossier", "TP53", "-f", "json"
+]))
+
+print(result["data"]["symbol"])          # "TP53"
+print(result["sources"])                 # ["NCBI Gene", "UniProt", "KEGG", ...]
+for w in result["warnings"]:
+    print(f"  degraded: {w}")            # partial failures surface here, never silently hidden
+```
+
+### Bash + `jq` pipeline
+
+```bash
+# Dossier for a gene list, one per line
+cat genes.txt | while read g; do
+  biocli aggregate gene-dossier "$g" -f json \
+    | jq -r '[.query, .data.symbol, (.data.pathways // [] | length)] | @tsv'
+done
+```
+
+Every biocli command keeps **warnings on stderr** and **payload on stdout**, so pipes into `jq` / `python -m json.tool` never choke on noise.
 
 ## How biocli compares
 
@@ -262,3 +340,20 @@ Config stored at `~/.biocli/config.yaml`.
 | Enrichr | 5/s | None |
 
 All rate limits are enforced automatically per-database.
+
+## FAQ
+
+**How is this different from `rentrez`, Biopython, or Bioconductor packages?**
+Those are analysis frameworks that happen to include API clients. biocli is a *retrieval* tool — it does one thing (query public biological databases from the terminal with a strict JSON contract) and does not try to model, visualize, or analyze the data. Think of biocli as the "fetch" stage that feeds your Bioconductor / Biopython / scanpy workflow. The two are complementary, not competitive.
+
+**Do I need API keys?**
+No. All supported backends work without authentication. You can optionally set an NCBI API key to raise your NCBI rate limit from 3 req/s to 10 req/s (`biocli config set api_key YOUR_KEY`), but it is never required and every other backend (UniProt, KEGG, STRING, Ensembl, Enrichr, ProteomeXchange, PRIDE, Unimod) is keyless by design.
+
+**Can I use biocli offline?**
+Mostly no. biocli wraps live REST APIs and caches responses for 24 hours by default, so cached queries work offline but fresh lookups need network access. The one full-offline exception is the `unimod` command family — Unimod is downloaded once via `biocli unimod install` and then queried entirely in memory against `~/.biocli/datasets/unimod.xml`, no network needed.
+
+**Does biocli work on Windows?**
+Yes, on Windows 10/11 with Node.js >= 20. Native shells (PowerShell, cmd) and WSL2 both work. Earlier 0.3.x releases shipped undici dispatcher fixes for WSL2 IPv6 hangs, so WSL2 users should be on 0.3.9 or later. The one known Windows-only limitation: the legacy `ncbicli` stderr deprecation warning does not fire on Windows because the npm `.cmd` shim re-spawns Node with the resolved `.js` path, so `process.argv[1]` no longer contains the string `ncbicli`.
+
+**How do I add a new database backend?**
+Copy `src/databases/uniprot.ts` or `src/databases/enrichr.ts` as a template, implement the `DatabaseBackend` interface (`id`, `name`, `baseUrl`, `rateLimit`, `createContext()`), register it via a side-effect import in `src/main.ts`, then add commands under `src/clis/<your-db>/` as either YAML adapters (simple single-fetch) or TypeScript adapters (multi-step). For data sources distributed as static XML / TSV snapshots rather than REST APIs (like Unimod), use the newer **Reference Dataset** pattern in `src/datasets/` with `noContext: true` on the command registration — this skips the HTTP context factory and the response cache entirely. See [`ARCHITECTURE.md`](ARCHITECTURE.md) and [`PLUGIN_DEV.md`](PLUGIN_DEV.md).
