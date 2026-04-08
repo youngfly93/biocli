@@ -183,11 +183,17 @@ export async function executeCommand(
 
   // ── Cache check ───────────────────────────────────────────────────────
   const databaseId = cmd.database ?? 'ncbi';
+  // Commands that manage their own data source (aggregate = multi-DB,
+  // unimod = local snapshot dataset) must not (a) trigger the default
+  // HttpContext factory and (b) must not be response-cached — their
+  // results are either already joined state or come from a filesystem
+  // cache that has its own refresh semantics.
+  const needsNoContext = (id: string): boolean => id === 'aggregate' || id === 'unimod';
   const cacheKey = buildCacheKey(databaseId, fullName(cmd), kwargs);
   const cacheConfig = loadConfig().cache;
   const cacheEnabled = (cacheConfig?.enabled ?? true) && !opts.noCache;
   const cacheTtlMs = (cacheConfig?.ttl ?? 24) * 60 * 60 * 1000;
-  if (cacheEnabled && databaseId !== 'aggregate') {
+  if (cacheEnabled && !needsNoContext(databaseId)) {
     const cached = getCached(databaseId, fullName(cmd), cacheKey, cacheTtlMs);
     if (cached !== null) {
       if (debug) console.error(`[Cache] HIT ${cacheKey}`);
@@ -200,9 +206,11 @@ export async function executeCommand(
 
   let result: unknown;
   try {
-    // Aggregate commands create their own multi-database contexts internally
-    const ctx = databaseId === 'aggregate'
-      ? { databaseId: 'aggregate', fetch: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchJson: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchXml: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchText: async () => { throw new Error('use createHttpContextForDatabase()'); } } as HttpContext
+    // Aggregate & snapshot-dataset commands create/manage their data source
+    // internally — provide a throw-on-use dummy ctx so any accidental
+    // HTTP call surfaces loudly instead of silently falling back to NCBI.
+    const ctx = needsNoContext(databaseId)
+      ? { databaseId, fetch: async () => { throw new Error(`${databaseId} commands do not use HttpContext`); }, fetchJson: async () => { throw new Error(`${databaseId} commands do not use HttpContext`); }, fetchXml: async () => { throw new Error(`${databaseId} commands do not use HttpContext`); }, fetchText: async () => { throw new Error(`${databaseId} commands do not use HttpContext`); } } as HttpContext
       : createHttpContextForDatabase(databaseId);
     const timeout = cmd.timeoutSeconds;
     if (timeout !== undefined && timeout > 0) {
@@ -222,7 +230,7 @@ export async function executeCommand(
   }
 
   // ── Cache store ──────────────────────────────────────────────────────
-  if (cacheEnabled && databaseId !== 'aggregate' && result !== null && result !== undefined) {
+  if (cacheEnabled && !needsNoContext(databaseId) && result !== null && result !== undefined) {
     try { setCached(databaseId, fullName(cmd), cacheKey, result, cacheTtlMs); } catch { /* non-fatal */ }
   }
 

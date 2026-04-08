@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Trimmed fixture for biocli unimod parser tests. DO NOT use as production data. -->
+<!-- Upstream: https://www.unimod.org/xml/unimod.xml (Design Science License) -->
+<umod:unimod xmlns:umod="http://www.unimod.org/xmlns/schema/unimod_2"
+             majorVersion="2"
+             minorVersion="0">
+   <umod:elements/>
+   <umod:modifications>
+      <umod:mod title="Acetyl" full_name="Acetylation"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2017-12-08 17:34:00"
+                approved="1"
+                record_id="1">
+         <umod:specificity hidden="1" site="T" position="Anywhere" classification="Post-translational"
+                           spec_group="6"/>
+         <umod:specificity hidden="0" site="N-term" position="Protein N-term"
+                           classification="Post-translational"
+                           spec_group="5"/>
+         <umod:specificity hidden="1" site="S" position="Anywhere" classification="Post-translational"
+                           spec_group="4"/>
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Post-translational"
+                           spec_group="3"/>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Multiple"
+                           spec_group="2">
+            <umod:misc_notes>GIST acetyl light</umod:misc_notes>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Multiple"
+                           spec_group="1">
+            <umod:misc_notes>PT and GIST acetyl light</umod:misc_notes>
+         </umod:specificity>
+         <umod:delta mono_mass="42.010565" avge_mass="42.0367" composition="H(2) C(2) O">
+            <umod:element symbol="H" number="2"/>
+            <umod:element symbol="C" number="2"/>
+            <umod:element symbol="O" number="1"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>11999733</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+
+      <umod:mod title="Phospho" full_name="Phosphorylation"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2018-08-13 13:42:59"
+                approved="1"
+                record_id="21">
+         <umod:specificity hidden="1" site="E" position="Anywhere" classification="Post-translational"
+                           spec_group="8"/>
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Post-translational"
+                           spec_group="6"/>
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Post-translational"
+                           spec_group="7"/>
+         <umod:specificity hidden="1" site="H" position="Anywhere" classification="Post-translational"
+                           spec_group="4">
+            <umod:misc_notes>Rare</umod:misc_notes>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Post-translational"
+                           spec_group="5">
+            <umod:misc_notes>Rare</umod:misc_notes>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="D" position="Anywhere" classification="Post-translational"
+                           spec_group="3">
+            <umod:misc_notes>Rare</umod:misc_notes>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational"
+                           spec_group="2"/>
+         <umod:specificity hidden="0" site="T" position="Anywhere" classification="Post-translational"
+                           spec_group="1">
+            <umod:NeutralLoss mono_mass="97.976896" avge_mass="97.9952" flag="false"
+                              composition="H(3) O(4) P">
+               <umod:element symbol="H" number="3"/>
+               <umod:element symbol="O" number="4"/>
+               <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+            <umod:NeutralLoss mono_mass="0" avge_mass="0" flag="false" composition="0"/>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="S" position="Anywhere" classification="Post-translational"
+                           spec_group="1">
+            <umod:NeutralLoss mono_mass="0" avge_mass="0" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="97.976896" avge_mass="97.9952" flag="false"
+                              composition="H(3) O(4) P">
+               <umod:element symbol="H" number="3"/>
+               <umod:element symbol="O" number="4"/>
+               <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:delta mono_mass="79.966331" avge_mass="79.9799" composition="H O(3) P">
+            <umod:element symbol="H" number="1"/>
+            <umod:element symbol="O" number="3"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>AA0037</umod:text>
+            <umod:source>RESID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+
+      <umod:mod title="HexNAc" full_name="N-Acetylhexosamine"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2024-08-12 09:50:41"
+                approved="1"
+                record_id="43">
+         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Other glycosylation"
+                           spec_group="3">
+            <umod:NeutralLoss mono_mass="203.079373" avge_mass="203.1925" flag="false" composition="HexNAc">
+               <umod:element symbol="H" number="13"/>
+               <umod:element symbol="C" number="8"/>
+               <umod:element symbol="N" number="1"/>
+               <umod:element symbol="O" number="5"/>
+            </umod:NeutralLoss>
+            <umod:NeutralLoss mono_mass="0" avge_mass="0" flag="false" composition="0"/>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="T" position="Anywhere" classification="O-linked glycosylation"
+                           spec_group="2">
+            <umod:NeutralLoss mono_mass="203.079373" avge_mass="203.1925" flag="false" composition="HexNAc">
+               <umod:element symbol="H" number="13"/>
+               <umod:element symbol="C" number="8"/>
+               <umod:element symbol="N" number="1"/>
+               <umod:element symbol="O" number="5"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="S" position="Anywhere" classification="O-linked glycosylation"
+                           spec_group="2">
+            <umod:NeutralLoss mono_mass="203.079373" avge_mass="203.1925" flag="false" composition="HexNAc">
+               <umod:element symbol="H" number="13"/>
+               <umod:element symbol="C" number="8"/>
+               <umod:element symbol="N" number="1"/>
+               <umod:element symbol="O" number="5"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="N" position="Anywhere" classification="N-linked glycosylation"
+                           spec_group="1">
+            <umod:NeutralLoss mono_mass="203.079373" avge_mass="203.1925" flag="false" composition="HexNAc">
+               <umod:element symbol="H" number="13"/>
+               <umod:element symbol="C" number="8"/>
+               <umod:element symbol="N" number="1"/>
+               <umod:element symbol="O" number="5"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:delta mono_mass="203.079373" avge_mass="203.1925" composition="HexNAc">
+            <umod:element symbol="H" number="13"/>
+            <umod:element symbol="C" number="8"/>
+            <umod:element symbol="N" number="1"/>
+            <umod:element symbol="O" number="5"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>HEXNAC</umod:text>
+            <umod:source>FindMod</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+
+      <umod:mod title="HPG" full_name="Hydroxyphenylglyoxal arginine"
+                date_time_posted="2004-02-26 20:19:25"
+                date_time_modified="2006-10-17 11:46:39"
+                approved="1"
+                record_id="186">
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="132.021129" avge_mass="132.1162" composition="H(4) C(8) O(2)">
+            <umod:element symbol="H" number="4"/>
+            <umod:element symbol="C" number="8"/>
+            <umod:element symbol="O" number="2"/>
+         </umod:delta>
+         <umod:alt_name>HPG arginine</umod:alt_name>
+         <umod:xref>
+            <umod:text>11698400</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:xref>
+            <umod:text>11914093</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+
+      <umod:mod title="Label:13C(6)" full_name="13C(6) Silac label"
+                date_time_posted="2004-02-28 19:54:10"
+                date_time_modified="2007-08-22 18:29:56"
+                approved="1"
+                record_id="188">
+         <umod:specificity hidden="1" site="I" position="Anywhere" classification="Isotopic label"
+                           spec_group="5">
+            <umod:misc_notes>Used in SILAC experiment</umod:misc_notes>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="L" position="Anywhere" classification="Isotopic label"
+                           spec_group="3">
+            <umod:misc_notes>Used in SILAC experiment</umod:misc_notes>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Isotopic label"
+                           spec_group="2">
+            <umod:misc_notes>Used in SILAC experiment</umod:misc_notes>
+         </umod:specificity>
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Isotopic label"
+                           spec_group="1">
+            <umod:misc_notes>Used in SILAC experiment</umod:misc_notes>
+         </umod:specificity>
+         <umod:delta mono_mass="6.020129" avge_mass="5.9559" composition="C(-6) 13C(6)">
+            <umod:element symbol="C" number="-6"/>
+            <umod:element symbol="13C" number="6"/>
+         </umod:delta>
+         <umod:alt_name>SILAC heavy K+R</umod:alt_name>
+         <umod:alt_name>Heavy carbon label</umod:alt_name>
+         <umod:xref>
+            <umod:text>12716131</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+      </umod:mod>
+   </umod:modifications>
+</umod:unimod>

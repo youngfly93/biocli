@@ -5,11 +5,13 @@
  * reachability of all 6 database backends in parallel.
  */
 
+import { existsSync, readFileSync } from 'node:fs';
 import chalk from 'chalk';
 import { loadConfig, getConfigPath, getApiKey, getEmail } from './config.js';
 import { getAllBackends } from './databases/index.js';
 import { fetchWithIPv4Fallback } from './http-dispatcher.js';
 import { getRegistry } from './registry.js';
+import { unimodPaths, DEFAULT_STALE_AFTER_DAYS } from './datasets/unimod.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -131,6 +133,62 @@ function checkCommands(): CheckResult {
   return { name: 'Commands', value: `${count} registered`, ok: count > 0 };
 }
 
+/**
+ * Check the Unimod reference dataset (if installed).
+ *
+ * Unimod is a "Reference Dataset" — a static XML dump downloaded once and
+ * queried in memory. This check inspects `~/.biocli/datasets/unimod.meta.json`
+ * and reports mod count + age. "Not installed" is treated as OK (a user who
+ * doesn't use unimod commands will never see a stale warning), and "stale"
+ * is a yellow detail string, NOT a failure — users must refresh explicitly.
+ */
+function checkUnimodDataset(): CheckResult {
+  const { meta } = unimodPaths();
+  if (!existsSync(meta)) {
+    return {
+      name: 'Unimod',
+      value: 'not installed',
+      ok: true,
+      detail: 'run "biocli unimod fetch" to install (optional)',
+    };
+  }
+  try {
+    const parsed = JSON.parse(readFileSync(meta, 'utf-8')) as {
+      fetchedAt?: string;
+      modCount?: number;
+      staleAfterDays?: number;
+    };
+    const modCount = typeof parsed.modCount === 'number' ? parsed.modCount : 0;
+    const fetchedAt = parsed.fetchedAt ? new Date(parsed.fetchedAt) : null;
+    const staleAfter = parsed.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS;
+    if (!fetchedAt || Number.isNaN(fetchedAt.getTime())) {
+      return {
+        name: 'Unimod',
+        value: 'meta.json missing fetchedAt',
+        ok: false,
+        detail: 'run "biocli unimod refresh"',
+      };
+    }
+    const ageDays = Math.floor((Date.now() - fetchedAt.getTime()) / 86_400_000);
+    const stale = ageDays > staleAfter;
+    return {
+      name: 'Unimod',
+      value: `${modCount} mods`,
+      ok: true,
+      detail: stale
+        ? chalk.yellow(`${ageDays}d old — stale (run "biocli unimod refresh")`)
+        : `${ageDays}d old`,
+    };
+  } catch (err) {
+    return {
+      name: 'Unimod',
+      value: 'corrupt meta.json',
+      ok: false,
+      detail: `${err instanceof Error ? err.message : String(err)} — run "biocli unimod refresh"`,
+    };
+  }
+}
+
 // ── Main runner ──────────────────────────────────────────────────────────────
 
 export async function runDoctor(): Promise<{ checks: CheckResult[]; allPassed: boolean }> {
@@ -155,6 +213,9 @@ export async function runDoctor(): Promise<{ checks: CheckResult[]; allPassed: b
 
   // Command registry
   checks.push(checkCommands());
+
+  // Reference datasets
+  checks.push(checkUnimodDataset());
 
   const allPassed = checks.every(c => c.ok);
   return { checks, allPassed };
