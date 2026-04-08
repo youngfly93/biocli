@@ -1,5 +1,12 @@
 # biocli
 
+[![npm version](https://img.shields.io/npm/v/@yangfei_93sky/biocli?color=cb3837&label=npm&logo=npm&logoColor=white)](https://www.npmjs.com/package/@yangfei_93sky/biocli)
+[![node](https://img.shields.io/node/v/@yangfei_93sky/biocli?color=339933&label=node&logo=node.js&logoColor=white)](https://nodejs.org)
+[![license](https://img.shields.io/github/license/youngfly93/biocli?color=blue)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/youngfly93/biocli?label=release&color=orange&logo=github)](https://github.com/youngfly93/biocli/releases)
+[![commands](https://img.shields.io/badge/commands-55-7c3aed)](#all-commands)
+[![benchmark v2](https://img.shields.io/badge/benchmark%20v2-workflow%20100%2F100-brightgreen)](benchmarks/v2/runs/report-public-stable/public_report.md)
+
 Query biological databases from the terminal. Agent-first design.
 
 ```
