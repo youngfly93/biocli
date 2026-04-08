@@ -21,4 +21,7 @@ benchmarks/v2/pilot*/
 # WIP scratch from earlier v2 iterations — superseded by the public-lite
 # manifests/scorecards under benchmarks/v2/runs/. Not part of v0.4.0.
 benchmarks/v2/results/
-benchmarks/v2/scripts/
+# benchmarks/v2/scripts/* ignores files inside, but we re-allow the heatmap
+# regen script so the committed task_breakdown.png stays reproducible.
+benchmarks/v2/scripts/*
+!benchmarks/v2/scripts/plot_task_breakdown.py
