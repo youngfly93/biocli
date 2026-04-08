@@ -1,0 +1,12 @@
+[
+  {
+    "rsid": "rs7412",
+    "gene": "APOE",
+    "chromosome": "19",
+    "position": "44908822",
+    "alleles": "HGVS=NC_000019.10:g.44908822C>T,NC_000019.9:g.45412079C>T,NG_007084.2:g.8041C>T,NM_000041.4:c.526C>T,NM_000041.3:c.526C>T,NM_000041.2:c.526C>T,NM_001302688.2:c.604C>T,NM_001302688.1:c.604C>T,NM_001302690.2:c.526C>T,NM_001302690.1:c.526C>T,NM_001302691.2:c.526C>T,NM_001302691.1:c.526C>T,NM_001302689.2:c.526C>T,NM_001302689.1:c.526C>T,NP_000032.1:p.Arg176Cys,NP_001289617.1:p.Arg202Cys,NP_001289619.1:p.Arg176Cys,NP_001289620.1:p.Arg176Cys,NP_001289618.1:p.Arg176Cys|SEQ=[C/T]|LEN=1|GENE=APOE:348",
+    "maf": "1000Genomes:T=0.0750799/376; 1000Genomes_30X:T=0.0...",
+    "clinical": "drug-response,risk-factor,benign,likely-benign,uncertain-significance,pathogenic,other",
+    "function": "missense_variant,coding_sequence_variant"
+  }
+]

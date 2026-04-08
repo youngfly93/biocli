@@ -1,0 +1,1025 @@
+[
+  {
+    "tool": "biocli",
+    "version": "0.3.9",
+    "date": "2026-04-08",
+    "tasks": [
+      {
+        "taskId": "gene-01",
+        "category": "gene",
+        "title": "Gene comprehensive dossier",
+        "maxScore": 7,
+        "score": 7,
+        "criteria": [
+          {
+            "criterion": "Returns gene symbol and NCBI Gene ID",
+            "met": true
+          },
+          {
+            "criterion": "Includes protein function description",
+            "met": true
+          },
+          {
+            "criterion": "Includes at least 3 KEGG pathways",
+            "met": true
+          },
+          {
+            "criterion": "Includes protein interaction partners",
+            "met": true
+          },
+          {
+            "criterion": "Includes recent PubMed literature",
+            "met": true
+          },
+          {
+            "criterion": "Includes ClinVar clinical variants",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "gene-02",
+        "category": "gene",
+        "title": "Multi-gene enrichment",
+        "maxScore": 4,
+        "score": 3,
+        "criteria": [
+          {
+            "criterion": "Accepts comma-separated gene list",
+            "met": true
+          },
+          {
+            "criterion": "Returns enriched pathways/GO terms",
+            "met": false
+          },
+          {
+            "criterion": "Includes p-values or scores",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "gene-03",
+        "category": "gene",
+        "title": "Gene sequence download",
+        "maxScore": 3,
+        "score": 3,
+        "criteria": [
+          {
+            "criterion": "Returns valid FASTA format",
+            "met": true
+          },
+          {
+            "criterion": "Sequence is for TP53/p53",
+            "met": true
+          },
+          {
+            "criterion": "Can save to file",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-01",
+        "category": "variant",
+        "title": "Variant dossier",
+        "maxScore": 4,
+        "score": 4,
+        "criteria": [
+          {
+            "criterion": "Returns gene name",
+            "met": true
+          },
+          {
+            "criterion": "Returns clinical significance",
+            "met": true
+          },
+          {
+            "criterion": "Returns VEP consequence",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-02",
+        "category": "variant",
+        "title": "Variant with clinical context",
+        "maxScore": 5,
+        "score": 5,
+        "criteria": [
+          {
+            "criterion": "Returns gene (HBB)",
+            "met": true
+          },
+          {
+            "criterion": "Returns clinical significance",
+            "met": true
+          },
+          {
+            "criterion": "Returns functional impact",
+            "met": true
+          },
+          {
+            "criterion": "Returns protein context",
+            "met": true
+          },
+          {
+            "criterion": "Returns recommendation",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-03",
+        "category": "variant",
+        "title": "SNP basic lookup",
+        "maxScore": 3,
+        "score": 3,
+        "criteria": [
+          {
+            "criterion": "Returns rsID, gene, chromosome, position",
+            "met": true
+          },
+          {
+            "criterion": "Returns allele information",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-01",
+        "category": "literature",
+        "title": "Literature brief",
+        "maxScore": 4,
+        "score": 4,
+        "criteria": [
+          {
+            "criterion": "Returns at least 3 articles",
+            "met": true
+          },
+          {
+            "criterion": "Includes titles and abstracts",
+            "met": true
+          },
+          {
+            "criterion": "Includes PMIDs and DOIs",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-02",
+        "category": "literature",
+        "title": "Fetch article by PMID",
+        "maxScore": 3,
+        "score": 3,
+        "criteria": [
+          {
+            "criterion": "Returns title, authors, journal, year",
+            "met": true
+          },
+          {
+            "criterion": "Returns abstract text",
+            "met": true
+          },
+          {
+            "criterion": "Returns DOI",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-03",
+        "category": "literature",
+        "title": "Batch article fetch",
+        "maxScore": 3,
+        "score": 3,
+        "criteria": [
+          {
+            "criterion": "Returns 3 articles",
+            "met": true
+          },
+          {
+            "criterion": "All articles have metadata",
+            "met": true
+          },
+          {
+            "criterion": "Supports batch input",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-01",
+        "category": "data_preparation",
+        "title": "Dataset discovery",
+        "maxScore": 5,
+        "score": 5,
+        "criteria": [
+          {
+            "criterion": "Returns candidate datasets",
+            "met": true
+          },
+          {
+            "criterion": "Includes sample counts and dates",
+            "met": true
+          },
+          {
+            "criterion": "Ranks by relevance",
+            "met": true
+          },
+          {
+            "criterion": "Suggests next-step commands",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-02",
+        "category": "data_preparation",
+        "title": "Working directory prep (plan)",
+        "maxScore": 4,
+        "score": 4,
+        "criteria": [
+          {
+            "criterion": "Shows planned steps",
+            "met": true
+          },
+          {
+            "criterion": "Lists what would be downloaded",
+            "met": true
+          },
+          {
+            "criterion": "Lists annotations to fetch",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-03",
+        "category": "data_preparation",
+        "title": "GEO download dry-run",
+        "maxScore": 4,
+        "score": 4,
+        "criteria": [
+          {
+            "criterion": "Lists available files with sizes",
+            "met": true
+          },
+          {
+            "criterion": "Shows download URLs",
+            "met": true
+          },
+          {
+            "criterion": "Does not download files",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      }
+    ],
+    "crossCutting": {
+      "agentReadiness": 10,
+      "workflowDepth": 10,
+      "operationalSafety": 9,
+      "reproducibility": 10,
+      "outputUsability": 9,
+      "efficiency": 8
+    },
+    "totalWeighted": 97,
+    "crossCuttingJustifications": {
+      "agentReadiness": "list/help --json, per-command schema, whenToUse/whenNotToUse, capabilities, error recovery suggestions, batch --input (10/10 rubric criteria met)",
+      "workflowDepth": "cross-db aggregation, dataset scout, GEO/SRA download, working directory prepare, manifest.json, --plan preview (10/10)",
+      "operationalSafety": "--dry-run, --plan, --max-size, partial failure reporting, structured error codes, graceful degradation. Missing: no interactive confirmation prompt (-1)",
+      "reproducibility": "file cache with TTL, --no-cache, manifest.json with provenance, deterministic BiocliResult envelope, verify/doctor, queriedAt timestamps (10/10)",
+      "outputUsability": "structured JSON, BiocliResult envelope, per-command data schema, auto-JSON in pipe. Minor: some atomic commands lack envelope (-1)",
+      "efficiency": "single commands for complex multi-db tasks, --input batch. Minor: no parallel batch execution, no streaming output (-2)"
+    },
+    "scoredAt": "2026-04-08T00:39:30.782Z"
+  },
+  {
+    "tool": "gget",
+    "version": "0.30.3",
+    "date": "2026-04-08",
+    "tasks": [
+      {
+        "taskId": "gene-01",
+        "category": "gene",
+        "title": "Gene comprehensive dossier",
+        "maxScore": 7,
+        "score": 1,
+        "criteria": [
+          {
+            "criterion": "Returns gene symbol and NCBI Gene ID",
+            "met": false
+          },
+          {
+            "criterion": "Includes protein function description",
+            "met": false
+          },
+          {
+            "criterion": "Includes at least 3 KEGG pathways",
+            "met": false
+          },
+          {
+            "criterion": "Includes protein interaction partners",
+            "met": false
+          },
+          {
+            "criterion": "Includes recent PubMed literature",
+            "met": false
+          },
+          {
+            "criterion": "Includes ClinVar clinical variants",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "gene-02",
+        "category": "gene",
+        "title": "Multi-gene enrichment",
+        "maxScore": 4,
+        "score": 4,
+        "criteria": [
+          {
+            "criterion": "Accepts comma-separated gene list",
+            "met": true
+          },
+          {
+            "criterion": "Returns enriched pathways/GO terms",
+            "met": true
+          },
+          {
+            "criterion": "Includes p-values or scores",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "gene-03",
+        "category": "gene",
+        "title": "Gene sequence download",
+        "maxScore": 3,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Returns valid FASTA format",
+            "met": false
+          },
+          {
+            "criterion": "Sequence is for TP53/p53",
+            "met": false
+          },
+          {
+            "criterion": "Can save to file",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-01",
+        "category": "variant",
+        "title": "Variant dossier",
+        "maxScore": 4,
+        "score": 1,
+        "criteria": [
+          {
+            "criterion": "Returns gene name",
+            "met": false
+          },
+          {
+            "criterion": "Returns clinical significance",
+            "met": false
+          },
+          {
+            "criterion": "Returns VEP consequence",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-02",
+        "category": "variant",
+        "title": "Variant with clinical context",
+        "maxScore": 5,
+        "score": 1,
+        "criteria": [
+          {
+            "criterion": "Returns gene (HBB)",
+            "met": false
+          },
+          {
+            "criterion": "Returns clinical significance",
+            "met": false
+          },
+          {
+            "criterion": "Returns functional impact",
+            "met": true
+          },
+          {
+            "criterion": "Returns protein context",
+            "met": false
+          },
+          {
+            "criterion": "Returns recommendation",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-03",
+        "category": "variant",
+        "title": "SNP basic lookup",
+        "maxScore": 3,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Returns rsID, gene, chromosome, position",
+            "met": false
+          },
+          {
+            "criterion": "Returns allele information",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-01",
+        "category": "literature",
+        "title": "Literature brief",
+        "maxScore": 4,
+        "score": 1,
+        "criteria": [
+          {
+            "criterion": "Returns at least 3 articles",
+            "met": false
+          },
+          {
+            "criterion": "Includes titles and abstracts",
+            "met": false
+          },
+          {
+            "criterion": "Includes PMIDs and DOIs",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-02",
+        "category": "literature",
+        "title": "Fetch article by PMID",
+        "maxScore": 3,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Returns title, authors, journal, year",
+            "met": false
+          },
+          {
+            "criterion": "Returns abstract text",
+            "met": false
+          },
+          {
+            "criterion": "Returns DOI",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-03",
+        "category": "literature",
+        "title": "Batch article fetch",
+        "maxScore": 3,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Returns 3 articles",
+            "met": false
+          },
+          {
+            "criterion": "All articles have metadata",
+            "met": false
+          },
+          {
+            "criterion": "Supports batch input",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-01",
+        "category": "data_preparation",
+        "title": "Dataset discovery",
+        "maxScore": 5,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Returns candidate datasets",
+            "met": false
+          },
+          {
+            "criterion": "Includes sample counts and dates",
+            "met": false
+          },
+          {
+            "criterion": "Ranks by relevance",
+            "met": false
+          },
+          {
+            "criterion": "Suggests next-step commands",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-02",
+        "category": "data_preparation",
+        "title": "Working directory prep (plan)",
+        "maxScore": 4,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Shows planned steps",
+            "met": false
+          },
+          {
+            "criterion": "Lists what would be downloaded",
+            "met": false
+          },
+          {
+            "criterion": "Lists annotations to fetch",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-03",
+        "category": "data_preparation",
+        "title": "GEO download dry-run",
+        "maxScore": 4,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Lists available files with sizes",
+            "met": false
+          },
+          {
+            "criterion": "Shows download URLs",
+            "met": false
+          },
+          {
+            "criterion": "Does not download files",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": false
+          }
+        ],
+        "notes": ""
+      }
+    ],
+    "crossCutting": {
+      "agentReadiness": 3,
+      "workflowDepth": 2,
+      "operationalSafety": 2,
+      "reproducibility": 1,
+      "outputUsability": 6,
+      "efficiency": 6
+    },
+    "totalWeighted": 24,
+    "crossCuttingJustifications": {
+      "agentReadiness": "has --json/-j flag (1pt), no help --json (0), no schema (0), no whenToUse (0), no error recovery (0), no batch --input (0), has CLI help text (1pt), has Python API (1pt)",
+      "workflowDepth": "info + seq + enrichr modules (1pt), no cross-db aggregation (0), no scout/prepare (0), can chain via Python (1pt)",
+      "operationalSafety": "basic Python error handling (1pt), no dry-run/plan (0), no max-size (0), stderr warnings (1pt)",
+      "reproducibility": "no cache (0), no manifest (0), no verify (0), consistent JSON output format (1pt)",
+      "outputUsability": "JSON output (2pt), DataFrame/CSV (2pt), but no standard envelope (0), no schema (0), consistent field naming (2pt)",
+      "efficiency": "direct single commands (2pt), Python chaining (2pt), no CLI batch input (0), no aggregation commands (0), fast Ensembl lookups (2pt)"
+    },
+    "scoredAt": "2026-04-08T00:39:30.789Z"
+  },
+  {
+    "tool": "biomcp",
+    "version": "0.8.19",
+    "date": "2026-04-08",
+    "tasks": [
+      {
+        "taskId": "gene-01",
+        "category": "gene",
+        "title": "Gene comprehensive dossier",
+        "maxScore": 7,
+        "score": 2,
+        "criteria": [
+          {
+            "criterion": "Returns gene symbol and NCBI Gene ID",
+            "met": true
+          },
+          {
+            "criterion": "Includes protein function description",
+            "met": false
+          },
+          {
+            "criterion": "Includes at least 3 KEGG pathways",
+            "met": false
+          },
+          {
+            "criterion": "Includes protein interaction partners",
+            "met": false
+          },
+          {
+            "criterion": "Includes recent PubMed literature",
+            "met": false
+          },
+          {
+            "criterion": "Includes ClinVar clinical variants",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "gene-02",
+        "category": "gene",
+        "title": "Multi-gene enrichment",
+        "maxScore": 4,
+        "score": 2,
+        "criteria": [
+          {
+            "criterion": "Accepts comma-separated gene list",
+            "met": true
+          },
+          {
+            "criterion": "Returns enriched pathways/GO terms",
+            "met": false
+          },
+          {
+            "criterion": "Includes p-values or scores",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "gene-03",
+        "category": "gene",
+        "title": "Gene sequence download",
+        "maxScore": 3,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Returns valid FASTA format",
+            "met": false
+          },
+          {
+            "criterion": "Sequence is for TP53/p53",
+            "met": false
+          },
+          {
+            "criterion": "Can save to file",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-01",
+        "category": "variant",
+        "title": "Variant dossier",
+        "maxScore": 4,
+        "score": 4,
+        "criteria": [
+          {
+            "criterion": "Returns gene name",
+            "met": true
+          },
+          {
+            "criterion": "Returns clinical significance",
+            "met": true
+          },
+          {
+            "criterion": "Returns VEP consequence",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-02",
+        "category": "variant",
+        "title": "Variant with clinical context",
+        "maxScore": 5,
+        "score": 2,
+        "criteria": [
+          {
+            "criterion": "Returns gene (HBB)",
+            "met": true
+          },
+          {
+            "criterion": "Returns clinical significance",
+            "met": true
+          },
+          {
+            "criterion": "Returns functional impact",
+            "met": false
+          },
+          {
+            "criterion": "Returns protein context",
+            "met": false
+          },
+          {
+            "criterion": "Returns recommendation",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "variant-03",
+        "category": "variant",
+        "title": "SNP basic lookup",
+        "maxScore": 3,
+        "score": 1,
+        "criteria": [
+          {
+            "criterion": "Returns rsID, gene, chromosome, position",
+            "met": false
+          },
+          {
+            "criterion": "Returns allele information",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-01",
+        "category": "literature",
+        "title": "Literature brief",
+        "maxScore": 4,
+        "score": 3,
+        "criteria": [
+          {
+            "criterion": "Returns at least 3 articles",
+            "met": false
+          },
+          {
+            "criterion": "Includes titles and abstracts",
+            "met": true
+          },
+          {
+            "criterion": "Includes PMIDs and DOIs",
+            "met": true
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-02",
+        "category": "literature",
+        "title": "Fetch article by PMID",
+        "maxScore": 3,
+        "score": 3,
+        "criteria": [
+          {
+            "criterion": "Returns title, authors, journal, year",
+            "met": true
+          },
+          {
+            "criterion": "Returns abstract text",
+            "met": true
+          },
+          {
+            "criterion": "Returns DOI",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "lit-03",
+        "category": "literature",
+        "title": "Batch article fetch",
+        "maxScore": 3,
+        "score": 3,
+        "criteria": [
+          {
+            "criterion": "Returns 3 articles",
+            "met": true
+          },
+          {
+            "criterion": "All articles have metadata",
+            "met": true
+          },
+          {
+            "criterion": "Supports batch input",
+            "met": true
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-01",
+        "category": "data_preparation",
+        "title": "Dataset discovery",
+        "maxScore": 5,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Returns candidate datasets",
+            "met": false
+          },
+          {
+            "criterion": "Includes sample counts and dates",
+            "met": false
+          },
+          {
+            "criterion": "Ranks by relevance",
+            "met": false
+          },
+          {
+            "criterion": "Suggests next-step commands",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-02",
+        "category": "data_preparation",
+        "title": "Working directory prep (plan)",
+        "maxScore": 4,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Shows planned steps",
+            "met": false
+          },
+          {
+            "criterion": "Lists what would be downloaded",
+            "met": false
+          },
+          {
+            "criterion": "Lists annotations to fetch",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": false
+          }
+        ],
+        "notes": ""
+      },
+      {
+        "taskId": "data-03",
+        "category": "data_preparation",
+        "title": "GEO download dry-run",
+        "maxScore": 4,
+        "score": 0,
+        "criteria": [
+          {
+            "criterion": "Lists available files with sizes",
+            "met": false
+          },
+          {
+            "criterion": "Shows download URLs",
+            "met": false
+          },
+          {
+            "criterion": "Does not download files",
+            "met": false
+          },
+          {
+            "criterion": "Output is structured JSON",
+            "met": false
+          }
+        ],
+        "notes": ""
+      }
+    ],
+    "crossCutting": {
+      "agentReadiness": 6,
+      "workflowDepth": 4,
+      "operationalSafety": 3,
+      "reproducibility": 2,
+      "outputUsability": 7,
+      "efficiency": 7
+    },
+    "totalWeighted": 44,
+    "crossCuttingJustifications": {
+      "agentReadiness": "MCP serve mode (2pt), _meta.next_commands (1pt), -j JSON flag (1pt), search/get/pivot grammar (1pt), no help --json with full guidance (0), batch support (1pt)",
+      "workflowDepth": "cross-db gene/variant aggregation (2pt), pivot syntax (1pt), no data download (0), no prepare/manifest (0), local cBioPortal study analysis (1pt)",
+      "operationalSafety": "structured error messages (1pt), --no-cache flag (1pt), no dry-run/plan (0), no max-size (0), partial source failure warnings (1pt)",
+      "reproducibility": "HTTP response cache (1pt), no manifest (0), no verify/doctor (0), JSON output with _meta (1pt)",
+      "outputUsability": "structured JSON with _meta envelope (3pt), evidence_urls in output (2pt), Markdown default (1pt), no per-command schema (0), consistent field naming (1pt)",
+      "efficiency": "unified entity grammar (2pt), pivot cross-entity (2pt), batch commands (1pt), single binary (1pt), no streaming (0), fast API routing (1pt)"
+    },
+    "scoredAt": "2026-04-08T00:39:30.798Z"
+  }
+]

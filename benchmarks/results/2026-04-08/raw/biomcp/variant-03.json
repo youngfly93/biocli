@@ -1,0 +1,110 @@
+{
+  "pagination": {
+    "offset": 0,
+    "limit": 10,
+    "returned": 10,
+    "total": 2376,
+    "has_more": true,
+    "next_page_token": null
+  },
+  "count": 10,
+  "results": [
+    {
+      "id": "chr19:g.45411165G>C",
+      "gene": "APOE",
+      "hgvs_p": "p.Q64H",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "gnomad_af": 0.000147571,
+      "revel": 0.655,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45411947C>T",
+      "gene": "APOE",
+      "hgvs_p": "p.R132C",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "gnomad_af": 0.0,
+      "revel": 0.663,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45411957A>G",
+      "gene": "APOE",
+      "hgvs_p": "p.Q135R",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "gnomad_af": 0.0,
+      "revel": 0.553,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45412244C>T",
+      "gene": "APOE",
+      "hgvs_p": "p.R231W",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "gnomad_af": 0.0,
+      "revel": 0.307,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45412385C>T",
+      "gene": "APOE",
+      "hgvs_p": "p.R278C",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "gnomad_af": 0.0000495469,
+      "revel": 0.607,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45412386G>T",
+      "gene": "APOE",
+      "hgvs_p": "p.R278L",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "gnomad_af": 0.0,
+      "revel": 0.444,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45412407C>A",
+      "gene": "APOE",
+      "hgvs_p": "p.P285H",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "gnomad_af": 0.0,
+      "revel": 0.621,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45411834C>G",
+      "gene": "APOE",
+      "hgvs_p": "p.S94W",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "revel": 0.388,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45411923G>A",
+      "gene": "APOE",
+      "hgvs_p": "p.A124T",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "revel": 0.259,
+      "gerp": null
+    },
+    {
+      "id": "chr19:g.45412041G>T",
+      "gene": "APOE",
+      "hgvs_p": "p.R163L",
+      "significance": "Uncertain significance",
+      "clinvar_stars": 1,
+      "revel": 0.539,
+      "gerp": null
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "gene": "APOE",
+  "id": "chr19:g.45411941T>C",
+  "hgvs_p": "p.C130R",
+  "hgvs_c": "c.388T>C",
+  "rsid": "rs429358",
+  "significance": "Pathogenic",
+  "gnomad_af": 0.138498,
+  "allele_frequency_raw": 0.138498,
+  "allele_frequency_percent": "13.85%",
+  "consequence": "missense_variant",
+  "cadd_score": 0.007,
+  "sift_pred": "Tolerated",
+  "polyphen_pred": "Benign",
+  "_meta": {
+    "evidence_urls": [
+      {
+        "label": "dbSNP",
+        "url": "https://www.ncbi.nlm.nih.gov/snp/rs429358"
+      },
+      {
+        "label": "gnomAD",
+        "url": "https://gnomad.broadinstitute.org/variant/rs429358"
+      }
+    ],
+    "next_commands": [
+      "biomcp get gene APOE",
+      "biomcp search drug --target APOE",
+      "biomcp variant trials chr19:g.45411941T>C",
+      "biomcp variant articles chr19:g.45411941T>C"
+    ],
+    "section_sources": [
+      {
+        "key": "identity",
+        "label": "Identity",
+        "sources": [
+          "MyVariant.info",
+          "ClinVar"
+        ]
+      },
+      {
+        "key": "population",
+        "label": "Population",
+        "sources": [
+          "gnomAD via MyVariant.info"
+        ]
+      },
+      {
+        "key": "expanded_predictions",
+        "label": "Expanded Predictions",
+        "sources": [
+          "MyVariant.info"
+        ]
+      }
+    ]
+  }
+}

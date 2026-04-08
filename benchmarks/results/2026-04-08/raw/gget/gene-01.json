@@ -1,0 +1,368 @@
+{
+    "ENSG00000141510": {
+        "ensembl_id": "ENSG00000141510.20",
+        "uniprot_id": "P04637",
+        "pdb_id": null,
+        "ncbi_gene_id": "7157",
+        "species": "homo_sapiens",
+        "assembly_name": "GRCh38",
+        "primary_gene_name": "TP53",
+        "ensembl_gene_name": "TP53",
+        "synonyms": [
+            "BCC7",
+            "BMFS5",
+            "LFS1",
+            "P53",
+            "TRP53"
+        ],
+        "parent_gene": null,
+        "protein_names": "Cellular tumor antigen p53",
+        "ensembl_description": "tumor protein p53 [Source:HGNC Symbol;Acc:HGNC:11998]",
+        "uniprot_description": "Multifunctional transcription factor that induces cell cycle arrest, DNA repair or apoptosis upon binding to its target DNA sequence (PubMed:11025664, PubMed:12524540, PubMed:12810724, PubMed:15186775, PubMed:15340061, PubMed:17317671, PubMed:17349958, PubMed:19556538, PubMed:20673990, PubMed:20959462, PubMed:22726440, PubMed:24051492, PubMed:24652652, PubMed:35618207, PubMed:36634798, PubMed:38653238, PubMed:9840937). Acts as a tumor suppressor in many tumor types; induces growth arrest or apoptosis depending on the physiological circumstances and cell type (PubMed:11025664, PubMed:12524540, PubMed:12810724, PubMed:15186775, PubMed:15340061, PubMed:17189187, PubMed:17317671, PubMed:17349958, PubMed:19556538, PubMed:20673990, PubMed:20959462, PubMed:22726440, PubMed:24051492, PubMed:24652652, PubMed:38653238, PubMed:9840937). Negatively regulates cell division by controlling expression of a set of genes required for this process (PubMed:11025664, PubMed:12524540, PubMed:12810724, PubMed:15186775, PubMed:15340061, PubMed:17317671, PubMed:17349958, PubMed:19556538, PubMed:20673990, PubMed:20959462, PubMed:22726440, PubMed:24051492, PubMed:24652652, PubMed:9840937). One of the activated genes is an inhibitor of cyclin-dependent kinases. Apoptosis induction seems to be mediated either by stimulation of BAX and FAS antigen expression, or by repression of Bcl-2 expression (PubMed:12524540, PubMed:17189187). Its pro-apoptotic activity is activated via its interaction with PPP1R13B/ASPP1 or TP53BP2/ASPP2 (PubMed:12524540). However, this activity is inhibited when the interaction with PPP1R13B/ASPP1 or TP53BP2/ASPP2 is displaced by PPP1R13L/iASPP (PubMed:12524540). In cooperation with mitochondrial PPIF is involved in activating oxidative stress-induced necrosis; the function is largely independent of transcription. Induces the transcription of long intergenic non-coding RNA p21 (lincRNA-p21) and lincRNA-Mkln1. LincRNA-p21 participates in TP53-dependent transcriptional repression leading to apoptosis and seems to have an effect on cell-cycle regulation. Implicated in Notch signaling cross-over. Prevents CDK7 kinase activity when associated to CAK complex in response to DNA damage, thus stopping cell cycle progression. Isoform 2 enhances the transactivation activity of isoform 1 from some but not all TP53-inducible promoters. Isoform 4 suppresses transactivation activity and impairs growth suppression mediated by isoform 1. Isoform 7 inhibits isoform 1-mediated apoptosis. Regulates the circadian clock by repressing CLOCK-BMAL1-mediated transcriptional activation of PER2 (PubMed:24051492)",
+        "ncbi_description": "This gene encodes a tumor suppressor protein containing transcriptional activation, DNA binding, and oligomerization domains. The encoded protein responds to diverse cellular stresses to regulate expression of target genes, thereby inducing cell cycle arrest, apoptosis, senescence, DNA repair, or changes in metabolism. Mutations in this gene are associated with a variety of human cancers, including hereditary cancers such as Li-Fraumeni syndrome. Alternative splicing of this gene and the use of alternate promoters result in multiple transcript variants and isoforms. Additional isoforms have also been shown to result from the use of alternate translation initiation codons from identical transcript variants (PMIDs: 12032546, 20937277). [provided by RefSeq, Dec 2016]",
+        "subcellular_localisation": [
+            "Cytoplasm",
+            "Nucleus",
+            "Nucleus, PML body",
+            "Endoplasmic reticulum",
+            "Mitochondrion matrix",
+            "Cytoplasm, cytoskeleton, microtubule organizing center, centrosome",
+            "Nucleus",
+            "Cytoplasm",
+            "Nucleus",
+            "Cytoplasm",
+            "Nucleus",
+            "Cytoplasm",
+            "Nucleus",
+            "Cytoplasm",
+            "Nucleus",
+            "Cytoplasm",
+            "Nucleus",
+            "Cytoplasm",
+            "Cytoplasm"
+        ],
+        "object_type": "Gene",
+        "biotype": "protein_coding",
+        "canonical_transcript": "ENST00000269305.9",
+        "seq_region_name": "17",
+        "strand": -1,
+        "start": 7661779,
+        "end": 7687546,
+        "all_transcripts": [
+            {
+                "transcript_id": "ENST00000413465.6",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-203",
+                "transcript_strand": -1,
+                "transcript_start": 7661779,
+                "transcript_end": 7676594
+            },
+            {
+                "transcript_id": "ENST00000635293.1",
+                "transcript_biotype": "nonsense_mediated_decay",
+                "transcript_name": "TP53-227",
+                "transcript_strand": -1,
+                "transcript_start": 7665416,
+                "transcript_end": 7687491
+            },
+            {
+                "transcript_id": "ENST00000714356.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-228",
+                "transcript_strand": -1,
+                "transcript_start": 7665963,
+                "transcript_end": 7677515
+            },
+            {
+                "transcript_id": "ENST00000359597.8",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-202",
+                "transcript_strand": -1,
+                "transcript_start": 7666086,
+                "transcript_end": 7676594
+            },
+            {
+                "transcript_id": "ENST00000504290.5",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-208",
+                "transcript_strand": -1,
+                "transcript_start": 7668402,
+                "transcript_end": 7675493
+            },
+            {
+                "transcript_id": "ENST00000504937.5",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-209",
+                "transcript_strand": -1,
+                "transcript_start": 7668402,
+                "transcript_end": 7675493
+            },
+            {
+                "transcript_id": "ENST00000510385.5",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-213",
+                "transcript_strand": -1,
+                "transcript_start": 7668402,
+                "transcript_end": 7675493
+            },
+            {
+                "transcript_id": "ENST00000610623.4",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-221",
+                "transcript_strand": -1,
+                "transcript_start": 7668402,
+                "transcript_end": 7675493
+            },
+            {
+                "transcript_id": "ENST00000618944.4",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-222",
+                "transcript_strand": -1,
+                "transcript_start": 7668402,
+                "transcript_end": 7675493
+            },
+            {
+                "transcript_id": "ENST00000619186.4",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-223",
+                "transcript_strand": -1,
+                "transcript_start": 7668402,
+                "transcript_end": 7675493
+            },
+            {
+                "transcript_id": "ENST00000610292.4",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-219",
+                "transcript_strand": -1,
+                "transcript_start": 7668402,
+                "transcript_end": 7687481
+            },
+            {
+                "transcript_id": "ENST00000620739.4",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-225",
+                "transcript_strand": -1,
+                "transcript_start": 7668402,
+                "transcript_end": 7687538
+            },
+            {
+                "transcript_id": "ENST00000420246.6",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-204",
+                "transcript_strand": -1,
+                "transcript_start": 7668404,
+                "transcript_end": 7687481
+            },
+            {
+                "transcript_id": "ENST00000455263.6",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-206",
+                "transcript_strand": -1,
+                "transcript_start": 7668404,
+                "transcript_end": 7687481
+            },
+            {
+                "transcript_id": "ENST00000610538.4",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-220",
+                "transcript_strand": -1,
+                "transcript_start": 7668404,
+                "transcript_end": 7687481
+            },
+            {
+                "transcript_id": "ENST00000622645.4",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-226",
+                "transcript_strand": -1,
+                "transcript_start": 7668404,
+                "transcript_end": 7687481
+            },
+            {
+                "transcript_id": "ENST00000714357.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-229",
+                "transcript_strand": -1,
+                "transcript_start": 7668413,
+                "transcript_end": 7677439
+            },
+            {
+                "transcript_id": "ENST00000508793.6",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-211",
+                "transcript_strand": -1,
+                "transcript_start": 7668413,
+                "transcript_end": 7677578
+            },
+            {
+                "transcript_id": "ENST00000503591.2",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-207",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687427
+            },
+            {
+                "transcript_id": "ENST00000514944.6",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-214",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687427
+            },
+            {
+                "transcript_id": "ENST00000445888.6",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-205",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687487
+            },
+            {
+                "transcript_id": "ENST00000509690.6",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-212",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687487
+            },
+            {
+                "transcript_id": "ENST00000604348.6",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-218",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687487
+            },
+            {
+                "transcript_id": "ENST00000619485.4",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-224",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687487
+            },
+            {
+                "transcript_id": "ENST00000269305.9",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-201",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687490
+            },
+            {
+                "transcript_id": "ENST00000714358.1",
+                "transcript_biotype": "nonsense_mediated_decay",
+                "transcript_name": "TP53-230",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687490
+            },
+            {
+                "transcript_id": "ENST00000714408.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-232",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687490
+            },
+            {
+                "transcript_id": "ENST00000714409.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-233",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687490
+            },
+            {
+                "transcript_id": "ENST00000576024.2",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-217",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7687511
+            },
+            {
+                "transcript_id": "ENST00000714359.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-231",
+                "transcript_strand": -1,
+                "transcript_start": 7668525,
+                "transcript_end": 7687546
+            },
+            {
+                "transcript_id": "ENST00000574684.1",
+                "transcript_biotype": "protein_coding_CDS_not_defined",
+                "transcript_name": "TP53-216",
+                "transcript_strand": -1,
+                "transcript_start": 7674254,
+                "transcript_end": 7675119
+            },
+            {
+                "transcript_id": "ENST00000505014.5",
+                "transcript_biotype": "retained_intron",
+                "transcript_name": "TP53-210",
+                "transcript_strand": -1,
+                "transcript_start": 7674526,
+                "transcript_end": 7687487
+            },
+            {
+                "transcript_id": "ENST00000571370.2",
+                "transcript_biotype": "protein_coding_CDS_not_defined",
+                "transcript_name": "TP53-215",
+                "transcript_strand": -1,
+                "transcript_start": 7685249,
+                "transcript_end": 7687523
+            },
+            {
+                "transcript_id": "ENST00000905353.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-234",
+                "transcript_strand": -1,
+                "transcript_start": 7669550,
+                "transcript_end": 7686160
+            },
+            {
+                "transcript_id": "ENST00000923566.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-235",
+                "transcript_strand": -1,
+                "transcript_start": 7668423,
+                "transcript_end": 7686413
+            },
+            {
+                "transcript_id": "ENST00000923567.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-236",
+                "transcript_strand": -1,
+                "transcript_start": 7668415,
+                "transcript_end": 7677562
+            },
+            {
+                "transcript_id": "ENST00000923568.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-237",
+                "transcript_strand": -1,
+                "transcript_start": 7668421,
+                "transcript_end": 7677556
+            },
+            {
+                "transcript_id": "ENST00000923569.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-238",
+                "transcript_strand": -1,
+                "transcript_start": 7668419,
+                "transcript_end": 7676777
+            },
+            {
+                "transcript_id": "ENST00000949117.1",
+                "transcript_biotype": "protein_coding",
+                "transcript_name": "TP53-239",
+                "transcript_strand": -1,
+                "transcript_start": 7668417,
+                "transcript_end": 7687490
+            }
+        ],
+        "all_exons": [],
+        "all_translations": []
+    }
+}

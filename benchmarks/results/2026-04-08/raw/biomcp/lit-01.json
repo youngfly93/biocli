@@ -1,0 +1,139 @@
+{
+  "query": "keyword=TP53 apoptosis, exclude_retracted=true, sort=relevance",
+  "sort": "relevance",
+  "semantic_scholar_enabled": true,
+  "ranking_policy": "directness-first (title coverage > title+abstract coverage > study/review cue > citation support)",
+  "pagination": {
+    "offset": 0,
+    "limit": 5,
+    "returned": 5,
+    "total": null,
+    "has_more": true,
+    "next_page_token": null
+  },
+  "count": 5,
+  "results": [
+    {
+      "pmid": "41135852",
+      "doi": "10.1016/j.cca.2025.120678",
+      "title": "TP53 apoptosis biomarkers in breast cancer.",
+      "journal": "Clin Chim Acta",
+      "date": "2025-10-22",
+      "citation_count": 0,
+      "source": "pubtator",
+      "matched_sources": [
+        "pubtator",
+        "europepmc"
+      ],
+      "score": 274.28967,
+      "is_retracted": false,
+      "ranking": {
+        "directness_tier": 3,
+        "anchor_count": 1,
+        "title_anchor_hits": 1,
+        "abstract_anchor_hits": 0,
+        "combined_anchor_hits": 1,
+        "all_anchors_in_title": true,
+        "all_anchors_in_text": true,
+        "study_or_review_cue": true
+      }
+    },
+    {
+      "pmid": "41260538",
+      "doi": "10.1016/j.cbi.2025.111831",
+      "title": "Activation of the Tp53 apoptosis signaling pathway by chelidonine induces cardiac developmental abnormalities in zebrafish larvae.",
+      "journal": "Chem Biol Interact",
+      "date": "2025-11-17",
+      "citation_count": 0,
+      "source": "europepmc",
+      "matched_sources": [
+        "europepmc"
+      ],
+      "is_retracted": false,
+      "ranking": {
+        "directness_tier": 3,
+        "anchor_count": 1,
+        "title_anchor_hits": 1,
+        "abstract_anchor_hits": 0,
+        "combined_anchor_hits": 1,
+        "all_anchors_in_title": true,
+        "all_anchors_in_text": true,
+        "study_or_review_cue": false
+      }
+    },
+    {
+      "pmid": "41799525",
+      "pmcid": "PMC12963679",
+      "doi": "10.32604/or.2025.072133",
+      "title": "Tumor Suppressor p53 and MicroRNAs Interaction in Breast Cancer.",
+      "journal": "Oncol Res",
+      "date": "2026-02-24",
+      "citation_count": 0,
+      "source": "europepmc",
+      "matched_sources": [
+        "europepmc"
+      ],
+      "is_retracted": false,
+      "ranking": {
+        "directness_tier": 0,
+        "anchor_count": 1,
+        "title_anchor_hits": 0,
+        "abstract_anchor_hits": 0,
+        "combined_anchor_hits": 0,
+        "all_anchors_in_title": false,
+        "all_anchors_in_text": false,
+        "study_or_review_cue": true
+      }
+    },
+    {
+      "pmid": "41939253",
+      "pmcid": "PMC13045395",
+      "doi": "10.1002/hem3.70332",
+      "title": "Unraveling the role of TP53 mutations in myeloproliferative neoplasms: Molecular mechanisms of leukemic transformation.",
+      "journal": "Hemasphere",
+      "date": "2026-03-18",
+      "citation_count": 0,
+      "source": "europepmc",
+      "matched_sources": [
+        "europepmc"
+      ],
+      "is_retracted": false,
+      "ranking": {
+        "directness_tier": 0,
+        "anchor_count": 1,
+        "title_anchor_hits": 0,
+        "abstract_anchor_hits": 0,
+        "combined_anchor_hits": 0,
+        "all_anchors_in_title": false,
+        "all_anchors_in_text": false,
+        "study_or_review_cue": true
+      }
+    },
+    {
+      "pmid": "41592087",
+      "pmcid": "PMC13041678",
+      "doi": "10.1172/jci.insight.197261",
+      "title": "AML PATIENTS WITH WILDTYPE TP53 BUT DEFECTIVE TP53-MEDIATED APOPTOSIS HAVE A DISMAL SURVIVAL.",
+      "journal": "JCI Insight",
+      "date": "2026-01-27",
+      "citation_count": 0,
+      "source": "pubtator",
+      "matched_sources": [
+        "pubtator",
+        "europepmc"
+      ],
+      "score": 269.42453,
+      "is_retracted": false,
+      "ranking": {
+        "directness_tier": 0,
+        "anchor_count": 1,
+        "title_anchor_hits": 0,
+        "abstract_anchor_hits": 0,
+        "combined_anchor_hits": 0,
+        "all_anchors_in_title": false,
+        "all_anchors_in_text": false,
+        "study_or_review_cue": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,1068 @@
+[
+    {
+        "rank": 1,
+        "path_name": "PI3K-Akt signaling pathway",
+        "p_val": 1.7e-09,
+        "z_score": 98230.0,
+        "combined_score": 1984149.4153540605,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "BRCA1",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 1.402e-07,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 2,
+        "path_name": "Breast cancer",
+        "p_val": 1.39e-08,
+        "z_score": 555.3006993007,
+        "combined_score": 10045.1230248456,
+        "overlapping_genes": [
+            "MYC",
+            "BRCA1",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 3.768e-07,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 3,
+        "path_name": "Gastric cancer",
+        "p_val": 1.47e-08,
+        "z_score": 547.5862068966,
+        "combined_score": 9875.7105927832,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 3.768e-07,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 4,
+        "path_name": "Hepatitis C",
+        "p_val": 1.82e-08,
+        "z_score": 518.7450980392,
+        "combined_score": 9246.1253360697,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 3.768e-07,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 5,
+        "path_name": "Bladder cancer",
+        "p_val": 7.97e-08,
+        "z_score": 787.7763157895,
+        "combined_score": 12875.9630578516,
+        "overlapping_genes": [
+            "MYC",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 1.3234e-06,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 6,
+        "path_name": "Endometrial cancer",
+        "p_val": 2.305e-07,
+        "z_score": 543.8181818182,
+        "combined_score": 8311.2400667407,
+        "overlapping_genes": [
+            "MYC",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 3.1882e-06,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 7,
+        "path_name": "MicroRNAs in cancer",
+        "p_val": 2.796e-07,
+        "z_score": 257.3725490196,
+        "combined_score": 3883.6946556051,
+        "overlapping_genes": [
+            "MYC",
+            "BRCA1",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 3.3157e-06,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 8,
+        "path_name": "Central carbon metabolism in cancer",
+        "p_val": 4.085e-07,
+        "z_score": 446.1492537313,
+        "combined_score": 6563.1915888801,
+        "overlapping_genes": [
+            "MYC",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 4.2383e-06,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 9,
+        "path_name": "Colorectal cancer",
+        "p_val": 7.628e-07,
+        "z_score": 359.8554216867,
+        "combined_score": 5069.0106194699,
+        "overlapping_genes": [
+            "MYC",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 7.0349e-06,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 10,
+        "path_name": "Small cell lung cancer",
+        "p_val": 9.356e-07,
+        "z_score": 335.4943820225,
+        "combined_score": 4657.3492828637,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 7.7657e-06,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 11,
+        "path_name": "Prostate cancer",
+        "p_val": 1.0981e-06,
+        "z_score": 317.5691489362,
+        "combined_score": 4357.6661931284,
+        "overlapping_genes": [
+            "CDK2",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 8.2855e-06,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 12,
+        "path_name": "Cell cycle",
+        "p_val": 2.305e-06,
+        "z_score": 246.3719008264,
+        "combined_score": 3198.0100235279,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 1.53563e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 13,
+        "path_name": "Pathways in cancer",
+        "p_val": 2.4052e-06,
+        "z_score": 147.7647058824,
+        "combined_score": 1911.761811372,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 1.53563e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 14,
+        "path_name": "Cellular senescence",
+        "p_val": 4.6017e-06,
+        "z_score": 194.5294117647,
+        "combined_score": 2390.5863332284,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 2.72818e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 15,
+        "path_name": "Hepatitis B",
+        "p_val": 5.1548e-06,
+        "z_score": 187.1320754717,
+        "combined_score": 2278.4423837732,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 2.85232e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 16,
+        "path_name": "Hepatocellular carcinoma",
+        "p_val": 5.7503e-06,
+        "z_score": 180.2727272727,
+        "combined_score": 2175.2184542025,
+        "overlapping_genes": [
+            "MYC",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 2.98295e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 17,
+        "path_name": "Epstein-Barr virus infection",
+        "p_val": 1.00004e-05,
+        "z_score": 149.216080402,
+        "combined_score": 1717.9069706275,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 4.8198e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 18,
+        "path_name": "Proteoglycans in cancer",
+        "p_val": 1.04526e-05,
+        "z_score": 146.9777227723,
+        "combined_score": 1685.6376953483,
+        "overlapping_genes": [
+            "MYC",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 4.8198e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 19,
+        "path_name": "Human T-cell leukemia virus 1 infection",
+        "p_val": 1.27422e-05,
+        "z_score": 137.3541666667,
+        "combined_score": 1548.0623206014,
+        "overlapping_genes": [
+            "MYC",
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 5.56634e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 20,
+        "path_name": "Human cytomegalovirus infection",
+        "p_val": 1.38173e-05,
+        "z_score": 133.6013513514,
+        "combined_score": 1494.943987715,
+        "overlapping_genes": [
+            "MYC",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 5.73419e-05,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 21,
+        "path_name": "MAPK signaling pathway",
+        "p_val": 3.07625e-05,
+        "z_score": 101.5670103093,
+        "combined_score": 1055.2014007479,
+        "overlapping_genes": [
+            "MYC",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0001215851,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 22,
+        "path_name": "Thyroid cancer",
+        "p_val": 3.31836e-05,
+        "z_score": 380.1904761905,
+        "combined_score": 3921.0777680384,
+        "overlapping_genes": [
+            "MYC",
+            "TP53"
+        ],
+        "adj_p_val": 0.0001251925,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 23,
+        "path_name": "Human papillomavirus infection",
+        "p_val": 4.38273e-05,
+        "z_score": 89.9405487805,
+        "combined_score": 902.5762325321,
+        "overlapping_genes": [
+            "CDK2",
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0001581594,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 24,
+        "path_name": "Melanoma",
+        "p_val": 0.0001269091,
+        "z_score": 189.7619047619,
+        "combined_score": 1702.5513515192,
+        "overlapping_genes": [
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0004048397,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 25,
+        "path_name": "Non-small cell lung cancer",
+        "p_val": 0.0001269091,
+        "z_score": 189.7619047619,
+        "combined_score": 1702.5513515192,
+        "overlapping_genes": [
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0004048397,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 26,
+        "path_name": "p53 signaling pathway",
+        "p_val": 0.0001304709,
+        "z_score": 187.0798122066,
+        "combined_score": 1673.3092146175,
+        "overlapping_genes": [
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 0.0004048397,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 27,
+        "path_name": "Glioma",
+        "p_val": 0.0001377414,
+        "z_score": 181.9360730594,
+        "combined_score": 1617.4357816575,
+        "overlapping_genes": [
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0004048397,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 28,
+        "path_name": "Chronic myeloid leukemia",
+        "p_val": 0.00014145,
+        "z_score": 179.4684684685,
+        "combined_score": 1590.7302830048,
+        "overlapping_genes": [
+            "MYC",
+            "TP53"
+        ],
+        "adj_p_val": 0.0004048397,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 29,
+        "path_name": "Pancreatic cancer",
+        "p_val": 0.00014145,
+        "z_score": 179.4684684685,
+        "combined_score": 1590.7302830048,
+        "overlapping_genes": [
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0004048397,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 30,
+        "path_name": "ErbB signaling pathway",
+        "p_val": 0.0001770254,
+        "z_score": 159.9357429719,
+        "combined_score": 1381.719683414,
+        "overlapping_genes": [
+            "MYC",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0004897701,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 31,
+        "path_name": "Thyroid hormone signaling pathway",
+        "p_val": 0.000358706,
+        "z_score": 111.350140056,
+        "combined_score": 883.3414894522,
+        "overlapping_genes": [
+            "MYC",
+            "TP53"
+        ],
+        "adj_p_val": 0.0009604064,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 32,
+        "path_name": "FoxO signaling pathway",
+        "p_val": 0.0004202923,
+        "z_score": 102.6666666667,
+        "combined_score": 798.1881627629,
+        "overlapping_genes": [
+            "CDK2",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0010901333,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 33,
+        "path_name": "Measles",
+        "p_val": 0.0004730232,
+        "z_score": 96.6326034063,
+        "combined_score": 739.8545888844,
+        "overlapping_genes": [
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 0.001189725,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 34,
+        "path_name": "Cushing syndrome",
+        "p_val": 0.0005876844,
+        "z_score": 86.4575163399,
+        "combined_score": 643.1851729913,
+        "overlapping_genes": [
+            "CDK2",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0014346413,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 35,
+        "path_name": "JAK-STAT signaling pathway",
+        "p_val": 0.0006416935,
+        "z_score": 82.6458333333,
+        "combined_score": 607.5625578157,
+        "overlapping_genes": [
+            "MYC",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0015217304,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 36,
+        "path_name": "Wnt signaling pathway",
+        "p_val": 0.0006736038,
+        "z_score": 80.6138211382,
+        "combined_score": 588.7121370239,
+        "overlapping_genes": [
+            "MYC",
+            "TP53"
+        ],
+        "adj_p_val": 0.0015530309,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 37,
+        "path_name": "Transcriptional misregulation in cancer",
+        "p_val": 0.0008995257,
+        "z_score": 69.4912280702,
+        "combined_score": 487.3866607767,
+        "overlapping_genes": [
+            "MYC",
+            "TP53"
+        ],
+        "adj_p_val": 0.0019851275,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 38,
+        "path_name": "Kaposi sarcoma-associated herpesvirus infection",
+        "p_val": 0.0009088535,
+        "z_score": 69.1239092496,
+        "combined_score": 484.0973121562,
+        "overlapping_genes": [
+            "MYC",
+            "TP53"
+        ],
+        "adj_p_val": 0.0019851275,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 39,
+        "path_name": "Viral carcinogenesis",
+        "p_val": 0.0010047235,
+        "z_score": 65.6517412935,
+        "combined_score": 453.1967851815,
+        "overlapping_genes": [
+            "CDK2",
+            "TP53"
+        ],
+        "adj_p_val": 0.0021382578,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 40,
+        "path_name": "Chemical carcinogenesis",
+        "p_val": 0.0013886815,
+        "z_score": 55.5780590717,
+        "combined_score": 365.6703121838,
+        "overlapping_genes": [
+            "MYC",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0028815141,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 41,
+        "path_name": "Shigellosis",
+        "p_val": 0.0014703586,
+        "z_score": 53.9644808743,
+        "combined_score": 351.969780977,
+        "overlapping_genes": [
+            "TP53",
+            "EGFR"
+        ],
+        "adj_p_val": 0.0029765795,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 42,
+        "path_name": "Homologous recombination",
+        "p_val": 0.0102089738,
+        "z_score": 124.71875,
+        "combined_score": 571.7716333775,
+        "overlapping_genes": [
+            "BRCA1"
+        ],
+        "adj_p_val": 0.0197056935,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 43,
+        "path_name": "Ferroptosis",
+        "p_val": 0.0102089738,
+        "z_score": 124.71875,
+        "combined_score": 571.7716333775,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0197056935,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 44,
+        "path_name": "Fanconi anemia pathway",
+        "p_val": 0.0134285105,
+        "z_score": 94.0660377358,
+        "combined_score": 405.4599145949,
+        "overlapping_genes": [
+            "BRCA1"
+        ],
+        "adj_p_val": 0.0253310539,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 45,
+        "path_name": "Basal cell carcinoma",
+        "p_val": 0.01565251,
+        "z_score": 80.375,
+        "combined_score": 334.1288407938,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0288701851,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 46,
+        "path_name": "Acute myeloid leukemia",
+        "p_val": 0.0166396662,
+        "z_score": 75.4886363636,
+        "combined_score": 309.1988806923,
+        "overlapping_genes": [
+            "MYC"
+        ],
+        "adj_p_val": 0.0298205428,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 47,
+        "path_name": "Mitophagy",
+        "p_val": 0.0168863315,
+        "z_score": 74.3582089552,
+        "combined_score": 303.4744977484,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0298205428,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 48,
+        "path_name": "Epithelial cell signaling in Helicobacter pylori infection",
+        "p_val": 0.0173795136,
+        "z_score": 72.1956521739,
+        "combined_score": 292.5702198196,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0298563372,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 49,
+        "path_name": "Adherens junction",
+        "p_val": 0.0176260304,
+        "z_score": 71.1607142857,
+        "combined_score": 287.3738964281,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0298563372,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 50,
+        "path_name": "Gap junction",
+        "p_val": 0.0218092536,
+        "z_score": 57.2068965517,
+        "combined_score": 218.8404590305,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0358932378,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 51,
+        "path_name": "PD-L1 expression and PD-1 checkpoint pathway in cancer",
+        "p_val": 0.0220548811,
+        "z_score": 56.5539772727,
+        "combined_score": 215.7093868718,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0358932378,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 52,
+        "path_name": "GnRH signaling pathway",
+        "p_val": 0.0230368977,
+        "z_score": 54.0842391304,
+        "combined_score": 203.93317438,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0364609268,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 53,
+        "path_name": "TGF-beta signaling pathway",
+        "p_val": 0.0232822786,
+        "z_score": 53.5,
+        "combined_score": 201.1633589371,
+        "overlapping_genes": [
+            "MYC"
+        ],
+        "adj_p_val": 0.0364609268,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 54,
+        "path_name": "Choline metabolism in cancer",
+        "p_val": 0.0242633091,
+        "z_score": 51.2835051546,
+        "combined_score": 190.7125852479,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0372936047,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 55,
+        "path_name": "Progesterone-mediated oocyte maturation",
+        "p_val": 0.0247535287,
+        "z_score": 50.2424242424,
+        "combined_score": 185.8360369738,
+        "overlapping_genes": [
+            "CDK2"
+        ],
+        "adj_p_val": 0.0373553252,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 56,
+        "path_name": "Longevity regulating pathway",
+        "p_val": 0.0252435513,
+        "z_score": 49.2425742574,
+        "combined_score": 181.1725184286,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0374145492,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 57,
+        "path_name": "Parathyroid hormone synthesis, secretion and action",
+        "p_val": 0.0262230056,
+        "z_score": 47.3571428571,
+        "combined_score": 172.4329537098,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0381843765,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 58,
+        "path_name": "HIF-1 signaling pathway",
+        "p_val": 0.0269570795,
+        "z_score": 46.0347222222,
+        "combined_score": 166.3468980226,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0385765104,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 59,
+        "path_name": "Sphingolipid signaling pathway",
+        "p_val": 0.0294007963,
+        "z_score": 42.1122881356,
+        "combined_score": 148.5188181017,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0406711016,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 60,
+        "path_name": "Neurotrophin signaling pathway",
+        "p_val": 0.0294007963,
+        "z_score": 42.1122881356,
+        "combined_score": 148.5188181017,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0406711016,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 61,
+        "path_name": "Oocyte meiosis",
+        "p_val": 0.0318396014,
+        "z_score": 38.802734375,
+        "combined_score": 133.7547496991,
+        "overlapping_genes": [
+            "CDK2"
+        ],
+        "adj_p_val": 0.0426239825,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 62,
+        "path_name": "Relaxin signaling pathway",
+        "p_val": 0.0318396014,
+        "z_score": 38.802734375,
+        "combined_score": 133.7547496991,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0426239825,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 63,
+        "path_name": "Estrogen signaling pathway",
+        "p_val": 0.0337871138,
+        "z_score": 36.5055147059,
+        "combined_score": 123.6688486137,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0436625719,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 64,
+        "path_name": "Fluid shear stress and atherosclerosis",
+        "p_val": 0.0342735019,
+        "z_score": 35.972826087,
+        "combined_score": 121.3501114008,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0436625719,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 65,
+        "path_name": "Ubiquitin mediated proteolysis",
+        "p_val": 0.0345166225,
+        "z_score": 35.7122302158,
+        "combined_score": 120.2185897664,
+        "overlapping_genes": [
+            "BRCA1"
+        ],
+        "adj_p_val": 0.0436625719,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 66,
+        "path_name": "Apoptosis",
+        "p_val": 0.0350027169,
+        "z_score": 35.2021276596,
+        "combined_score": 118.0091344015,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0436625719,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 67,
+        "path_name": "Signaling pathways regulating pluripotency of stem cells",
+        "p_val": 0.0352456906,
+        "z_score": 34.9524647887,
+        "combined_score": 116.9303954928,
+        "overlapping_genes": [
+            "MYC"
+        ],
+        "adj_p_val": 0.0436625719,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 68,
+        "path_name": "Phospholipase D signaling pathway",
+        "p_val": 0.0364598252,
+        "z_score": 33.7551020408,
+        "combined_score": 111.7815158556,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0445024338,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 69,
+        "path_name": "Oxytocin signaling pathway",
+        "p_val": 0.0379151731,
+        "z_score": 32.4215686275,
+        "combined_score": 106.0964676882,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0456081067,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 70,
+        "path_name": "Hippo signaling pathway",
+        "p_val": 0.0400948972,
+        "z_score": 30.6064814815,
+        "combined_score": 98.4459375651,
+        "overlapping_genes": [
+            "MYC"
+        ],
+        "adj_p_val": 0.0475410924,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 71,
+        "path_name": "Focal adhesion",
+        "p_val": 0.0492546672,
+        "z_score": 24.74375,
+        "combined_score": 74.4972738004,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0575793996,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 72,
+        "path_name": "Rap1 signaling pathway",
+        "p_val": 0.0514138104,
+        "z_score": 23.6674641148,
+        "combined_score": 70.2414468806,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0592686981,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 73,
+        "path_name": "Lipid and atherosclerosis",
+        "p_val": 0.0526116383,
+        "z_score": 23.1086448598,
+        "combined_score": 68.0507515514,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0598158053,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 74,
+        "path_name": "Regulation of actin cytoskeleton",
+        "p_val": 0.0533297541,
+        "z_score": 22.7857142857,
+        "combined_score": 66.790872574,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0598158053,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 75,
+        "path_name": "Coronavirus disease",
+        "p_val": 0.0566752057,
+        "z_score": 21.3896103896,
+        "combined_score": 61.3971323596,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0618952905,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 76,
+        "path_name": "Ras signaling pathway",
+        "p_val": 0.0566752057,
+        "z_score": 21.3896103896,
+        "combined_score": 61.3971323596,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0618952905,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 77,
+        "path_name": "Calcium signaling pathway",
+        "p_val": 0.0585826417,
+        "z_score": 20.6652719665,
+        "combined_score": 58.6339242057,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0631475229,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 78,
+        "path_name": "Salmonella infection",
+        "p_val": 0.0607248179,
+        "z_score": 19.90625,
+        "combined_score": 55.7654245554,
+        "overlapping_genes": [
+            "MYC"
+        ],
+        "adj_p_val": 0.0637419347,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 79,
+        "path_name": "Parkinson disease",
+        "p_val": 0.0607248179,
+        "z_score": 19.90625,
+        "combined_score": 55.7654245554,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0637419347,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 80,
+        "path_name": "Endocytosis",
+        "p_val": 0.0614380094,
+        "z_score": 19.6653386454,
+        "combined_score": 54.8609181259,
+        "overlapping_genes": [
+            "EGFR"
+        ],
+        "adj_p_val": 0.0637419347,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 81,
+        "path_name": "Huntington disease",
+        "p_val": 0.0742015571,
+        "z_score": 16.1393442623,
+        "combined_score": 41.9779525621,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0760336943,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 82,
+        "path_name": "Amyotrophic lateral sclerosis",
+        "p_val": 0.0877554974,
+        "z_score": 13.520661157,
+        "combined_score": 32.8984831451,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.0888256864,
+        "database": "KEGG_2021_Human"
+    },
+    {
+        "rank": 83,
+        "path_name": "Herpes simplex virus 1 infection",
+        "p_val": 0.1184632926,
+        "z_score": 9.8078470825,
+        "combined_score": 20.9216299271,
+        "overlapping_genes": [
+            "TP53"
+        ],
+        "adj_p_val": 0.1184632926,
+        "database": "KEGG_2021_Human"
+    }
+]

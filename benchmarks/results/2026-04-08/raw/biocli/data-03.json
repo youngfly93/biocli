@@ -1,0 +1,14 @@
+[
+  {
+    "file": "GSE12345_RAW.tar",
+    "size": "111M",
+    "status": "available",
+    "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12345/suppl/GSE12345_RAW.tar"
+  },
+  {
+    "file": "filelist.txt",
+    "size": "795",
+    "status": "available",
+    "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12345/suppl/filelist.txt"
+  }
+]

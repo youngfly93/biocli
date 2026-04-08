@@ -1,0 +1,40 @@
+{
+  "data": {
+    "outdir": "/tmp/biocli-bench-prepare",
+    "dataset": "GSE315149",
+    "steps": [
+      {
+        "step": "download",
+        "status": "skipped",
+        "detail": "--skip-download flag"
+      },
+      {
+        "step": "gene-annotations",
+        "status": "done",
+        "detail": "1 gene(s) → annotations/genes.json"
+      },
+      {
+        "step": "pathways",
+        "status": "done",
+        "detail": "51 pathway links → annotations/pathways.json"
+      },
+      {
+        "step": "manifest",
+        "status": "done",
+        "detail": "manifest.json → /tmp/biocli-bench-prepare"
+      }
+    ]
+  },
+  "ids": {
+    "dataset": "GSE315149",
+    "gene": "TP53"
+  },
+  "sources": [
+    "UniProt",
+    "NCBI Gene",
+    "KEGG"
+  ],
+  "warnings": [],
+  "queriedAt": "2026-04-08T00:38:43.961Z",
+  "query": "GSE315149"
+}

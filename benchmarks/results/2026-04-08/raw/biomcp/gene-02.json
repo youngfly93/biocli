@@ -1,0 +1,63 @@
+{
+  "pagination": {
+    "offset": 0,
+    "limit": 10,
+    "returned": 10,
+    "total": 10,
+    "has_more": false,
+    "next_page_token": null
+  },
+  "count": 10,
+  "results": [
+    {
+      "source": "Reactome",
+      "id": "R-HSA-109581",
+      "name": "Apoptosis"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-169911",
+      "name": "Regulation of Apoptosis"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-9635465",
+      "name": "Suppression of apoptosis"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-109606",
+      "name": "Intrinsic Pathway for Apoptosis"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-177929",
+      "name": "Signaling by EGFR"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-182971",
+      "name": "EGFR downregulation"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-9920951",
+      "name": "Dengue virus modulates apoptosis"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-9734009",
+      "name": "Defective Intrinsic Pathway for Apoptosis"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-140342",
+      "name": "Apoptosis induced DNA fragmentation"
+    },
+    {
+      "source": "Reactome",
+      "id": "R-HSA-168277",
+      "name": "Influenza Virus Induced Apoptosis"
+    }
+  ]
+}

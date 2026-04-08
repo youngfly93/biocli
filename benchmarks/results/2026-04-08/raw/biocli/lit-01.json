@@ -1,0 +1,61 @@
+{
+  "data": {
+    "papers": [
+      {
+        "pmid": "38729160",
+        "title": "Understanding the complexity of p53 in a new era of tumor suppression.",
+        "authors": "Liu Y, Su Z, Tavana O et al.",
+        "journal": "Cancer cell",
+        "year": "2024",
+        "doi": "10.1016/j.ccell.2024.04.009",
+        "abstract": "p53 was discovered 45 years ago as an SV40 large T antigen binding protein, coded by the most frequently mutated TP53 gene in human cancers. As a transcription factor, p53 is tightly regulated by a rich network of post-translational modifications to execute its diverse functions in tumor suppression. Although early studies established p53-mediated cell-cycle arrest, apoptosis, and senescence as the classic barriers in cancer development, a growing number of new functions of p53 have been discovered and the scope of p53-mediated anti-tumor activity is largely expanded. Here, we review the complexity of different layers of p53 regulation, and the recent advance of the p53 pathway in metabolism, ferroptosis, immunity, and others that contribute to tumor suppression. We also discuss the challenge regarding how to activate p53 function specifically effective in inhibiting tumor growth without harming normal homeostasis for cancer therapy."
+      },
+      {
+        "pmid": "36859359",
+        "title": "Targeting p53 pathways: mechanisms, structures, and advances in therapy.",
+        "authors": "Wang H, Guo M, Wei H et al.",
+        "journal": "Signal transduction and targeted therapy",
+        "year": "2023",
+        "doi": "10.1038/s41392-023-01347-1",
+        "abstract": "The TP53 tumor suppressor is the most frequently altered gene in human cancers, and has been a major focus of oncology research. The p53 protein is a transcription factor that can activate the expression of multiple target genes and plays critical roles in regulating cell cycle, apoptosis, and genomic stability, and is widely regarded as the \"guardian of the genome\". Accumulating evidence has shown that p53 also regulates cell metabolism, ferroptosis, tumor microenvironment, autophagy and so on, all of which contribute to tumor suppression. Mutations in TP53 not only impair its tumor suppressor function, but also confer oncogenic properties to p53 mutants. Since p53 is mutated and inactivated in most malignant tumors, it has been a very attractive target for developing new anti-cancer drugs. However, until recently, p53 was considered an \"undruggable\" target and little progress has been made with p53-targeted therapies. Here, we provide a systematic review of the diverse molecular mechanisms of the p53 signaling pathway and how TP53 mutations impact tumor progression. We also discuss key structural features of the p53 protein and its inactivation by oncogenic mutations. In addition, we review the efforts that have been made in p53-targeted therapies, and discuss the challenges that have been encountered in clinical development."
+      },
+      {
+        "pmid": "37495688",
+        "title": "Rewiring cancer drivers to activate apoptosis.",
+        "authors": "Gourisankar S, Krokhotin A, Ji W et al.",
+        "journal": "Nature",
+        "year": "2023",
+        "doi": "10.1038/s41586-023-06348-2",
+        "abstract": "Genes that drive the proliferation, survival, invasion and metastasis of malignant cells have been identified for many human cancers1-4. Independent studies have identified cell death pathways that eliminate cells for the good of the organism5,6. The coexistence of cell death pathways with driver mutations suggests that the cancer driver could be rewired to activate cell death using chemical inducers of proximity (CIPs). Here we describe a new class of molecules called transcriptional/epigenetic CIPs (TCIPs) that recruit the endogenous cancer driver, or a downstream transcription factor, to the promoters of cell death genes, thereby activating their expression. We focused on diffuse large B cell lymphoma, in which the transcription factor B cell lymphoma 6 (BCL6) is deregulated7. BCL6 binds to the promoters of cell death genes and epigenetically suppresses their expression8. We produced TCIPs by covalently linking small molecules that bind BCL6 to those that bind to transcriptional activators that contribute to the oncogenic program, such as BRD4. The most potent molecule, TCIP1, increases binding of BRD4 by 50% over genomic BCL6-binding sites to produce transcriptional elongation at pro-apoptotic target genes within 15 min, while reducing binding of BRD4 over enhancers by only 10%, reflecting a gain-of-function mechanism. TCIP1 kills diffuse large B cell lymphoma cell lines, including chemotherapy-resistant, TP53-mutant lines, at EC50 of 1-10 nM in 72 h and exhibits cell-specific and tissue-specific effects, capturing the combinatorial specificity inherent to transcription. The TCIP concept also has therapeutic applications in regulating the expression of genes for regenerative medicine and developmental disorders."
+      },
+      {
+        "pmid": "38753784",
+        "title": "DNA damage induces p53-independent apoptosis through ribosome stalling.",
+        "authors": "Boon N, Oliveira R, Körner P et al.",
+        "journal": "Science (New York, N.Y.)",
+        "year": "2024",
+        "doi": "10.1126/science.adh7950",
+        "abstract": "In response to excessive DNA damage, human cells can activate p53 to induce apoptosis. Cells lacking p53 can still undergo apoptosis upon DNA damage, yet the responsible pathways are unknown. We observed that p53-independent apoptosis in response to DNA damage coincided with translation inhibition, which was characterized by ribosome stalling on rare leucine-encoding UUA codons and globally curtailed translation initiation. A genetic screen identified the transfer RNAse SLFN11 and the kinase GCN2 as factors required for UUA stalling and global translation inhibition, respectively. Stalled ribosomes activated a ribotoxic stress signal conveyed by the ribosome sensor ZAKα to the apoptosis machinery. These results provide an explanation for the frequent inactivation of SLFN11 in chemotherapy-unresponsive tumors and highlight ribosome stalling as a signaling event affecting cell fate in response to DNA damage."
+      },
+      {
+        "pmid": "34331036",
+        "title": "Cell death in pancreatic cancer: from pathogenesis to therapy.",
+        "authors": "Chen X, Zeh H, Kang R et al.",
+        "journal": "Nature reviews. Gastroenterology & hepatology",
+        "year": "2021",
+        "doi": "10.1038/s41575-021-00486-6",
+        "abstract": "Pancreatic cancer is a devastating gastrointestinal cancer characterized by late diagnosis, limited treatment success and dismal prognosis. Exocrine tumours account for 95% of pancreatic cancers and the most common pathological type is pancreatic ductal adenocarcinoma (PDAC). The occurrence and progression of PDAC involve multiple factors, including internal genetic alterations and external inflammatory stimuli. The biology and therapeutic response of PDAC are further shaped by various forms of regulated cell death, such as apoptosis, necroptosis, ferroptosis, pyroptosis and alkaliptosis. Cell death induced by local or systemic treatments suppresses tumour proliferation, invasion and metastasis. However, unrestricted cell death or tissue damage might result in an inflammation-related immunosuppressive microenvironment, which is conducive to tumour progression or recurrence. The precise extent to which cell death affects PDAC is not yet well described. A growing body of preclinical and clinical studies document significant correlations between mutations (for example, in KRAS and TP53), stress responses (such as hypoxia and autophagy), metabolic reprogramming and chemotherapeutic responses. Here, we describe the molecular machinery of cell death, discuss the complexity and multifaceted nature of lethal signalling in PDAC cells, and highlight the challenges and opportunities for activating cell death pathways through precision oncology treatments."
+      }
+    ],
+    "totalAvailable": 2021
+  },
+  "ids": {
+    "totalPmids": "2021"
+  },
+  "sources": [
+    "PubMed"
+  ],
+  "warnings": [],
+  "queriedAt": "2026-04-08T00:38:35.601Z",
+  "query": "TP53 apoptosis"
+}

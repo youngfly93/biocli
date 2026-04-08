@@ -1,0 +1,292 @@
+{
+  "data": [
+    {
+      "term": "PI3K-Akt signaling pathway",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "1.40e-7",
+      "genes": "MYC,CDK2,BRCA1,TP53,EGFR"
+    },
+    {
+      "term": "Breast cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "3.77e-7",
+      "genes": "MYC,BRCA1,TP53,EGFR"
+    },
+    {
+      "term": "Gastric cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "3.77e-7",
+      "genes": "MYC,CDK2,TP53,EGFR"
+    },
+    {
+      "term": "Hepatitis C",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "3.77e-7",
+      "genes": "MYC,CDK2,TP53,EGFR"
+    },
+    {
+      "term": "Bladder cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "1.32e-6",
+      "genes": "MYC,TP53,EGFR"
+    },
+    {
+      "term": "Endometrial cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "3.19e-6",
+      "genes": "MYC,TP53,EGFR"
+    },
+    {
+      "term": "MicroRNAs in cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "3.32e-6",
+      "genes": "MYC,BRCA1,TP53,EGFR"
+    },
+    {
+      "term": "Central carbon metabolism in cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "4.24e-6",
+      "genes": "MYC,TP53,EGFR"
+    },
+    {
+      "term": "Colorectal cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "7.03e-6",
+      "genes": "MYC,TP53,EGFR"
+    },
+    {
+      "term": "Small cell lung cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "7.77e-6",
+      "genes": "MYC,CDK2,TP53"
+    },
+    {
+      "term": "Prostate cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "8.29e-6",
+      "genes": "CDK2,TP53,EGFR"
+    },
+    {
+      "term": "Cell cycle",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "1.54e-5",
+      "genes": "MYC,CDK2,TP53"
+    },
+    {
+      "term": "Pathways in cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "1.54e-5",
+      "genes": "MYC,CDK2,TP53,EGFR"
+    },
+    {
+      "term": "Cellular senescence",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "2.73e-5",
+      "genes": "MYC,CDK2,TP53"
+    },
+    {
+      "term": "Hepatitis B",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "2.85e-5",
+      "genes": "MYC,CDK2,TP53"
+    },
+    {
+      "term": "Hepatocellular carcinoma",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "2.98e-5",
+      "genes": "MYC,TP53,EGFR"
+    },
+    {
+      "term": "Epstein-Barr virus infection",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "4.82e-5",
+      "genes": "MYC,CDK2,TP53"
+    },
+    {
+      "term": "Proteoglycans in cancer",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "4.82e-5",
+      "genes": "MYC,TP53,EGFR"
+    },
+    {
+      "term": "Human T-cell leukemia virus 1 infection",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "5.57e-5",
+      "genes": "MYC,CDK2,TP53"
+    },
+    {
+      "term": "Human cytomegalovirus infection",
+      "category": "KEGG_2021_Human",
+      "source": "Enrichr",
+      "pValue": "5.73e-5",
+      "genes": "MYC,TP53,EGFR"
+    },
+    {
+      "term": "Regulation of DNA metabolic process",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "2.50e-4",
+      "genes": "CDK2,TP53,EGFR,BRCA1,MYC"
+    },
+    {
+      "term": "Regulation of cell cycle process",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "5.10e-4",
+      "genes": "CDK2,TP53,EGFR,BRCA1,MYC"
+    },
+    {
+      "term": "Positive regulation of DNA metabolic process",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "1.50e-3",
+      "genes": "CDK2,EGFR,BRCA1,MYC"
+    },
+    {
+      "term": "Regulation of mitotic cell cycle phase transition",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "1.50e-3",
+      "genes": "CDK2,TP53,EGFR,BRCA1"
+    },
+    {
+      "term": "Regulation of response to DNA damage stimulus",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "1.50e-3",
+      "genes": "TP53,EGFR,BRCA1,MYC"
+    },
+    {
+      "term": "Mitotic DNA damage checkpoint signaling",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "1.70e-3",
+      "genes": "CDK2,TP53,BRCA1"
+    },
+    {
+      "term": "Regulation of fibroblast proliferation",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "1.70e-3",
+      "genes": "TP53,EGFR,MYC"
+    },
+    {
+      "term": "Response to radiation",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "1.80e-3",
+      "genes": "TP53,EGFR,BRCA1,MYC"
+    },
+    {
+      "term": "Regulation of cell cycle G2/M phase transition",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "2.30e-3",
+      "genes": "CDK2,TP53,BRCA1"
+    },
+    {
+      "term": "Regulation of DNA replication",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "2.70e-3",
+      "genes": "CDK2,TP53,EGFR"
+    },
+    {
+      "term": "Cellular response to stress",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "2.70e-3",
+      "genes": "CDK2,TP53,EGFR,BRCA1,MYC"
+    },
+    {
+      "term": "Intracellular signal transduction",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "2.70e-3",
+      "genes": "CDK2,TP53,EGFR,BRCA1,MYC"
+    },
+    {
+      "term": "Mitotic cell cycle process",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "2.70e-3",
+      "genes": "CDK2,TP53,BRCA1,MYC"
+    },
+    {
+      "term": "Response to ionizing radiation",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "2.80e-3",
+      "genes": "TP53,BRCA1,MYC"
+    },
+    {
+      "term": "Response to UV",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "3.10e-3",
+      "genes": "TP53,EGFR,MYC"
+    },
+    {
+      "term": "Positive regulation of transcription, DNA-templated",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "3.10e-3",
+      "genes": "CDK2,TP53,EGFR,BRCA1,MYC"
+    },
+    {
+      "term": "Cellular response to nitrogen compound",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "3.10e-3",
+      "genes": "CDK2,TP53,EGFR,BRCA1"
+    },
+    {
+      "term": "Negative regulation of mitotic cell cycle phase transition",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "3.10e-3",
+      "genes": "CDK2,TP53,BRCA1"
+    },
+    {
+      "term": "Positive regulation of miRNA maturation",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "3.10e-3",
+      "genes": "TP53,EGFR"
+    },
+    {
+      "term": "Regulation of G1/S transition of mitotic cell cycle",
+      "category": "Process",
+      "source": "STRING",
+      "pValue": "3.10e-3",
+      "genes": "CDK2,TP53,EGFR"
+    }
+  ],
+  "ids": {},
+  "sources": [
+    "Enrichr",
+    "STRING"
+  ],
+  "warnings": [],
+  "queriedAt": "2026-04-08T00:38:24.933Z",
+  "query": "TP53,BRCA1,EGFR,MYC,CDK2"
+}
