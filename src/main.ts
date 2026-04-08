@@ -16,6 +16,7 @@ import { dirname, join } from 'node:path';
 import { discoverClis, discoverPlugins } from './discovery.js';
 import { runCli } from './cli.js';
 import { emitHook } from './hooks.js';
+import { printDeprecationIfLegacyName } from './deprecation.js';
 
 // Register database backends (side-effect imports)
 import './databases/ncbi.js';
@@ -24,6 +25,10 @@ import './databases/kegg.js';
 import './databases/string-db.js';
 import './databases/ensembl.js';
 import './databases/enrichr.js';
+
+// Warn on stderr when invoked as the legacy `ncbicli` binary. No-op when
+// invoked as `biocli` or when BIOCLI_NO_DEPRECATION=1 is set.
+printDeprecationIfLegacyName();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BUILTIN_CLIS = join(__dirname, 'clis');
