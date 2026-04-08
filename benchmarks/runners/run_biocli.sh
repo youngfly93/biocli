@@ -53,7 +53,7 @@ run_task lit-03 $BIOCLI pubmed fetch 36766853,35022513,34234131 -f json
 # ── Data Preparation Tasks ───────────────────────────────────────────────────
 echo "Data preparation tasks:"
 run_task data-01 $BIOCLI aggregate workflow-scout "TP53 breast cancer RNA-seq" --gene TP53 --limit 5 -f json
-run_task data-02 $BIOCLI aggregate workflow-prepare GSE315149 --gene TP53 --outdir /tmp/biocli-bench-prepare --plan -f json
+run_task data-02 $BIOCLI aggregate workflow-prepare GSE315149 --gene TP53 --outdir /tmp/biocli-bench-prepare --skip-download -f json
 run_task data-03 $BIOCLI geo download GSE12345 --dry-run -f json
 
 echo ""
