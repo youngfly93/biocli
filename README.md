@@ -3,9 +3,9 @@
 Query biological databases from the terminal. Agent-first design.
 
 ```
-biocli v0.3.9
-NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr
-44 commands · 6 database backends · 10 workflow commands · 4 download commands
+biocli v0.4.0
+NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · Unimod (local)
+55 commands · 8 database backends · 1 reference dataset · 11 workflow commands · 4 download commands
 ```
 
 ## Install
@@ -120,6 +120,7 @@ biocli aggregate gene-profile TP53
 | `aggregate workflow-prepare <dataset>` | GEO+NCBI+UniProt+KEGG | Prepare research-ready directory with data + annotations |
 | `aggregate workflow-annotate <genes>` | NCBI+UniProt+KEGG+Enrichr | Annotate gene list → genes.csv + pathways.csv + enrichment.csv + report.md |
 | `aggregate workflow-profile <genes>` | NCBI+UniProt+KEGG+STRING+Enrichr | Gene set functional profile → shared pathways, interactions, GO terms |
+| `aggregate ptm-datasets <gene>` | ProteomeXchange | Find proteomics datasets reporting a PTM on a specific gene |
 
 ### Database commands (atomic)
 
@@ -137,6 +138,39 @@ biocli aggregate gene-profile TP53
 | **STRING** | `string partners`, `network`, `enrichment` |
 | **Ensembl** | `ensembl lookup`, `vep`, `xrefs` |
 | **Enrichr** | `enrichr analyze` |
+| **ProteomeXchange** | `px search`, `dataset`, `files` |
+| **Unimod** *(local snapshot)* | `unimod fetch`, `install`, `refresh`, `search`, `list`, `by-mass`, `by-residue` |
+
+## Proteomics modules
+
+### Unimod — local PTM dictionary
+
+Unimod is the mass-spec community's canonical post-translational modification dictionary (~1560 entries). Unlike the live REST backends, it's distributed as an XML dump that biocli downloads once into `~/.biocli/datasets/unimod.xml` and queries in memory. First-run install:
+
+```bash
+biocli unimod install                              # one-time download
+biocli unimod by-mass 79.9663 --tolerance 0.001    # open-search PTM annotation
+biocli unimod by-mass -18.0106 --tolerance 0.001   # negative deltas (water loss, etc.)
+biocli unimod by-residue K --classification "Post-translational" --include-hidden
+biocli unimod fetch UNIMOD:21                      # full record for one modification
+```
+
+The `by-mass` command is the killer feature for open-search workflows: feed it a mass shift from MSFragger / pFind / FragPipe and it returns ranked candidate modifications with delta-from-query. Supports both Da and ppm tolerance. Batch mode via `--input deltas.txt` annotates a whole column.
+
+### ProteomeXchange + PRIDE — proteomics data repositories
+
+biocli wraps the PROXI v0.1 hub at ProteomeCentral, which federates PRIDE, iProX, MassIVE, and jPOST under one search API. PRIDE is added as a secondary backend for rich per-project metadata (35+ fields) when a dataset is PRIDE-hosted.
+
+```bash
+biocli px search "TP53" --limit 5                       # federated dataset search
+biocli px dataset PXD000001                              # full metadata + auto PRIDE upgrade
+biocli px files PXD000001                                # PRIDE file list with FTP URLs
+biocli aggregate ptm-datasets TP53 --modification phospho   # gene + PTM → ranked PXD list
+```
+
+`px dataset` queries the hub first then automatically upgrades PRIDE-hosted projects with the rich PRIDE Archive metadata (`identifiedPTMStrings`, sample protocols, etc.). Graceful fallback to hub-only data with a warning if PRIDE is unavailable. `px files` is PRIDE-only in v1 and exits with `NOT_SUPPORTED` for non-PRIDE accessions, with a hint linking to the source repo's web browser.
+
+The `aggregate ptm-datasets` workflow fuses Unimod + ProteomeXchange to answer a question that's hard to ask anywhere else: *"give me the public datasets where this PTM has been reported on this gene."*
 
 ## Output formats
 
