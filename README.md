@@ -7,7 +7,8 @@
 [![commands](https://img.shields.io/badge/commands-55-7c3aed)](#all-commands)
 [![benchmark v2](https://img.shields.io/badge/benchmark%20v2-workflow%20100%2F100-brightgreen)](benchmarks/v2/runs/report-public-stable/public_report.md)
 
-Query biological databases from the terminal. Agent-first design.
+**One terminal command replaces four browser tabs.**
+biocli is the agent-first CLI for biological databases — 55 commands across 8 backends (NCBI, UniProt, KEGG, STRING, Ensembl, Enrichr, ProteomeXchange, PRIDE) plus the local Unimod PTM dictionary, all behind a strict JSON contract.
 
 ```
 biocli v0.4.0
@@ -23,99 +24,7 @@ npm install -g @yangfei_93sky/biocli
 
 Requires Node.js >= 20. No API keys needed (optional NCBI key increases rate limit).
 
-## Why biocli
-
-biocli is the only CLI that takes you from a **research question** to an **analysis-ready working directory** — scout datasets, download data, fetch annotations, all in one pipeline.
-
-```bash
-# Scout relevant datasets for your research question
-biocli aggregate workflow-scout "TP53 breast cancer RNA-seq" --gene TP53
-
-# Prepare a working directory with data + annotations + manifest
-biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
-```
-
-Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache.
-
-## How biocli compares
-
-|  | biocli | gget | BioMCP | EDirect |
-|--|--------|------|--------|---------|
-| Query biological databases | ✅ | ✅ | ✅ | ✅ |
-| Structured JSON output | ✅ | ✅ | ✅ | ❌ |
-| Cross-database aggregation | ✅ | ❌ | ✅ | ❌ |
-| Download GEO/SRA data files | ✅ | ❌ | ❌ | ❌ |
-| Dataset discovery (scout) | ✅ | ❌ | ❌ | ❌ |
-| Working directory prep (prepare) | ✅ | ❌ | ❌ | ❌ |
-| Agent command self-description | ✅ | ❌ | ⚠️ | ❌ |
-| Safe preview (--dry-run/--skip-download) | ✅ | ❌ | ❌ | ❌ |
-| Per-command JSON Schema | ✅ | ❌ | ❌ | ❌ |
-| Local response cache | ✅ | ❌ | ❌ | ❌ |
-| Batch input (--input) | ✅ | ❌ | ✅ | ✅ |
-
-> **gget** excels at sequence analysis (BLAST, AlphaFold, MUSCLE). **BioMCP** covers more biomedical entities (drugs, trials, diseases). **EDirect** has the deepest NCBI Entrez integration. **biocli** is the only one that combines query + download + data preparation into agent-orchestrated workflows.
-
-### Benchmark v2 (fair, executed 2026-04-08)
-
-biocli's earlier benchmark used a single weighted total that scored unsupported tasks as zero — which structurally penalized tools with narrower scope. **v2 separates coverage from quality, never scores an unsupported task as zero, and runs every cell three cold times against four tools** (biocli, BioMCP, gget, plus EDirect as the canonical NCBI baseline).
-
-[Full methodology →](benchmarks/v2/rubric.md) · [Capability matrix (frozen) →](benchmarks/v2/capability_matrix.frozen.csv) · [Public report →](benchmarks/v2/runs/report-public-stable/public_report.md)
-
-#### Core retrieval track
-
-<p align="center">
-  <img src="benchmarks/v2/runs/report-public-stable/core_overview.png" width="540" alt="Core track: coverage vs quality">
-</p>
-
-| Tool | Version | Coverage % | Quality (supported only) | Latency p50 |
-|------|---------|:---:|:---:|:---:|
-| **biocli** | 0.3.9 | **73** | 96.7 | **128 ms** |
-| EDirect | 25.3 | 65 | **97.4** | 5 291 ms |
-| BioMCP | 0.8.19 | 68 | 84.5 | 2 516 ms |
-| gget | 0.30.3 | 39 | 91.4 | 9 563 ms |
-
-#### Workflow track
-
-<p align="center">
-  <img src="benchmarks/v2/runs/report-public-stable/workflow_overview.png" width="540" alt="Workflow track: coverage vs quality">
-</p>
-
-| Tool | Version | Coverage % | Quality (supported only) | Latency p50 |
-|------|---------|:---:|:---:|:---:|
-| **biocli** | 0.3.9 | **88** | **100.0** | **134 ms** |
-| BioMCP | 0.8.19 | 24 | 97.1 | 3 837 ms |
-| gget | 0.30.3 | 24 | 95.0 | 32 523 ms |
-| EDirect | 25.3 | 10 | 93.8 | 2 323 ms |
-
-> No combined "winner" total is reported. Core and workflow stay separate by design — they measure different things. EDirect is the strongest core baseline on the tasks it supports; biocli leads workflow because automation, previewability, and reproducibility are explicit design goals. **Quality numbers reflect supported tasks only**, so a tool with a smaller surface can still score high inside its scope.
-
-<details>
-<summary>Per-task breakdown (heatmap)</summary>
-
-<p align="center">
-  <img src="benchmarks/v2/runs/report-public-stable/task_breakdown.png" width="700" alt="Per-task scores across all 4 tools, with N/A for unsupported tasks">
-</p>
-
-`N/A` cells are unsupported by that tool — they are deliberately excluded from quality scoring rather than counted as zero. The cells biocli does not cover (`disease-gene`, `drug-trial`, `structure-fetch`, `sequence-similarity`) are out of biocli's current scope and intentionally left to specialists like BioMCP and gget.
-
-</details>
-
-#### How to read this
-
-- **Coverage and quality are reported separately.** Don't multiply them — the meaning is "how many of these tasks does the tool ship" vs "how well does the tool perform on the tasks it does ship".
-- **Unsupported tasks are not zeros.** They live in the coverage column. A tool with deliberately narrow scope (e.g. gget for sequence analysis) scoring high quality on its supported subset is the correct outcome.
-- **3 cold runs per cell** (n=3 with median reporting). p50 latency is descriptive, not a quality dimension.
-- **Per-task evidence** lives at `benchmarks/v2/runs/report-public-stable/public_summary.json` and the `score.json` files inside the full audit bundle (attached as a release asset on each GitHub Release — too heavy for git).
-- **Failures are visible.** BioMCP's 3/3 failure on `core-enrichment` (g:Profiler unavailable) is recorded in the manifest, not silently dropped.
-- **EDirect is the strongest core baseline.** On the tasks it supports, EDirect's 97.4 quality edges biocli's 96.7. biocli's advantage shows up in coverage (73 vs 65) and especially in the workflow track (88% coverage at 100 quality).
-
-The historical v1 benchmark (single-total methodology, biocli 97/100) is still available under [`benchmarks/results/2026-04-08/`](benchmarks/results/2026-04-08/) for reference — but v2 is the methodology we publish from this release forward.
-
-> All four tools were installed in their pinned versions and executed against the same task spec on the same machine. Reproducibility artifacts (rubric, capability matrix, scorecards, manifests, plots, public summary) are in [`benchmarks/v2/`](benchmarks/v2/). Per-task stdout/stderr/normalized/score files for the full 105-cell run are attached as a downloadable bundle on each GitHub Release.
-
 ## Quick start
-
-**One command replaces 4 browser tabs:**
 
 ```bash
 biocli aggregate gene-dossier TP53 -f json
@@ -138,7 +47,116 @@ biocli aggregate enrichment TP53,BRCA1,EGFR,MYC,CDK2
 
 # Gene profile (NCBI + UniProt + KEGG + STRING)
 biocli aggregate gene-profile TP53
+
+# Cross-omics: find proteomics datasets reporting a PTM on a specific gene
+biocli aggregate ptm-datasets TP53 --modification phospho --limit 5
 ```
+
+## Why biocli
+
+biocli is the only CLI that takes you from a **research question** to an **analysis-ready working directory** — scout datasets, download data, fetch annotations, all in one pipeline.
+
+```bash
+# Scout relevant datasets for your research question
+biocli aggregate workflow-scout "TP53 breast cancer RNA-seq" --gene TP53
+
+# Prepare a working directory with data + annotations + manifest
+biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
+```
+
+Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache.
+
+## Agent-first result schema
+
+All workflow commands (`aggregate *`) return a standard `BiocliResult` envelope:
+
+```json
+{
+  "data": { ... },
+  "ids": { "ncbiGeneId": "7157", "uniprotAccession": "P04637", ... },
+  "sources": ["NCBI Gene", "UniProt", "KEGG", "STRING"],
+  "warnings": [],
+  "queriedAt": "2026-04-03T10:00:00.000Z",
+  "organism": "Homo sapiens",
+  "query": "TP53"
+}
+```
+
+- `data` — the actual result payload
+- `ids` — cross-database identifiers for the queried entity
+- `sources` — which databases contributed data
+- `warnings` — partial failures, ambiguous matches (never silently hidden)
+- `queriedAt` — ISO timestamp for reproducibility
+- `organism` — species context
+
+Agents that parse biocli output never need to branch on command type — every `aggregate *` command returns the same envelope shape, and `warnings` is the canonical channel for partial-failure signaling.
+
+## How biocli compares
+
+|  | biocli | gget | BioMCP | EDirect |
+|--|--------|------|--------|---------|
+| Structured JSON output | ✅ | ✅ | ✅ | ❌ |
+| Cross-database aggregation | ✅ | ❌ | ✅ | ❌ |
+| Download GEO/SRA data files | ✅ | ❌ | ❌ | ❌ |
+| Dataset discovery (scout) | ✅ | ❌ | ❌ | ❌ |
+| Working directory prep (prepare) | ✅ | ❌ | ❌ | ❌ |
+| Agent command self-description | ✅ | ❌ | ⚠️ | ❌ |
+| Safe preview (--dry-run/--skip-download) | ✅ | ❌ | ❌ | ❌ |
+| Per-command JSON Schema | ✅ | ❌ | ❌ | ❌ |
+| Local response cache | ✅ | ❌ | ❌ | ❌ |
+| Batch input (--input) | ✅ | ❌ | ✅ | ✅ |
+| Reference Dataset snapshot (Unimod) | ✅ | ❌ | ❌ | ❌ |
+| Proteomics federation (ProteomeXchange + PRIDE) | ✅ | ❌ | ❌ | ❌ |
+| Sequence similarity (BLAST / DIAMOND) | ❌ | ✅ | ❌ | ❌ |
+| Protein structure fetch (AlphaFold / PDB) | ❌ | ✅ | ✅ | ❌ |
+| Disease / drug / clinical-trial lookup | ❌ | ❌ | ✅ | ❌ |
+
+> **gget** excels at sequence analysis (BLAST, AlphaFold, MUSCLE). **BioMCP** covers more biomedical entities (drugs, trials, diseases). **EDirect** has the deepest NCBI Entrez integration. **biocli** is the only one that combines query + download + data preparation into agent-orchestrated workflows — and as of v0.4.0, the only one with a native Reference Dataset pattern and federated proteomics coverage.
+
+## Benchmark v2
+
+Four tools (biocli, BioMCP, gget, EDirect), **n=3 cold runs per cell**, coverage and quality reported separately — unsupported tasks move to the coverage column rather than being scored as zeros. [Full methodology →](benchmarks/v2/rubric.md) · [Public report →](benchmarks/v2/runs/report-public-stable/public_report.md) · [Capability matrix →](benchmarks/v2/capability_matrix.frozen.csv)
+
+### Core retrieval
+
+<p align="center">
+  <img src="benchmarks/v2/runs/report-public-stable/core_overview.png" width="540" alt="Core track: coverage vs quality">
+</p>
+
+| Tool | Version¹ | Coverage % | Quality (supported) | p50 latency |
+|------|---------|:---:|:---:|:---:|
+| **biocli** | 0.3.9 | **73** | 96.7 | **128 ms** |
+| EDirect | 25.3 | 65 | **97.4** | 5 291 ms |
+| BioMCP | 0.8.19 | 68 | 84.5 | 2 516 ms |
+| gget | 0.30.3 | 39 | 91.4 | 9 563 ms |
+
+### Workflow
+
+<p align="center">
+  <img src="benchmarks/v2/runs/report-public-stable/workflow_overview.png" width="540" alt="Workflow track: coverage vs quality">
+</p>
+
+| Tool | Version¹ | Coverage % | Quality (supported) | p50 latency |
+|------|---------|:---:|:---:|:---:|
+| **biocli** | 0.3.9 | **88** | **100.0** | **134 ms** |
+| BioMCP | 0.8.19 | 24 | 97.1 | 3 837 ms |
+| gget | 0.30.3 | 24 | 95.0 | 32 523 ms |
+| EDirect | 25.3 | 10 | 93.8 | 2 323 ms |
+
+> **EDirect leads core quality on the supported overlap; biocli leads coverage and dominates the workflow track.** No combined "winner" total by design — core and workflow measure different things.
+
+<details>
+<summary>Per-task breakdown (heatmap)</summary>
+
+<p align="center">
+  <img src="benchmarks/v2/runs/report-public-stable/task_breakdown.png" width="700" alt="Per-task scores across all 4 tools">
+</p>
+
+`N/A` = unsupported by that tool; deliberately excluded from quality scoring rather than counted as zero.
+
+</details>
+
+<sup>¹ Benchmark executed against biocli 0.3.9. Version 0.4.0 is binary-identical for the 17 scored cells — the 0.4.0 additions (Unimod + ProteomeXchange) extend biocli's scope beyond the current v2 task set and will be added in a later benchmark cycle.</sup>
 
 ## All commands
 
@@ -156,7 +174,7 @@ biocli aggregate gene-profile TP53
 | `aggregate workflow-prepare <dataset>` | GEO+NCBI+UniProt+KEGG | Prepare research-ready directory with data + annotations |
 | `aggregate workflow-annotate <genes>` | NCBI+UniProt+KEGG+Enrichr | Annotate gene list → genes.csv + pathways.csv + enrichment.csv + report.md |
 | `aggregate workflow-profile <genes>` | NCBI+UniProt+KEGG+STRING+Enrichr | Gene set functional profile → shared pathways, interactions, GO terms |
-| `aggregate ptm-datasets <gene>` | ProteomeXchange | Find proteomics datasets reporting a PTM on a specific gene |
+| `aggregate ptm-datasets <gene> --modification <type>` | Unimod + ProteomeXchange | Find proteomics datasets reporting a specific PTM on a gene |
 
 ### Database commands (atomic)
 
@@ -218,29 +236,6 @@ biocli gene info 7157 -f csv     # CSV
 biocli gene info 7157 -f plain   # Plain text
 ```
 
-## Agent-first result schema
-
-All workflow commands (`aggregate *`) return a standard `BiocliResult` envelope:
-
-```json
-{
-  "data": { ... },
-  "ids": { "ncbiGeneId": "7157", "uniprotAccession": "P04637", ... },
-  "sources": ["NCBI Gene", "UniProt", "KEGG", "STRING"],
-  "warnings": [],
-  "queriedAt": "2026-04-03T10:00:00.000Z",
-  "organism": "Homo sapiens",
-  "query": "TP53"
-}
-```
-
-- `data` — the actual result payload
-- `ids` — cross-database identifiers for the queried entity
-- `sources` — which databases contributed data
-- `warnings` — partial failures, ambiguous matches (never silently hidden)
-- `queriedAt` — ISO timestamp for reproducibility
-- `organism` — species context
-
 ## Configuration
 
 ```bash
@@ -263,7 +258,3 @@ Config stored at `~/.biocli/config.yaml`.
 | Enrichr | 5/s | None |
 
 All rate limits are enforced automatically per-database.
-
-## License
-
-MIT
