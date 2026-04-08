@@ -58,6 +58,21 @@ export interface CliCommand {
   replacedBy?: string;
   /** Override the default CLI output format when the user does not pass -f/--format. */
   defaultFormat?: 'table' | 'plain' | 'json' | 'yaml' | 'yml' | 'md' | 'markdown' | 'csv';
+  /**
+   * Mark this command as not needing an HttpContext.
+   *
+   * Set to `true` for commands that manage their own data source — e.g.
+   * "Reference Dataset" snapshot loaders (unimod) or aggregate workflows
+   * that build per-database contexts internally.
+   *
+   * The execution layer will:
+   *   1. Skip `createHttpContextForDatabase()` (avoiding the silent NCBI
+   *      fallback for unknown database ids), and pass a throw-on-use stub
+   *      ctx instead.
+   *   2. Skip the response cache layer (these commands manage caching
+   *      themselves or are no-ops where caching is meaningless).
+   */
+  noContext?: boolean;
 }
 
 /** Internal extension for lazy-loaded TS modules (not exposed in public API). */
@@ -126,6 +141,7 @@ export function cli(opts: CliOptions): CliCommand {
     deprecated: opts.deprecated,
     replacedBy: opts.replacedBy,
     defaultFormat: opts.defaultFormat,
+    noContext: opts.noContext,
   };
 
   registerCommand(cmd);

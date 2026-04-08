@@ -45,6 +45,14 @@ export interface ManifestEntry {
   timeout?: number;
   deprecated?: boolean | string;
   replacedBy?: string;
+  /**
+   * Mirrors CliCommand.noContext. MUST be serialized so the lazy-load stub
+   * created at runtime by discovery.ts:loadFromManifest carries the same
+   * exemption flags as the live command. Without this, post-build the
+   * execution layer cannot tell that a snapshot-dataset command should
+   * skip HttpContext creation and the response cache.
+   */
+  noContext?: boolean;
   /** 'yaml' or 'ts' — determines how executeCommand loads the handler */
   type: 'yaml' | 'ts';
   /** Relative path from clis/ dir, e.g. 'pubmed/search.yaml' or 'gene/info.js' */
@@ -93,6 +101,9 @@ function toManifestEntry(cmd: CliCommand, modulePath: string): ManifestEntry {
     timeout: cmd.timeoutSeconds,
     deprecated: cmd.deprecated,
     replacedBy: cmd.replacedBy,
+    // Only emit when true so we don't bloat the manifest with `false` for
+    // every command. Reader treats undefined and false the same.
+    noContext: cmd.noContext === true ? true : undefined,
     type: 'ts',
     modulePath,
   };

@@ -99,11 +99,18 @@ async function loadFromManifest(manifestPath: string, clisDir: string): Promise<
           source: `manifest:${entry.site}/${entry.name}`,
           deprecated: entry.deprecated,
           replacedBy: entry.replacedBy,
+          noContext: entry.noContext === true ? true : undefined,
         };
         registerCommand(cmd);
       } else if (entry.type === 'ts' && entry.modulePath) {
         // TS adapters: register a lightweight stub.
         // The actual module is loaded lazily on first executeCommand().
+        // CRITICAL: noContext MUST be propagated to the stub. Without it,
+        // executeCommand() inspects the stub BEFORE lazy-loading and would
+        // (a) build an HttpContext via createHttpContextForDatabase() (with
+        //     a silent NCBI fallback for unknown database ids), and
+        // (b) write the result into the response cache.
+        // Both behaviors defeat the purpose of marking a command noContext.
         const strategy = parseStrategy(entry.strategy ?? 'public');
         const modulePath = path.resolve(clisDir, entry.modulePath);
         const cmd: InternalCliCommand = {
@@ -119,6 +126,7 @@ async function loadFromManifest(manifestPath: string, clisDir: string): Promise<
           source: modulePath,
           deprecated: entry.deprecated,
           replacedBy: entry.replacedBy,
+          noContext: entry.noContext === true ? true : undefined,
           _lazy: true,
           _modulePath: modulePath,
         };

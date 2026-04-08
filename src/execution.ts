@@ -183,11 +183,20 @@ export async function executeCommand(
 
   // ── Cache check ───────────────────────────────────────────────────────
   const databaseId = cmd.database ?? 'ncbi';
+  // Commands that manage their own data source must not trigger the default
+  // HttpContext factory AND must not be response-cached. Two qualifying
+  // groups (extensible via the `noContext` flag on CliCommand):
+  //   1. Aggregate workflows that build per-database contexts internally
+  //      (legacy convention via database === 'aggregate').
+  //   2. Reference Dataset commands like Unimod that load a local snapshot
+  //      and have their own filesystem cache + refresh semantics. These
+  //      declare `noContext: true` on the cli() registration.
+  const needsNoContext = databaseId === 'aggregate' || cmd.noContext === true;
   const cacheKey = buildCacheKey(databaseId, fullName(cmd), kwargs);
   const cacheConfig = loadConfig().cache;
   const cacheEnabled = (cacheConfig?.enabled ?? true) && !opts.noCache;
   const cacheTtlMs = (cacheConfig?.ttl ?? 24) * 60 * 60 * 1000;
-  if (cacheEnabled && databaseId !== 'aggregate') {
+  if (cacheEnabled && !needsNoContext) {
     const cached = getCached(databaseId, fullName(cmd), cacheKey, cacheTtlMs);
     if (cached !== null) {
       if (debug) console.error(`[Cache] HIT ${cacheKey}`);
@@ -200,9 +209,11 @@ export async function executeCommand(
 
   let result: unknown;
   try {
-    // Aggregate commands create their own multi-database contexts internally
-    const ctx = databaseId === 'aggregate'
-      ? { databaseId: 'aggregate', fetch: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchJson: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchXml: async () => { throw new Error('use createHttpContextForDatabase()'); }, fetchText: async () => { throw new Error('use createHttpContextForDatabase()'); } } as HttpContext
+    // For commands marked as needsNoContext, provide a throw-on-use dummy
+    // ctx so any accidental HTTP call surfaces loudly instead of silently
+    // falling back to NCBI (databases/index.ts does this fallback).
+    const ctx = needsNoContext
+      ? { databaseId, fetch: async () => { throw new Error(`${databaseId} commands do not use HttpContext`); }, fetchJson: async () => { throw new Error(`${databaseId} commands do not use HttpContext`); }, fetchXml: async () => { throw new Error(`${databaseId} commands do not use HttpContext`); }, fetchText: async () => { throw new Error(`${databaseId} commands do not use HttpContext`); } } as HttpContext
       : createHttpContextForDatabase(databaseId);
     const timeout = cmd.timeoutSeconds;
     if (timeout !== undefined && timeout > 0) {
@@ -222,7 +233,7 @@ export async function executeCommand(
   }
 
   // ── Cache store ──────────────────────────────────────────────────────
-  if (cacheEnabled && databaseId !== 'aggregate' && result !== null && result !== undefined) {
+  if (cacheEnabled && !needsNoContext && result !== null && result !== undefined) {
     try { setCached(databaseId, fullName(cmd), cacheKey, result, cacheTtlMs); } catch { /* non-fatal */ }
   }
 
