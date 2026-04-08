@@ -22,11 +22,39 @@ NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PR
 
 ## Install
 
+### 1. Prerequisites
+
+biocli ships as an npm package, so it needs **Node.js >= 20** (which includes `npm`). If you don't already have Node.js installed:
+
+| Platform | Command |
+|---|---|
+| macOS (Homebrew) | `brew install node` |
+| Already using conda? | `conda install -c conda-forge 'nodejs>=20'` |
+| Cross-platform (nvm, recommended for devs) | `nvm install 20 && nvm use 20` |
+| Windows | Download the LTS installer from [nodejs.org](https://nodejs.org) |
+| Other Linux distros | See the [nodejs.org package manager guide](https://nodejs.org/en/download/package-manager) — distro repos often ship an outdated Node.js, so NodeSource or nvm is usually the safe path |
+
+Confirm you have Node >= 20: `node -v` should print `v20.x` or higher.
+
+No API keys are needed. An optional NCBI API key raises your NCBI rate limit from 3 to 10 req/s (see [Configuration](#configuration)), but biocli works out of the box without one.
+
+### 2. Install biocli
+
 ```bash
 npm install -g @yangfei_93sky/biocli
 ```
 
-Requires Node.js >= 20. No API keys needed (optional NCBI key increases rate limit).
+### 3. Verify the install
+
+Three commands that confirm biocli is wired up end-to-end. Expected runtime: under 15 seconds.
+
+```bash
+biocli --version                              # should print 0.4.0
+biocli verify --smoke -f json                 # config + doctor + 6 core smoke tests
+biocli aggregate gene-dossier TP53 -f json    # real query across NCBI / UniProt / KEGG / STRING / PubMed / ClinVar
+```
+
+If all three return without error, biocli is installed and every upstream API is reachable from your network.
 
 ## Quick start
 
@@ -58,7 +86,7 @@ biocli aggregate ptm-datasets TP53 --modification phospho --limit 5
 
 ## Why biocli
 
-biocli is the only CLI that takes you from a **research question** to an **analysis-ready working directory** — scout datasets, download data, fetch annotations, all in one pipeline.
+biocli's workflow commands go beyond retrieval. They scout datasets, download data, fetch annotations, and produce a manifest-tracked working directory in a single pipeline — the kind of multi-step job that otherwise takes four browser tabs and a shell script.
 
 ```bash
 # Scout relevant datasets for your research question
@@ -67,6 +95,8 @@ biocli aggregate workflow-scout "TP53 breast cancer RNA-seq" --gene TP53
 # Prepare a working directory with data + annotations + manifest
 biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
 ```
+
+Benchmark v2 shows biocli at **88% workflow coverage with 100.0 quality** on supported tasks; next-best (BioMCP) is 24% at 97.1. See the [benchmark section](#benchmark-v2) for the full four-tool comparison.
 
 Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache.
 
@@ -193,7 +223,7 @@ Every biocli command keeps **warnings on stderr** and **payload on stdout**, so 
 | Protein structure fetch (AlphaFold / PDB) | ❌ | ✅ | ✅ | ❌ |
 | Disease / drug / clinical-trial lookup | ❌ | ❌ | ✅ | ❌ |
 
-> **gget** excels at sequence analysis (BLAST, AlphaFold, MUSCLE). **BioMCP** covers more biomedical entities (drugs, trials, diseases). **EDirect** has the deepest NCBI Entrez integration. **biocli** is the only one that combines query + download + data preparation into agent-orchestrated workflows — and as of v0.4.0, the only one with a native Reference Dataset pattern and federated proteomics coverage.
+> **gget** excels at sequence analysis (BLAST, AlphaFold, MUSCLE). **BioMCP** covers more biomedical entities (drugs, trials, diseases). **EDirect** has the deepest NCBI Entrez integration. **biocli** combines query + download + data preparation into a single agent-orchestrated pipeline; among the four tools in this comparison, it's the only one shipping a Reference Dataset pattern (local Unimod snapshot) and federated proteomics coverage (ProteomeXchange + PRIDE).
 
 ## Benchmark v2
 
@@ -240,7 +270,17 @@ Four tools (biocli, BioMCP, gget, EDirect), **n=3 cold runs per cell**, coverage
 
 <sup>¹ Benchmark executed against biocli 0.3.9. Version 0.4.0 is binary-identical for the 17 scored cells — the 0.4.0 additions (Unimod + ProteomeXchange) extend biocli's scope beyond the current v2 task set and will be added in a later benchmark cycle.</sup>
 
-## All commands
+## Command reference
+
+biocli ships **55 commands** across 11 agent-optimized workflows and 14 database surfaces. For the live, machine-readable catalog (including args, types, defaults, and columns):
+
+```bash
+biocli list                 # human-readable table
+biocli list -f json         # full JSON with per-command schema
+```
+
+<details>
+<summary><b>Click to expand: full command table</b></summary>
 
 ### Workflow commands (agent-optimized)
 
@@ -277,6 +317,8 @@ Four tools (biocli, BioMCP, gget, EDirect), **n=3 cold runs per cell**, coverage
 | **ProteomeXchange** | `px search`, `dataset`, `files` |
 | **Unimod** *(local snapshot)* | `unimod fetch`, `install`, `refresh`, `search`, `list`, `by-mass`, `by-residue` |
 
+</details>
+
 ## Proteomics modules
 
 ### Unimod — local PTM dictionary
@@ -291,7 +333,7 @@ biocli unimod by-residue K --classification "Post-translational" --include-hidde
 biocli unimod fetch UNIMOD:21                      # full record for one modification
 ```
 
-The `by-mass` command is the killer feature for open-search workflows: feed it a mass shift from MSFragger / pFind / FragPipe and it returns ranked candidate modifications with delta-from-query. Supports both Da and ppm tolerance. Batch mode via `--input deltas.txt` annotates a whole column.
+`unimod by-mass` is designed for open-search proteomics workflows: feed it a mass shift from MSFragger / pFind / FragPipe and it returns ranked candidate modifications with delta-from-query. Supports both Da and ppm tolerance, positive and negative deltas (e.g. -18.0106 for water loss). Batch mode via `--input deltas.txt` annotates a whole column of delta masses at once.
 
 ### ProteomeXchange + PRIDE — proteomics data repositories
 
@@ -306,7 +348,7 @@ biocli aggregate ptm-datasets TP53 --modification phospho   # gene + PTM → ran
 
 `px dataset` queries the hub first then automatically upgrades PRIDE-hosted projects with the rich PRIDE Archive metadata (`identifiedPTMStrings`, sample protocols, etc.). Graceful fallback to hub-only data with a warning if PRIDE is unavailable. `px files` is PRIDE-only in v1 and exits with `NOT_SUPPORTED` for non-PRIDE accessions, with a hint linking to the source repo's web browser.
 
-The `aggregate ptm-datasets` workflow fuses Unimod + ProteomeXchange to answer a question that's hard to ask anywhere else: *"give me the public datasets where this PTM has been reported on this gene."*
+The `aggregate ptm-datasets` workflow fuses Unimod + ProteomeXchange to answer a single specific question across both sources: *"give me the public datasets where this PTM has been reported on this gene."* No other tool in the comparison table combines a PTM dictionary with federated proteomics search.
 
 ## Output formats
 
