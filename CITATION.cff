@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+title: "biocli: agent-first CLI for biological databases"
+message: "If you use biocli in your research or software, please cite it using the metadata below. A Zenodo DOI for this exact release will be added once the GitHub → Zenodo webhook archives it."
+type: software
+authors:
+  - family-names: Yang
+    given-names: Fei
+    # Add your ORCID here once you have one, e.g.:
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+repository-code: "https://github.com/youngfly93/biocli"
+url: "https://github.com/youngfly93/biocli"
+license: MIT
+version: "0.4.0"
+date-released: "2026-04-08"
+keywords:
+  - bioinformatics
+  - cli
+  - command-line-tool
+  - agent-first
+  - ai-agent
+  - llm-tools
+  - ncbi
+  - uniprot
+  - kegg
+  - pubmed
+  - ensembl
+  - proteomics
+  - mass-spectrometry
+  - ptm
+  - unimod
+  - proteomexchange
+  - pride
+  - claude-code
+abstract: >-
+  biocli is an agent-first command-line interface for querying public
+  biological databases. It ships 55 commands across 8 HTTP backends
+  (NCBI, UniProt, KEGG, STRING, Ensembl, Enrichr, ProteomeXchange, PRIDE)
+  plus the Unimod local PTM dictionary, all behind a strict JSON
+  contract (BiocliResult envelope with data, ids, sources, warnings,
+  queriedAt, organism, and query fields) so that AI coding agents and
+  scripted pipelines can call biocli directly without custom HTTP
+  clients. Distinctive features include cross-database aggregation
+  workflows (gene-dossier, variant-dossier, enrichment, ptm-datasets),
+  a fair benchmark (v2) that reports coverage and quality separately
+  against three reference tools (gget, BioMCP, EDirect) while never
+  scoring unsupported tasks as zero, and a Reference Dataset pattern
+  for local-snapshot data sources such as Unimod. MIT licensed.
