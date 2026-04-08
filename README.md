@@ -10,6 +10,10 @@
 **One terminal command replaces four browser tabs.**
 biocli is the agent-first CLI for biological databases — 55 commands across 8 backends (NCBI, UniProt, KEGG, STRING, Ensembl, Enrichr, ProteomeXchange, PRIDE) plus the local Unimod PTM dictionary, all behind a strict JSON contract.
 
+<p align="center">
+  <img src="docs/demo.gif" width="820" alt="biocli demo: pubmed search 'CRISPR cancer' returns a structured table with PMID, title, authors, journal, year, and source">
+</p>
+
 ```
 biocli v0.4.0
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · Unimod (local)
