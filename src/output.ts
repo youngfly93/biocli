@@ -19,6 +19,31 @@ export interface RenderOptions {
   query?: string;
   /** Total result count from API (e.g. esearch count), for "3 of N" display. */
   totalCount?: number;
+  /**
+   * Non-fatal warnings collected during command execution.
+   *
+   * Renders as yellow lines on stderr (NOT stdout — keeps pipelines clean
+   * for `| jq`). Used to surface degraded-mode results: e.g. "PRIDE detail
+   * upgrade failed, showing hub-only metadata" so users and agents know
+   * the data they got is incomplete.
+   *
+   * For JSON/YAML formats, warnings are ALSO present in the output
+   * envelope (BiocliResult.warnings) so programmatic consumers can react
+   * to them without parsing stderr.
+   */
+  warnings?: string[];
+}
+
+/**
+ * Emit warnings to stderr as yellow lines. Shared by every format renderer
+ * so warnings never leak onto stdout (where `| jq` would choke on them).
+ */
+function emitWarnings(opts: RenderOptions): void {
+  if (!opts.warnings || opts.warnings.length === 0) return;
+  console.error(chalk.yellow('Warnings:'));
+  for (const w of opts.warnings) {
+    console.error(chalk.dim('  - ') + chalk.yellow(w));
+  }
 }
 
 function normalizeRows(data: unknown): Record<string, unknown>[] {
@@ -208,6 +233,7 @@ export function render(data: unknown, opts: RenderOptions = {}): void {
   const fmt = opts.fmt ?? 'table';
   if (data === null || data === undefined) {
     console.log(data);
+    emitWarnings(opts);
     return;
   }
   switch (fmt) {
@@ -219,6 +245,10 @@ export function render(data: unknown, opts: RenderOptions = {}): void {
     case 'yaml': case 'yml': renderYaml(data); break;
     default: renderTable(data, opts); break;
   }
+  // Warnings are rendered AFTER the data payload in every format so they
+  // sit at the end of the user's view and stderr is flushed last. JSON
+  // consumers get the structured warnings in the body AND on stderr.
+  emitWarnings(opts);
 }
 
 // ── Card view for single records ──────────────────────────────────────────────
@@ -350,6 +380,11 @@ function renderFooter(count: number, opts: RenderOptions): void {
   if (hasMore) {
     console.log(chalk.dim(`  Use --limit <n> to show more results`));
   }
+  // NOTE: warnings are emitted by the top-level render() dispatcher after
+  // every format, NOT here. A previous iteration accidentally duplicated
+  // warning emission by also calling a helper from this footer path, which
+  // made the table format print every warning twice. See src/output.test.ts
+  // for the regression lock.
 }
 
 function renderJson(data: unknown): void {

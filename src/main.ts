@@ -24,6 +24,8 @@ import './databases/kegg.js';
 import './databases/string-db.js';
 import './databases/ensembl.js';
 import './databases/enrichr.js';
+import './databases/proteomexchange.js';
+import './databases/pride.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BUILTIN_CLIS = join(__dirname, 'clis');

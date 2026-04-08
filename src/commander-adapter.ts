@@ -216,6 +216,7 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       let renderData: unknown = result;
       let totalCount: number | undefined;
       let query: string | undefined;
+      let warnings: string[] | undefined;
       if (hasResultMeta(result)) {
         renderData = result.rows;
         totalCount = result.meta.totalCount;
@@ -224,6 +225,13 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         // BiocliResult envelope — for report/table/csv, render the data payload
         const biocliResult = result as Record<string, unknown>;
         query = String(biocliResult.query ?? '');
+        // Surface warnings in ALL formats. For JSON/YAML the envelope already
+        // contains `warnings`, so this is a bit redundant — but the stderr
+        // rendering gives humans a visible signal alongside the JSON body.
+        if (Array.isArray(biocliResult.warnings)) {
+          warnings = (biocliResult.warnings as unknown[])
+            .filter((w): w is string => typeof w === 'string');
+        }
         if (format === 'json' || format === 'yaml' || format === 'yml') {
           // JSON/YAML: render the full envelope (agent-friendly)
           renderData = result;
@@ -274,6 +282,7 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         source: fullName(resolved),
         totalCount,
         query,
+        warnings,
       });
     } catch (err) {
       renderError(err, fullName(cmd), optionsRecord.verbose === true);

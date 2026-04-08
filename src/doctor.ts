@@ -29,6 +29,8 @@ const PING_ENDPOINTS: Record<string, string> = {
   string: 'https://string-db.org/api/json/version',
   ensembl: 'https://rest.ensembl.org/info/ping?content-type=application/json',
   enrichr: 'https://maayanlab.cloud/Enrichr/datasetStatistics',
+  proteomexchange: 'https://proteomecentral.proteomexchange.org/api/proxi/v0.1/datasets?keywords=proteomics&pageSize=1',
+  pride: 'https://www.ebi.ac.uk/pride/ws/archive/v3/projects/PXD000001',
 };
 
 // 15s tolerates dual-stack Happy Eyeballs (IPv6 attempt + IPv4 fallback)
