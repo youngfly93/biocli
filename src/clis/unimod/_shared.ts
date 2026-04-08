@@ -10,17 +10,41 @@ import type { UnimodMod, UnimodSpecificity } from '../../datasets/unimod.js';
 import { UNIMOD_ATTRIBUTION } from '../../datasets/unimod.js';
 
 /**
+ * Canonicalize a Unimod site name.
+ *
+ *   • Single amino acid letters → uppercase ("s" → "S")
+ *   • "N-term" / "C-term" recognized case-insensitively, normalized to the
+ *     exact spelling Unimod uses ("N-term" / "C-term")
+ *   • Anything else preserved as-is (so unusual sites still pass through)
+ *
+ * Used by every command that takes a residue/site argument so users can
+ * type any case variant (`N-term`, `n-term`, `N-TERM`) and still get a
+ * match against the dataset's canonical form.
+ */
+export function canonicalizeSite(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return trimmed;
+  if (trimmed.length === 1) return trimmed.toUpperCase();
+  const lower = trimmed.toLowerCase();
+  if (lower === 'n-term') return 'N-term';
+  if (lower === 'c-term') return 'C-term';
+  return trimmed;
+}
+
+/**
  * Split a CLI-supplied comma-separated filter into a canonical set.
  * Returns `null` if the input is empty (no filter → match anything).
  *
  * `caseMode`:
- *   - 'lower' — lowercase for case-insensitive matching (classifications)
- *   - 'upper' — uppercase for residue single-letters
- *   - 'exact' — leave as-is (for multi-word site values like "N-term")
+ *   - 'lower' — lowercase for case-insensitive matching (classifications, positions)
+ *   - 'upper' — uppercase for plain string filters
+ *   - 'exact' — leave as-is
+ *   - 'site'  — canonicalize as a Unimod site (single AAs uppercased,
+ *               N-term/C-term normalized regardless of input case)
  */
 export function parseCsvFilter(
   raw: unknown,
-  caseMode: 'lower' | 'upper' | 'exact' = 'lower',
+  caseMode: 'lower' | 'upper' | 'exact' | 'site' = 'lower',
 ): Set<string> | null {
   if (raw === undefined || raw === null || raw === '') return null;
   const str = String(raw);
@@ -29,6 +53,7 @@ export function parseCsvFilter(
   const transformed = parts.map(p => {
     if (caseMode === 'lower') return p.toLowerCase();
     if (caseMode === 'upper') return p.toUpperCase();
+    if (caseMode === 'site') return canonicalizeSite(p);
     return p;
   });
   return new Set(transformed);
@@ -50,12 +75,10 @@ export interface SpecificityFilter {
 export function specificityMatches(spec: UnimodSpecificity, filter: SpecificityFilter): boolean {
   if (!filter.includeHidden && spec.hidden) return false;
   if (filter.residues) {
-    // Site values are either single AA letters (uppercase) or "N-term"/"C-term".
-    // We normalize by uppercasing single letters only. For multi-char sites we
-    // do an exact-match fallback.
-    const site = spec.site ?? '';
-    const siteUpper = site.length === 1 ? site.toUpperCase() : site;
-    if (!filter.residues.has(siteUpper) && !filter.residues.has(site)) return false;
+    // Canonicalize the spec's site the same way we canonicalize user input
+    // so case variants of N-term/C-term match correctly.
+    const canonical = canonicalizeSite(spec.site ?? '');
+    if (!filter.residues.has(canonical)) return false;
   }
   if (filter.positions) {
     if (!filter.positions.has((spec.position ?? '').toLowerCase())) return false;

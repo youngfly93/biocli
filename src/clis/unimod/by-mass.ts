@@ -88,11 +88,12 @@ cli({
   site: 'unimod',
   name: 'by-mass',
   database: 'unimod',
+  noContext: true,
   description:
     'Find Unimod modifications matching a mass shift (killer feature for open-search PTM annotation). ' +
     'Data: Unimod (https://www.unimod.org), Design Science License.',
   args: [
-    { name: 'mass', type: 'number', positional: true, required: true, help: 'Observed mass shift in Da (e.g. 79.9663)' },
+    { name: 'mass', type: 'number', positional: true, required: true, help: 'Observed mass shift in Da (e.g. 79.9663). Negative values accepted for losses, e.g. -18.0106 for water loss.' },
     { name: 'tolerance', type: 'number', default: 0.01, help: 'Tolerance window (Da or ppm depending on --tolerance-unit)' },
     { name: 'tolerance-unit', default: 'Da', choices: ['Da', 'ppm'], help: 'Tolerance unit — Da or ppm' },
     { name: 'residue', help: 'Filter by amino acid (e.g. S,T,Y) or N-term/C-term' },
@@ -108,15 +109,14 @@ cli({
     if (!Number.isFinite(queryMass)) {
       throw new ArgumentError(
         `mass must be a finite number, got "${args.mass}"`,
-        'Provide a delta mass in Da, e.g. "biocli unimod by-mass 79.9663"',
+        'Provide a delta mass in Da, e.g. "biocli unimod by-mass 79.9663" or "biocli unimod by-mass -18.0106"',
       );
     }
-    if (queryMass <= 0) {
-      throw new ArgumentError(
-        'mass must be > 0',
-        'Delta masses are expressed as positive values. For negative modifications (e.g. water loss) also pass a positive number and inspect deltaFromQuery for sign.',
-      );
-    }
+    // Zero is a no-op (no real modification has mono_mass exactly 0), but we
+    // accept it; it will match zero-mass placeholder NeutralLoss entries which
+    // is harmless. Negative masses are FIRST-class — Dehydrated (-18.010565),
+    // Ammonia-loss (-17.026549), Pyro-glu variants all have negative monoMass
+    // in Unimod.
 
     const tolerance = Number(args.tolerance);
     if (!Number.isFinite(tolerance) || tolerance <= 0) {
@@ -127,13 +127,15 @@ cli({
     }
 
     const unit = String(args['tolerance-unit'] ?? 'Da') as 'Da' | 'ppm';
-    const tolAbs = unit === 'ppm' ? (queryMass * tolerance) / 1e6 : tolerance;
+    // ppm tolerance needs |queryMass| so negative masses compute the same
+    // absolute window as their positive counterparts.
+    const tolAbs = unit === 'ppm' ? (Math.abs(queryMass) * tolerance) / 1e6 : tolerance;
 
     const massType = String(args['mass-type'] ?? 'mono') as 'mono' | 'avg';
     const massField: 'monoMass' | 'avgMass' = massType === 'avg' ? 'avgMass' : 'monoMass';
 
     const filter: SpecificityFilter = {
-      residues: parseCsvFilter(args.residue, 'upper'),
+      residues: parseCsvFilter(args.residue, 'site'),
       positions: parseCsvFilter(args.position, 'lower'),
       classifications: parseCsvFilter(args.classification, 'lower'),
       includeHidden: args['include-hidden'] === true,

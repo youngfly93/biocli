@@ -428,10 +428,16 @@ export async function refreshUnimod(opts: { force?: boolean } = {}): Promise<Uni
   const paths = unimodPaths();
   const force = opts.force === true;
 
-  // Short-circuit: if not forced and already installed, just return existing meta.
+  // Short-circuit: only when the install is COMPLETE.
+  // Previously we short-circuited on meta.json existence alone, which made
+  // `biocli unimod fetch` a no-op when the xml was missing — leaving the
+  // install permanently broken until the user knew to run `refresh`.
+  // Now we require BOTH files to be present AND meta.json to parse.
   if (!force) {
     const existing = readMeta(paths.meta);
-    if (existing) return existing;
+    if (existing && existsSync(paths.xml)) {
+      return existing;
+    }
   }
 
   ensureCacheDir(paths.dir);

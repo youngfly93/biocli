@@ -16,6 +16,7 @@ cli({
   site: 'unimod',
   name: 'refresh',
   database: 'unimod',
+  noContext: true,
   description:
     'Force re-download of the Unimod PTM dictionary (bypasses the local cache). ' +
     'Data: Unimod (https://www.unimod.org), Design Science License.',

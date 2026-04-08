@@ -29,6 +29,7 @@ cli({
   site: 'unimod',
   name: 'search',
   database: 'unimod',
+  noContext: true,
   description:
     'Search Unimod modifications by title, full name, or alternate name (substring match). ' +
     'Data: Unimod (https://www.unimod.org), Design Science License.',

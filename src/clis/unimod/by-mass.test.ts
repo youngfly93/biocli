@@ -73,14 +73,21 @@ const acetyl = mod(1, 'Acetyl', 42.010565, 42.0367, [
   spec('K'),
   spec('N-term', { position: 'Protein N-term' }),
 ]);
+// Negative-mass mods are real: Dehydrated = water loss; Ammonia-loss = -NH3.
+const dehydrated = mod(23, 'Dehydrated', -18.010565, -18.0153, [
+  spec('S'), spec('T'), spec('Y'), spec('D', { hidden: true }),
+]);
+const ammoniaLoss = mod(385, 'Ammonia-loss', -17.026549, -17.0305, [
+  spec('N'), spec('Q'),
+]);
 
 const fakeIndex: UnimodIndex = {
-  mods: [acetyl, phospho, sulfo, hexnac],
-  byRecordId: new Map([[1, acetyl], [21, phospho], [40, sulfo], [43, hexnac]]),
+  mods: [acetyl, phospho, sulfo, hexnac, dehydrated, ammoniaLoss],
+  byRecordId: new Map([[1, acetyl], [21, phospho], [40, sulfo], [43, hexnac], [23, dehydrated], [385, ammoniaLoss]]),
   byTitleLower: new Map(),
   classifications: [],
   sites: [],
-  parseMeta: { source: 'test', fetchedAt: '2026-04-01T00:00:00Z', modCount: 4, staleAfterDays: 90 },
+  parseMeta: { source: 'test', fetchedAt: '2026-04-01T00:00:00Z', modCount: 6, staleAfterDays: 90 },
 };
 
 function unwrap(result: unknown): Record<string, unknown>[] {
@@ -189,11 +196,48 @@ describe('unimod/by-mass adapter', () => {
     expect(rows.map(r => r.rank)).toEqual([1, 2]);
   });
 
-  it('rejects invalid mass', async () => {
+  it('rejects only non-finite mass or non-positive tolerance (negative mass is VALID)', async () => {
     const cmd = getRegistry().get('unimod/by-mass');
     await expect(cmd!.func!(makeCtx(), { mass: 'abc' })).rejects.toThrow();
-    await expect(cmd!.func!(makeCtx(), { mass: -5 })).rejects.toThrow();
+    await expect(cmd!.func!(makeCtx(), { mass: NaN })).rejects.toThrow();
     await expect(cmd!.func!(makeCtx(), { mass: 79.966, tolerance: 0 })).rejects.toThrow();
+    await expect(cmd!.func!(makeCtx(), { mass: 79.966, tolerance: -1 })).rejects.toThrow();
+  });
+
+  it('finds Dehydrated (-18.010565) for a negative query mass', async () => {
+    const cmd = getRegistry().get('unimod/by-mass');
+    const rows = unwrap(await cmd!.func!(makeCtx(), { mass: -18.0106, tolerance: 0.001 }));
+    const titles = new Set(rows.map(r => r.title));
+    expect(titles.has('Dehydrated')).toBe(true);
+    // Every row carries the (negative) queryMass correctly
+    for (const r of rows) {
+      expect(r.queryMass).toBe(-18.0106);
+    }
+  });
+
+  it('positive 18.0106 does NOT match Dehydrated (-18.0106) — sign matters', async () => {
+    const cmd = getRegistry().get('unimod/by-mass');
+    const rows = unwrap(await cmd!.func!(makeCtx(), { mass: 18.0106, tolerance: 0.001 }));
+    expect(rows.every(r => r.title !== 'Dehydrated')).toBe(true);
+  });
+
+  it('finds Ammonia-loss (-17.026549) for query -17.0265', async () => {
+    const cmd = getRegistry().get('unimod/by-mass');
+    const rows = unwrap(await cmd!.func!(makeCtx(), { mass: -17.0265, tolerance: 0.001 }));
+    expect(rows.some(r => r.title === 'Ammonia-loss')).toBe(true);
+  });
+
+  it('ppm tolerance works for negative masses (uses |queryMass| for window)', async () => {
+    const cmd = getRegistry().get('unimod/by-mass');
+    // Dehydrated mono = -18.010565, query = -18.0106, delta ≈ 3.5e-5
+    // 10 ppm of |18| ≈ 1.8e-4 → should match
+    const rows = unwrap(await cmd!.func!(makeCtx(), { mass: -18.0106, tolerance: 10, 'tolerance-unit': 'ppm' }));
+    expect(rows.some(r => r.title === 'Dehydrated')).toBe(true);
+  });
+
+  it('allows mass=0 (no-op but not rejected)', async () => {
+    const cmd = getRegistry().get('unimod/by-mass');
+    await expect(cmd!.func!(makeCtx(), { mass: 0, tolerance: 0.001 })).resolves.toBeDefined();
   });
 
   it('uses avg mass when --mass-type avg', async () => {
@@ -217,5 +261,14 @@ describe('unimod/by-mass adapter', () => {
     const rows = unwrap(await cmd!.func!(makeCtx(), { mass: 79.9663, tolerance: 0.01, 'include-hidden': true, limit: 50 }));
     const phosphoSites = new Set(rows.filter(r => r.title === 'Phospho').map(r => r.site));
     expect(phosphoSites.size).toBe(9);
+  });
+
+  // ── F3: case-insensitive --residue for N-term and AA letters ─────────────
+
+  it('F3: --residue accepts lowercase single AAs', async () => {
+    const cmd = getRegistry().get('unimod/by-mass');
+    const rows = unwrap(await cmd!.func!(makeCtx(), { mass: 79.9663, tolerance: 0.01, residue: 's,t,y' }));
+    const sites = new Set(rows.filter(r => r.title === 'Phospho').map(r => r.site));
+    expect(sites).toEqual(new Set(['S', 'T', 'Y']));
   });
 });

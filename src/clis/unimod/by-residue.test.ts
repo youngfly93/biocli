@@ -125,4 +125,16 @@ describe('unimod/by-residue adapter', () => {
     const rows = unwrap(await cmd!.func!(makeCtx(), { residue: 'K', limit: 1 }));
     expect(rows.length).toBe(1);
   });
+
+  // ── F3: case-insensitive N-term/C-term ───────────────────────────────────
+
+  it('F3: matches N-term regardless of case (n-term, N-TERM, N-term)', async () => {
+    const cmd = getRegistry().get('unimod/by-residue');
+    for (const variant of ['n-term', 'N-term', 'N-TERM', 'n-TERM']) {
+      const rows = unwrap(await cmd!.func!(makeCtx(), { residue: variant, position: 'Protein N-term' }));
+      expect(rows.map(r => r.title)).toEqual(['Acetyl']);
+      // queryResidue must be normalized to the canonical form
+      expect(rows[0].queryResidue).toBe('N-term');
+    }
+  });
 });

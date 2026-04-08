@@ -155,4 +155,21 @@ describe('unimod/list adapter', () => {
     const rows = unwrap(await cmd!.func!(makeCtx(), { residue: 'K', limit: 50 }));
     expect(rows.find(r => r.title === 'Acetyl')?.accession).toBe('UNIMOD:1');
   });
+
+  // ── F3: case-insensitive --residue N-term ────────────────────────────────
+
+  it('F3: --residue is case-insensitive for N-term', async () => {
+    const cmd = getRegistry().get('unimod/list');
+    for (const variant of ['n-term', 'N-term', 'N-TERM']) {
+      const rows = unwrap(await cmd!.func!(makeCtx(), { residue: variant, position: 'Protein N-term' }));
+      expect(rows.map(r => r.title)).toEqual(['Acetyl']);
+    }
+  });
+
+  it('F3: --residue is case-insensitive for single AA letters', async () => {
+    const cmd = getRegistry().get('unimod/list');
+    const rowsLower = unwrap(await cmd!.func!(makeCtx(), { residue: 's,t' }));
+    const rowsUpper = unwrap(await cmd!.func!(makeCtx(), { residue: 'S,T' }));
+    expect(rowsLower.map(r => r.title)).toEqual(rowsUpper.map(r => r.title));
+  });
 });

@@ -1,11 +1,21 @@
-import { describe, expect, it, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+
+// Mock the network layer BEFORE importing the module under test so that
+// refreshUnimod tests don't actually hit unimod.org.
+const { fetchMock } = vi.hoisted(() => ({ fetchMock: vi.fn() }));
+vi.mock('../http-dispatcher.js', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+  return { ...actual, fetchWithIPv4Fallback: fetchMock };
+});
+
 import {
   parseUnimodXml,
   loadUnimod,
+  refreshUnimod,
   unimodPaths,
   _resetUnimodSingleton,
   DEFAULT_STALE_AFTER_DAYS,
@@ -271,5 +281,92 @@ describe('loadUnimod', () => {
     expect(existsSync(paths.meta)).toBe(true);
     expect(existsSync(paths.xml)).toBe(false);
     await expect(loadUnimod()).rejects.toHaveProperty('code', 'MISSING_DATASET');
+  });
+});
+
+// ── refreshUnimod short-circuit semantics (F2) ──────────────────────────────
+
+describe('refreshUnimod short-circuit (F2)', () => {
+  let tempDir: string;
+  const savedEnv = process.env.BIOCLI_DATASETS_DIR;
+
+  beforeEach(() => {
+    tempDir = mkdtempSync(join(tmpdir(), 'biocli-unimod-refresh-'));
+    process.env.BIOCLI_DATASETS_DIR = tempDir;
+    fetchMock.mockReset();
+    _resetUnimodSingleton();
+  });
+
+  afterEach(() => {
+    if (savedEnv === undefined) delete process.env.BIOCLI_DATASETS_DIR;
+    else process.env.BIOCLI_DATASETS_DIR = savedEnv;
+    _resetUnimodSingleton();
+    try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* ignore */ }
+  });
+
+  it('short-circuits when BOTH meta and xml exist (no network call)', async () => {
+    const paths = unimodPaths();
+    mkdirSync(paths.dir, { recursive: true });
+    writeFileSync(paths.xml, readFileSync(FIXTURE_PATH));
+    writeFileSync(paths.meta, JSON.stringify({
+      source: 'test://fixture',
+      fetchedAt: '2026-04-01T00:00:00Z',
+      modCount: 5,
+      staleAfterDays: DEFAULT_STALE_AFTER_DAYS,
+    }));
+
+    const result = await refreshUnimod({ force: false });
+    expect(result.fetchedAt).toBe('2026-04-01T00:00:00Z');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('does NOT short-circuit when meta exists but xml is missing (F2 regression)', async () => {
+    const paths = unimodPaths();
+    mkdirSync(paths.dir, { recursive: true });
+    writeFileSync(paths.meta, JSON.stringify({
+      source: 'test://fixture',
+      fetchedAt: '2026-04-01T00:00:00Z',
+      modCount: 5,
+      staleAfterDays: DEFAULT_STALE_AFTER_DAYS,
+    }));
+    expect(existsSync(paths.xml)).toBe(false);
+
+    // Stub a successful download of the fixture.
+    const xmlBody = readFileSync(FIXTURE_PATH, 'utf-8');
+    // The sanity check requires body length > 100KB and ≥500 mods. Our
+    // fixture is only ~11KB / 5 mods, so we expect refresh to fail at the
+    // sanity check — but the important assertion is that the FETCH WAS
+    // CALLED, proving the short-circuit was bypassed.
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      text: async () => xmlBody,
+    });
+
+    await expect(refreshUnimod({ force: false })).rejects.toThrow(/too small|XML/);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('force: true always re-downloads even when both files exist', async () => {
+    const paths = unimodPaths();
+    mkdirSync(paths.dir, { recursive: true });
+    writeFileSync(paths.xml, readFileSync(FIXTURE_PATH));
+    writeFileSync(paths.meta, JSON.stringify({
+      source: 'test://fixture',
+      fetchedAt: '2026-04-01T00:00:00Z',
+      modCount: 5,
+      staleAfterDays: DEFAULT_STALE_AFTER_DAYS,
+    }));
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      text: async () => readFileSync(FIXTURE_PATH, 'utf-8'),
+    });
+
+    await expect(refreshUnimod({ force: true })).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

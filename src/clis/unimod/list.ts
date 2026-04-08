@@ -23,6 +23,7 @@ cli({
   site: 'unimod',
   name: 'list',
   database: 'unimod',
+  noContext: true,
   description:
     'List Unimod modifications with optional filters. ' +
     'Data: Unimod (https://www.unimod.org), Design Science License.',
@@ -38,7 +39,7 @@ cli({
     const index = await loadUnimod();
 
     const filter: SpecificityFilter = {
-      residues: parseCsvFilter(args.residue, 'upper'),
+      residues: parseCsvFilter(args.residue, 'site'),
       positions: parseCsvFilter(args.position, 'lower'),
       classifications: parseCsvFilter(args.classification, 'lower'),
       includeHidden: args['include-hidden'] === true,

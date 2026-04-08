@@ -18,6 +18,7 @@ import {
   parseCsvFilter,
   specificityMatches,
   emitAttribution,
+  canonicalizeSite,
   type SpecificityFilter,
 } from './_shared.js';
 
@@ -63,6 +64,7 @@ cli({
   site: 'unimod',
   name: 'by-residue',
   database: 'unimod',
+  noContext: true,
   description:
     'List Unimod modifications that can occur on a given amino acid (e.g. S, K, N-term). ' +
     'Data: Unimod (https://www.unimod.org), Design Science License.',
@@ -82,8 +84,9 @@ cli({
         'Pass a single amino acid (e.g. "S"), or "N-term" / "C-term"',
       );
     }
-    // Normalize to uppercase for single-letter residues, keep N-term / C-term intact.
-    const queryResidue = rawResidue.length === 1 ? rawResidue.toUpperCase() : rawResidue;
+    // Canonicalize so users can type any case variant: "n-term" → "N-term",
+    // "s" → "S", "N-TERM" → "N-term".
+    const queryResidue = canonicalizeSite(rawResidue);
 
     const filter: SpecificityFilter = {
       residues: new Set([queryResidue]),

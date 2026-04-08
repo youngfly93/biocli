@@ -65,7 +65,7 @@ describe('coerceAndValidateArgs', () => {
   });
 });
 
-describe('executeCommand — unimod snapshot exemption', () => {
+describe('executeCommand — noContext flag exemption', () => {
   // Back up HOME so the response cache doesn't scribble on the user's real dir.
   const savedHome = process.env.HOME;
   let tempHome: string;
@@ -81,7 +81,11 @@ describe('executeCommand — unimod snapshot exemption', () => {
     try { rmSync(tempHome, { recursive: true, force: true }); } catch { /* ignore */ }
   });
 
-  function makeTestCommand(database: string, capture: { ctx?: HttpContext }): CliCommand {
+  function makeTestCommand(
+    database: string,
+    capture: { ctx?: HttpContext },
+    extra: Partial<CliCommand> = {},
+  ): CliCommand {
     return {
       site: 'test',
       name: 'noop',
@@ -92,37 +96,52 @@ describe('executeCommand — unimod snapshot exemption', () => {
         capture.ctx = ctx;
         return [{ hello: 'world' }];
       },
+      ...extra,
     };
   }
 
-  it('provides a throw-on-use ctx for database=unimod instead of NCBI fallback', async () => {
+  it('noContext:true gives a throw-on-use ctx (no NCBI fallback)', async () => {
     const capture: { ctx?: HttpContext } = {};
-    const cmd = makeTestCommand('unimod', capture);
+    // database id is intentionally arbitrary — what matters is the noContext flag.
+    const cmd = makeTestCommand('snapshot-thing', capture, { noContext: true });
     await executeCommand(cmd, {});
     expect(capture.ctx).toBeDefined();
-    expect(capture.ctx!.databaseId).toBe('unimod');
-    // All fetch methods must throw — proves it is NOT the NCBI context.
+    expect(capture.ctx!.databaseId).toBe('snapshot-thing');
     await expect(capture.ctx!.fetch('https://example.com')).rejects.toThrow();
     await expect(capture.ctx!.fetchJson('https://example.com')).rejects.toThrow();
     await expect(capture.ctx!.fetchXml('https://example.com')).rejects.toThrow();
     await expect(capture.ctx!.fetchText('https://example.com')).rejects.toThrow();
   });
 
-  it('does NOT write to the response cache under ~/.biocli/cache/unimod/', async () => {
+  it('noContext:true skips the response cache', async () => {
     const capture: { ctx?: HttpContext } = {};
-    const cmd = makeTestCommand('unimod', capture);
+    const cmd = makeTestCommand('snapshot-thing', capture, { noContext: true });
     await executeCommand(cmd, {});
-    const cacheDir = join(tempHome, '.biocli', 'cache', 'unimod');
+    const cacheDir = join(tempHome, '.biocli', 'cache', 'snapshot-thing');
     if (existsSync(cacheDir)) {
-      // If it exists it must be empty (i.e. no files were written).
       const contents = readdirSync(cacheDir);
       expect(contents).toEqual([]);
     }
   });
 
-  it('still produces a correct result for database=unimod commands', async () => {
+  it('database:aggregate (legacy) still gets the throw-on-use ctx and skips cache', async () => {
     const capture: { ctx?: HttpContext } = {};
-    const cmd = makeTestCommand('unimod', capture);
+    // Aggregate commands DO NOT need the noContext flag — they qualify
+    // automatically via the database === 'aggregate' check.
+    const cmd = makeTestCommand('aggregate', capture);
+    await executeCommand(cmd, {});
+    expect(capture.ctx).toBeDefined();
+    await expect(capture.ctx!.fetchJson('https://example.com')).rejects.toThrow();
+    const cacheDir = join(tempHome, '.biocli', 'cache', 'aggregate');
+    if (existsSync(cacheDir)) {
+      const contents = readdirSync(cacheDir);
+      expect(contents).toEqual([]);
+    }
+  });
+
+  it('produces a correct result for noContext commands', async () => {
+    const capture: { ctx?: HttpContext } = {};
+    const cmd = makeTestCommand('snapshot-thing', capture, { noContext: true });
     const result = await executeCommand(cmd, {});
     expect(result).toEqual([{ hello: 'world' }]);
   });

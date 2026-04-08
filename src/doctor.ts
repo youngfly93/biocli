@@ -20,6 +20,16 @@ interface CheckResult {
   value: string;
   ok: boolean;
   detail?: string;
+  /**
+   * Informational "this is a warning" flag. Used by the text formatter to
+   * apply yellow to the detail column. JSON output serializes it directly
+   * so agents can react programmatically without parsing ANSI escapes.
+   *
+   * Distinct from `ok: false` — a check can be `ok: true, stale: true`
+   * (e.g. cache exists but is past the staleness threshold), and that does
+   * not count against the overall `allPassed` status.
+   */
+  stale?: boolean;
 }
 
 // ── Health-check endpoints per backend ───────────────────────────────────────
@@ -143,15 +153,32 @@ function checkCommands(): CheckResult {
  * is a yellow detail string, NOT a failure — users must refresh explicitly.
  */
 function checkUnimodDataset(): CheckResult {
-  const { meta } = unimodPaths();
-  if (!existsSync(meta)) {
+  const { meta, xml } = unimodPaths();
+  const metaExists = existsSync(meta);
+  const xmlExists = existsSync(xml);
+
+  // State 1: nothing installed — that's OK (not everyone uses unimod)
+  if (!metaExists && !xmlExists) {
     return {
       name: 'Unimod',
       value: 'not installed',
       ok: true,
-      detail: 'run "biocli unimod fetch" to install (optional)',
+      detail: 'run "biocli unimod install" to install (optional)',
     };
   }
+
+  // State 2: half-installed — broken, must report as failure
+  if (!metaExists || !xmlExists) {
+    const missing = !metaExists ? 'unimod.meta.json' : 'unimod.xml';
+    return {
+      name: 'Unimod',
+      value: 'corrupt install',
+      ok: false,
+      detail: `${missing} is missing — run "biocli unimod refresh"`,
+    };
+  }
+
+  // State 3: both present — parse meta and check age
   try {
     const parsed = JSON.parse(readFileSync(meta, 'utf-8')) as {
       fetchedAt?: string;
@@ -175,8 +202,10 @@ function checkUnimodDataset(): CheckResult {
       name: 'Unimod',
       value: `${modCount} mods`,
       ok: true,
+      stale,
+      // Data layer holds PLAIN text only; color is applied in formatDoctorText.
       detail: stale
-        ? chalk.yellow(`${ageDays}d old — stale (run "biocli unimod refresh")`)
+        ? `${ageDays}d old — stale (run "biocli unimod refresh")`
         : `${ageDays}d old`,
     };
   } catch (err) {
@@ -228,10 +257,16 @@ export function formatDoctorText(checks: CheckResult[], allPassed: boolean): str
 
   for (const check of checks) {
     const status = check.ok ? chalk.green('OK') : chalk.red('FAIL');
-    const detail = check.detail ? chalk.dim(` (${check.detail})`) : '';
+    // Stale info lines get yellow; everything else stays dim.
+    // Color lives in the TEXT formatter only — JSON output is plain.
+    const detailText = check.detail
+      ? check.stale
+        ? chalk.yellow(` (${check.detail})`)
+        : chalk.dim(` (${check.detail})`)
+      : '';
     const name = check.name.padEnd(14);
     const value = check.value;
-    lines.push(`  ${name} ${value.padEnd(44)} ${status}${detail}`);
+    lines.push(`  ${name} ${value.padEnd(44)} ${status}${detailText}`);
   }
 
   const passedCount = checks.filter(c => c.ok).length;
@@ -254,6 +289,7 @@ export function formatDoctorJson(checks: CheckResult[], allPassed: boolean): str
       name: c.name,
       value: c.value,
       ok: c.ok,
+      ...(c.stale ? { stale: true } : {}),
       ...(c.detail ? { detail: c.detail } : {}),
     })),
   }, null, 2);
