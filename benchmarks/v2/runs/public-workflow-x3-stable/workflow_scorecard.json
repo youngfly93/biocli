@@ -1,0 +1,438 @@
+{
+  "schema_version": "workflow-scorecard-v1",
+  "generated_at": "2026-04-08T10:35:43.381868Z",
+  "batch_dir": "/mnt/f/work/yang_ylab/biocli_test/benchmark_v2/runs/public-workflow-x3-stable",
+  "batch_label": "public-workflow-x3-stable",
+  "tool_summaries": [
+    {
+      "tool": "biocli",
+      "workflow_coverage_pct": 88.0,
+      "supported_task_weight": 88,
+      "supported_task_count": 7,
+      "scored_task_count": 6,
+      "weighted_workflow_quality": 100.0,
+      "latency_p50_ms": 134.7,
+      "latency_p90_ms": 9987.31,
+      "task_breakdown": [
+        {
+          "tool": "biocli",
+          "task_id": "workflow-batch-input",
+          "task_weight": 10,
+          "replicate_count": 3,
+          "score_p50": 100.0,
+          "score_values": [
+            100.0,
+            100.0,
+            100.0
+          ],
+          "latency_p50_ms": 134.95,
+          "latency_p90_ms": 145.99,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        },
+        {
+          "tool": "biocli",
+          "task_id": "workflow-command-discovery",
+          "task_weight": 12,
+          "replicate_count": 3,
+          "score_p50": 100.0,
+          "score_values": [
+            100.0,
+            100.0,
+            100.0
+          ],
+          "latency_p50_ms": 132.98,
+          "latency_p90_ms": 147.35,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        },
+        {
+          "tool": "biocli",
+          "task_id": "workflow-dry-run",
+          "task_weight": 12,
+          "replicate_count": 3,
+          "score_p50": 100.0,
+          "score_values": [
+            100.0,
+            100.0,
+            100.0
+          ],
+          "latency_p50_ms": 128.77,
+          "latency_p90_ms": 129.38,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        },
+        {
+          "tool": "biocli",
+          "task_id": "workflow-schema-output",
+          "task_weight": 12,
+          "replicate_count": 3,
+          "score_p50": 100.0,
+          "score_values": [
+            100.0,
+            100.0,
+            100.0
+          ],
+          "latency_p50_ms": 134.45,
+          "latency_p90_ms": 139.04,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        },
+        {
+          "tool": "biocli",
+          "task_id": "workflow-structured-help",
+          "task_weight": 8,
+          "replicate_count": 3,
+          "score_p50": 100.0,
+          "score_values": [
+            100.0,
+            100.0,
+            100.0
+          ],
+          "latency_p50_ms": 136.03,
+          "latency_p90_ms": 138.43,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        },
+        {
+          "tool": "biocli",
+          "task_id": "workflow-working-dir",
+          "task_weight": 20,
+          "replicate_count": 3,
+          "score_p50": 100.0,
+          "score_values": [
+            100.0,
+            100.0,
+            100.0
+          ],
+          "latency_p50_ms": 10386.17,
+          "latency_p90_ms": 13542.62,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "biomcp",
+      "workflow_coverage_pct": 24.0,
+      "supported_task_weight": 24,
+      "supported_task_count": 2,
+      "scored_task_count": 2,
+      "weighted_workflow_quality": 97.083,
+      "latency_p50_ms": 3837.81,
+      "latency_p90_ms": 6196.41,
+      "task_breakdown": [
+        {
+          "tool": "biomcp",
+          "task_id": "workflow-batch-input",
+          "task_weight": 10,
+          "replicate_count": 3,
+          "score_p50": 100.0,
+          "score_values": [
+            100.0,
+            100.0,
+            100.0
+          ],
+          "latency_p50_ms": 6196.41,
+          "latency_p90_ms": 6421.59,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        },
+        {
+          "tool": "biomcp",
+          "task_id": "workflow-partial-failure",
+          "task_weight": 14,
+          "replicate_count": 3,
+          "score_p50": 95.0,
+          "score_values": [
+            95.0,
+            95.0,
+            95.0
+          ],
+          "latency_p50_ms": 1488.04,
+          "latency_p90_ms": 1575.59,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "gget",
+      "workflow_coverage_pct": 24.0,
+      "supported_task_weight": 24,
+      "supported_task_count": 2,
+      "scored_task_count": 1,
+      "weighted_workflow_quality": 95.0,
+      "latency_p50_ms": 32523.09,
+      "latency_p90_ms": 33637.8,
+      "task_breakdown": [
+        {
+          "tool": "gget",
+          "task_id": "workflow-batch-input",
+          "task_weight": 10,
+          "replicate_count": 3,
+          "score_p50": 95.0,
+          "score_values": [
+            95.0,
+            95.0,
+            95.0
+          ],
+          "latency_p50_ms": 32523.09,
+          "latency_p90_ms": 33637.8,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "edirect",
+      "workflow_coverage_pct": 10.0,
+      "supported_task_weight": 10,
+      "supported_task_count": 1,
+      "scored_task_count": 1,
+      "weighted_workflow_quality": 93.75,
+      "latency_p50_ms": 2323.39,
+      "latency_p90_ms": 2339.0,
+      "task_breakdown": [
+        {
+          "tool": "edirect",
+          "task_id": "workflow-batch-input",
+          "task_weight": 10,
+          "replicate_count": 3,
+          "score_p50": 93.75,
+          "score_values": [
+            93.75,
+            93.75,
+            93.75
+          ],
+          "latency_p50_ms": 2323.39,
+          "latency_p90_ms": 2339.0,
+          "score_statuses": [
+            "scored",
+            "scored",
+            "scored"
+          ]
+        }
+      ]
+    }
+  ],
+  "task_level": [
+    {
+      "tool": "biocli",
+      "task_id": "workflow-batch-input",
+      "task_weight": 10,
+      "replicate_count": 3,
+      "score_p50": 100.0,
+      "score_values": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "latency_p50_ms": 134.95,
+      "latency_p90_ms": 145.99,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-command-discovery",
+      "task_weight": 12,
+      "replicate_count": 3,
+      "score_p50": 100.0,
+      "score_values": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "latency_p50_ms": 132.98,
+      "latency_p90_ms": 147.35,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-dry-run",
+      "task_weight": 12,
+      "replicate_count": 3,
+      "score_p50": 100.0,
+      "score_values": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "latency_p50_ms": 128.77,
+      "latency_p90_ms": 129.38,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-schema-output",
+      "task_weight": 12,
+      "replicate_count": 3,
+      "score_p50": 100.0,
+      "score_values": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "latency_p50_ms": 134.45,
+      "latency_p90_ms": 139.04,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-structured-help",
+      "task_weight": 8,
+      "replicate_count": 3,
+      "score_p50": 100.0,
+      "score_values": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "latency_p50_ms": 136.03,
+      "latency_p90_ms": 138.43,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-working-dir",
+      "task_weight": 20,
+      "replicate_count": 3,
+      "score_p50": 100.0,
+      "score_values": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "latency_p50_ms": 10386.17,
+      "latency_p90_ms": 13542.62,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-batch-input",
+      "task_weight": 10,
+      "replicate_count": 3,
+      "score_p50": 100.0,
+      "score_values": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "latency_p50_ms": 6196.41,
+      "latency_p90_ms": 6421.59,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-partial-failure",
+      "task_weight": 14,
+      "replicate_count": 3,
+      "score_p50": 95.0,
+      "score_values": [
+        95.0,
+        95.0,
+        95.0
+      ],
+      "latency_p50_ms": 1488.04,
+      "latency_p90_ms": 1575.59,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-batch-input",
+      "task_weight": 10,
+      "replicate_count": 3,
+      "score_p50": 93.75,
+      "score_values": [
+        93.75,
+        93.75,
+        93.75
+      ],
+      "latency_p50_ms": 2323.39,
+      "latency_p90_ms": 2339.0,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-batch-input",
+      "task_weight": 10,
+      "replicate_count": 3,
+      "score_p50": 95.0,
+      "score_values": [
+        95.0,
+        95.0,
+        95.0
+      ],
+      "latency_p50_ms": 32523.09,
+      "latency_p90_ms": 33637.8,
+      "score_statuses": [
+        "scored",
+        "scored",
+        "scored"
+      ]
+    }
+  ]
+}

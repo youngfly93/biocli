@@ -9,5 +9,16 @@ dist/
 .claude
 CLAUDE.local.md
 
-# Fair benchmark v2 (work in progress, ships in v0.5.0)
-benchmarks/v2/
+# Fair benchmark v2: public-lite artifacts ARE checked in (rubric, capability
+# matrix, headline plots, scorecards, manifests). The heavy per-task evidence
+# (r01..r03/<tool>/<task>/{result,normalized,score,stdout,stderr}) is excluded
+# from git but published as a downloadable bundle on each GitHub Release.
+benchmarks/v2/runs/*/r0*/
+benchmarks/v2/_runtime/
+benchmarks/v2/tmp*/
+benchmarks/v2/smoke*/
+benchmarks/v2/pilot*/
+# WIP scratch from earlier v2 iterations — superseded by the public-lite
+# manifests/scorecards under benchmarks/v2/runs/. Not part of v0.4.0.
+benchmarks/v2/results/
+benchmarks/v2/scripts/

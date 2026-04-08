@@ -1,0 +1,356 @@
+version: "2.0-draft"
+date: "2026-04-08"
+notes:
+  - "Draft benchmark specification focused on fairness and publishable external comparisons."
+  - "Coverage and quality are reported separately."
+  - "A tool is scored for quality only on tasks marked native_single or native_multi."
+  - "Core tasks intentionally include some cross-scope modules that biocli does not currently target well."
+design_checks:
+  - "At least one core task should be a plausible strength area for each included tool family."
+  - "If a single tool is expected to dominate every core task on paper, revise the core task mix before publishing."
+
+tracks:
+  - id: core
+    name: "Core Retrieval"
+    purpose: "Compare overlapping end-user value across tools with different product scopes."
+  - id: workflow
+    name: "Workflow and Agent Operations"
+    purpose: "Compare automation readiness, safety, and reproducibility."
+
+capability_states:
+  - native_single
+  - native_multi
+  - adapter_pipeline
+  - unsupported
+  - unknown
+
+tasks:
+  - id: core-gene-basic
+    track: core
+    module: gene_lookup
+    weight: 10
+    title: "Canonical gene lookup"
+    objective: "Fetch a canonical human TP53 gene record."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      gene: "TP53"
+      organism: "Homo sapiens"
+    success_criteria:
+      - "Returns canonical gene symbol"
+      - "Returns at least one stable gene identifier"
+      - "Returns organism or taxon context"
+      - "Returns a functional summary or description"
+      - "Output can be normalized into structured JSON"
+
+  - id: core-gene-sequence
+    track: core
+    module: sequence_fetch
+    weight: 8
+    title: "Protein sequence fetch"
+    objective: "Fetch the canonical TP53 protein sequence."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      gene: "TP53"
+      preferred_identifier: "ENSG00000141510 or equivalent canonical mapping"
+      sequence_type: "protein"
+    success_criteria:
+      - "Returns FASTA or an equivalent structured sequence payload"
+      - "Sequence maps to TP53 or p53"
+      - "Sequence can be saved without manual cleanup"
+
+  - id: core-sequence-similarity
+    track: core
+    module: sequence_similarity_search
+    weight: 8
+    title: "BLAST-style sequence similarity search"
+    objective: "Given a benchmark protein sequence, find similar sequences in a reference database."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      sequence_source: "canonical TP53 protein sequence or equivalent benchmark fixture"
+      target_database: "default reference protein database for the tool"
+    success_criteria:
+      - "Accepts or resolves a protein sequence as input"
+      - "Returns multiple ranked similarity hits"
+      - "Returns match identifiers and similarity statistics"
+      - "Output can be normalized into structured JSON"
+
+  - id: core-structure-fetch
+    track: core
+    module: structure_fetch
+    weight: 6
+    title: "Predicted structure fetch"
+    objective: "Fetch a predicted structure for TP53 from AlphaFold DB or an equivalent structure source."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      gene: "TP53"
+      source_preference: "AlphaFold DB or equivalent canonical predicted-structure source"
+    success_criteria:
+      - "Returns a structure record or download link"
+      - "Returns a stable structure identifier or source accession"
+      - "Returns metadata sufficient to verify the target protein"
+      - "Makes source limitations explicit when the preferred source is unavailable"
+
+  - id: core-literature-search
+    track: core
+    module: literature_search
+    weight: 9
+    title: "Literature search"
+    objective: "Find recent papers for TP53 apoptosis."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      query: "TP53 apoptosis"
+      limit: 5
+    success_criteria:
+      - "Returns at least 3 relevant articles"
+      - "Returns titles"
+      - "Returns stable article identifiers such as PMID or DOI"
+      - "Output can be normalized into structured JSON"
+
+  - id: core-literature-fetch
+    track: core
+    module: literature_fetch
+    weight: 7
+    title: "Article metadata fetch"
+    objective: "Fetch metadata for PMID 36766853."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      pmid: "36766853"
+    success_criteria:
+      - "Returns title"
+      - "Returns authors or author list"
+      - "Returns journal and year"
+      - "Returns abstract or explicit abstract-missing status"
+      - "Returns DOI when available"
+
+  - id: core-variant-basic
+    track: core
+    module: variant_lookup
+    weight: 9
+    title: "Basic variant lookup"
+    objective: "Look up rs429358 and return canonical variant metadata."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      variant: "rs429358"
+    success_criteria:
+      - "Returns rsID"
+      - "Returns linked gene when available"
+      - "Returns genomic coordinate or assembly-aware position"
+      - "Returns allele information or equivalent canonical representation"
+      - "Output can be normalized into structured JSON"
+
+  - id: core-variant-clinical
+    track: core
+    module: variant_interpretation
+    weight: 7
+    title: "Variant clinical context"
+    objective: "Interpret rs334 with disease or functional context."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      variant: "rs334"
+    success_criteria:
+      - "Returns linked gene"
+      - "Returns disease or clinical significance context when available"
+      - "Returns molecular consequence or functional impact when available"
+      - "Makes partial results explicit if some evidence sources are missing"
+
+  - id: core-enrichment
+    track: core
+    module: enrichment
+    weight: 7
+    title: "Gene set enrichment"
+    objective: "Run enrichment for TP53, BRCA1, EGFR, MYC, CDK2."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      genes:
+        - TP53
+        - BRCA1
+        - EGFR
+        - MYC
+        - CDK2
+    success_criteria:
+      - "Accepts a multi-gene input"
+      - "Returns pathways or GO terms"
+      - "Returns p-values, q-values, or ranked scores"
+      - "Output can be normalized into structured JSON"
+
+  - id: core-dataset-search
+    track: core
+    module: dataset_discovery
+    weight: 9
+    title: "Dataset discovery"
+    objective: "Find datasets relevant to TP53 breast cancer RNA-seq."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      query: "TP53 breast cancer RNA-seq"
+      gene: "TP53"
+    success_criteria:
+      - "Returns at least one candidate dataset accession"
+      - "Returns dataset title or summary"
+      - "Returns source database context such as GEO or SRA when available"
+      - "Returns metadata useful for triage such as date, assay, or sample count"
+
+  - id: core-dataset-preview
+    track: core
+    module: dataset_file_preview
+    weight: 7
+    title: "Dataset file preview"
+    objective: "Preview downloadable files for a benchmark accession without downloading the files."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      accession: "GSE315149"
+      mode: "preview_only"
+    success_criteria:
+      - "Lists candidate files or links"
+      - "Does not download file payloads"
+      - "Returns file size or equivalent transfer estimate when available"
+      - "Makes non-availability explicit when the upstream source provides no file listing"
+
+  - id: core-drug-trial
+    track: core
+    module: clinical_trial_lookup
+    weight: 7
+    title: "Drug or trial lookup"
+    objective: "Find active clinical trials related to imatinib."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      drug: "imatinib"
+      status_preference: "active or recruiting"
+    success_criteria:
+      - "Returns at least one trial or trial-linked record"
+      - "Returns stable trial identifiers when available"
+      - "Returns intervention or indication context"
+      - "Output can be normalized into structured JSON"
+
+  - id: core-disease-gene
+    track: core
+    module: disease_gene_association
+    weight: 6
+    title: "Disease-gene association lookup"
+    objective: "Find genes associated with Gaucher disease."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      disease: "Gaucher disease"
+    success_criteria:
+      - "Returns at least one associated gene"
+      - "Returns disease context or identifier"
+      - "Returns association evidence, score, or source attribution when available"
+      - "Output can be normalized into structured JSON"
+
+  - id: workflow-command-discovery
+    track: workflow
+    module: discoverability
+    weight: 12
+    title: "Machine-readable command discovery"
+    objective: "Expose the command surface in a machine-consumable way."
+    attempt_policy: "native_single preferred; native_multi allowed up to 2 native commands"
+    input: {}
+    success_criteria:
+      - "Returns a structured list of commands or capabilities"
+      - "Output is machine-readable without scraping prose tables"
+      - "Output is stable enough for automation"
+
+  - id: workflow-structured-help
+    track: workflow
+    module: discoverability
+    weight: 8
+    title: "Structured command help"
+    objective: "Expose per-command options and usage in a machine-usable format."
+    attempt_policy: "native_single only"
+    input:
+      command: "representative high-value command for the tool"
+    success_criteria:
+      - "Returns flags or parameters in structured form"
+      - "Provides enough data for programmatic argument assembly"
+      - "Avoids prose-only help when claiming machine-readable support"
+
+  - id: workflow-schema-output
+    track: workflow
+    module: validation
+    weight: 12
+    title: "Schema or contract output"
+    objective: "Expose a schema, contract, or equivalent typed output definition."
+    attempt_policy: "native_single preferred; native_multi allowed up to 2 native commands"
+    input:
+      command: "representative result-producing command"
+    success_criteria:
+      - "Returns JSON Schema or an equivalent typed contract"
+      - "Schema is specific enough to validate result shape"
+      - "Schema can be linked to an actual command output"
+
+  - id: workflow-batch-input
+    track: workflow
+    module: automation_fit
+    weight: 10
+    title: "Batch input support"
+    objective: "Accept multiple IDs or records without repeated manual command entry."
+    attempt_policy: "native_single preferred; native_multi allowed up to 2 native commands"
+    input:
+      pmids:
+        - "36766853"
+        - "35022513"
+        - "34234131"
+    success_criteria:
+      - "Accepts stdin, file input, or multi-value arguments"
+      - "Processes all records in one run"
+      - "Returns per-record results in structured form"
+
+  - id: workflow-dry-run
+    track: workflow
+    module: safety
+    weight: 12
+    title: "Dry-run safety"
+    objective: "Preview a download or side-effecting action without executing it."
+    attempt_policy: "native_single only"
+    input:
+      operation: "representative download or file-producing command"
+    success_criteria:
+      - "Shows planned side effects before execution"
+      - "Does not write payload files"
+      - "Preview contains enough detail for human or agent review"
+
+  - id: workflow-plan-mode
+    track: workflow
+    module: safety
+    weight: 12
+    title: "Plan mode"
+    objective: "Preview a multi-step workflow without executing it."
+    attempt_policy: "native_single only"
+    input:
+      dataset: "GSE315149"
+      gene: "TP53"
+    success_criteria:
+      - "Lists planned steps"
+      - "Lists expected downloads or network actions"
+      - "Lists expected output files or directories"
+      - "Preview is structured enough to diff or validate"
+
+  - id: workflow-partial-failure
+    track: workflow
+    module: resilience
+    weight: 14
+    title: "Partial-failure reporting"
+    objective: "Report partial backend failures explicitly instead of silently dropping fields."
+    attempt_policy: "native_single preferred; native_multi allowed up to 2 native commands"
+    input:
+      scenario: "induced or naturally occurring partial backend failure"
+    success_criteria:
+      - "Returns partial results when possible"
+      - "Returns explicit warnings or failure detail"
+      - "Does not silently emit incomplete data as complete"
+
+  - id: workflow-working-dir
+    track: workflow
+    module: reproducibility
+    weight: 20
+    title: "Working directory preparation"
+    objective: "Create a research-ready output directory with manifest or provenance."
+    attempt_policy: "native_single preferred; native_multi allowed up to 3 native commands"
+    input:
+      dataset: "GSE315149"
+      gene: "TP53"
+      output_dir: "./benchmark-output"
+    success_criteria:
+      - "Creates a deterministic directory structure"
+      - "Creates a manifest or provenance file"
+      - "Writes outputs that can be inspected without custom cleanup"
+      - "Makes omissions and partial fetches explicit"

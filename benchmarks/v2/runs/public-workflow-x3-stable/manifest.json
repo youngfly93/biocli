@@ -1,0 +1,623 @@
+{
+  "schema_version": "workflow-batch-v0",
+  "batch_label": "public-workflow-x3-stable",
+  "started_at": "2026-04-08T10:32:56.535802Z",
+  "network_profile": "direct",
+  "repetitions": 3,
+  "dry_run": false,
+  "include_missing_preflight": false,
+  "scheduled_cells": [
+    {
+      "tool": "biocli",
+      "task_id": "workflow-command-discovery",
+      "capability_state": "native_single",
+      "matrix_review_status": "local-run-verified",
+      "notes": "Structured command inventory via `biocli list --json`.",
+      "missing_tools": []
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-structured-help",
+      "capability_state": "native_single",
+      "matrix_review_status": "local-run-verified",
+      "notes": "Machine-readable argument metadata extracted from the inventory entry for `pubmed/fetch`.",
+      "missing_tools": []
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-schema-output",
+      "capability_state": "native_single",
+      "matrix_review_status": "local-run-verified",
+      "notes": "JSON Schema for the result envelope.",
+      "missing_tools": []
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-batch-input",
+      "capability_state": "native_single",
+      "matrix_review_status": "local-help-verified",
+      "notes": "PubMed multi-record fetch through native stdin batch input.",
+      "missing_tools": []
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-dry-run",
+      "capability_state": "native_single",
+      "matrix_review_status": "local-run-verified",
+      "notes": "Preview-only GEO file listing without downloading payload files.",
+      "missing_tools": []
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-working-dir",
+      "capability_state": "native_single",
+      "matrix_review_status": "local-run-verified",
+      "notes": "Research-ready directory preparation with manifest and annotation files, using `--skip-download` to keep the pilot lightweight.",
+      "missing_tools": []
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-batch-input",
+      "capability_state": "native_single",
+      "matrix_review_status": "official-doc-evidence",
+      "notes": "Native batch article fetch over three fixed PMIDs.",
+      "missing_tools": []
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-partial-failure",
+      "capability_state": "native_single",
+      "matrix_review_status": "escalated-run-verified",
+      "notes": "Known partial-failure path where Semantic Scholar may warn while Europe PMC / PubTator still return records.",
+      "missing_tools": []
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-batch-input",
+      "capability_state": "native_single",
+      "matrix_review_status": "official-doc-evidence",
+      "notes": "Native multi-ID metadata query using two fixed Ensembl gene IDs.",
+      "missing_tools": []
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-batch-input",
+      "capability_state": "native_single",
+      "matrix_review_status": "official-doc-evidence",
+      "notes": "Batch PubMed XML fetch via comma-separated PMID list.",
+      "missing_tools": []
+    }
+  ],
+  "skipped_cells": [
+    {
+      "tool": "biocli",
+      "task_id": "workflow-plan-mode",
+      "capability_state": "unsupported",
+      "matrix_review_status": "local-help-verified",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "biocli",
+      "task_id": "workflow-partial-failure",
+      "capability_state": "native_single",
+      "matrix_review_status": "local-run-verified",
+      "reason": "runner_missing"
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-command-discovery",
+      "capability_state": "unsupported",
+      "matrix_review_status": "local-run-verified",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-structured-help",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-schema-output",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-dry-run",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-plan-mode",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "biomcp",
+      "task_id": "workflow-working-dir",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-command-discovery",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-structured-help",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-schema-output",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-dry-run",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-plan-mode",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-partial-failure",
+      "capability_state": "native_single",
+      "matrix_review_status": "source-code-verified",
+      "reason": "runner_missing"
+    },
+    {
+      "tool": "gget",
+      "task_id": "workflow-working-dir",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-command-discovery",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-structured-help",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-schema-output",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-dry-run",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-plan-mode",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-partial-failure",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    },
+    {
+      "tool": "edirect",
+      "task_id": "workflow-working-dir",
+      "capability_state": "unsupported",
+      "matrix_review_status": "official-doc-evidence",
+      "reason": "non_native_capability_state"
+    }
+  ],
+  "runs": [
+    {
+      "replicate": 1,
+      "tool": "biocli",
+      "task_id": "workflow-command-discovery",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/biocli/workflow-command-discovery",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r01/biocli/workflow-command-discovery/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "biocli",
+      "task_id": "workflow-structured-help",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/biocli/workflow-structured-help",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r01/biocli/workflow-structured-help/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "biocli",
+      "task_id": "workflow-schema-output",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/biocli/workflow-schema-output",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r01/biocli/workflow-schema-output/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "biocli",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/biocli/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r01/biocli/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "biocli",
+      "task_id": "workflow-dry-run",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/biocli/workflow-dry-run",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r01/biocli/workflow-dry-run/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "biocli",
+      "task_id": "workflow-working-dir",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/biocli/workflow-working-dir",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r01/biocli/workflow-working-dir/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "biomcp",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/biomcp/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r01/biomcp/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "biomcp",
+      "task_id": "workflow-partial-failure",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/biomcp/workflow-partial-failure",
+      "score_status": "scored",
+      "total_score": 95.0,
+      "score_path": "r01/biomcp/workflow-partial-failure/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "gget",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/gget/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 95.0,
+      "score_path": "r01/gget/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 1,
+      "tool": "edirect",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r01/edirect/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 93.75,
+      "score_path": "r01/edirect/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "biocli",
+      "task_id": "workflow-command-discovery",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/biocli/workflow-command-discovery",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r02/biocli/workflow-command-discovery/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "biocli",
+      "task_id": "workflow-structured-help",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/biocli/workflow-structured-help",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r02/biocli/workflow-structured-help/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "biocli",
+      "task_id": "workflow-schema-output",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/biocli/workflow-schema-output",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r02/biocli/workflow-schema-output/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "biocli",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/biocli/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r02/biocli/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "biocli",
+      "task_id": "workflow-dry-run",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/biocli/workflow-dry-run",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r02/biocli/workflow-dry-run/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "biocli",
+      "task_id": "workflow-working-dir",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/biocli/workflow-working-dir",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r02/biocli/workflow-working-dir/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "biomcp",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/biomcp/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r02/biomcp/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "biomcp",
+      "task_id": "workflow-partial-failure",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/biomcp/workflow-partial-failure",
+      "score_status": "scored",
+      "total_score": 95.0,
+      "score_path": "r02/biomcp/workflow-partial-failure/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "gget",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/gget/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 95.0,
+      "score_path": "r02/gget/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 2,
+      "tool": "edirect",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r02/edirect/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 93.75,
+      "score_path": "r02/edirect/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "biocli",
+      "task_id": "workflow-command-discovery",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/biocli/workflow-command-discovery",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r03/biocli/workflow-command-discovery/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "biocli",
+      "task_id": "workflow-structured-help",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/biocli/workflow-structured-help",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r03/biocli/workflow-structured-help/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "biocli",
+      "task_id": "workflow-schema-output",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/biocli/workflow-schema-output",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r03/biocli/workflow-schema-output/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "biocli",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/biocli/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r03/biocli/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "biocli",
+      "task_id": "workflow-dry-run",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/biocli/workflow-dry-run",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r03/biocli/workflow-dry-run/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "biocli",
+      "task_id": "workflow-working-dir",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/biocli/workflow-working-dir",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r03/biocli/workflow-working-dir/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "biomcp",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/biomcp/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 100.0,
+      "score_path": "r03/biomcp/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "biomcp",
+      "task_id": "workflow-partial-failure",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/biomcp/workflow-partial-failure",
+      "score_status": "scored",
+      "total_score": 95.0,
+      "score_path": "r03/biomcp/workflow-partial-failure/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "gget",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/gget/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 95.0,
+      "score_path": "r03/gget/workflow-batch-input/score.json"
+    },
+    {
+      "replicate": 3,
+      "tool": "edirect",
+      "task_id": "workflow-batch-input",
+      "exit_code": 0,
+      "runner_status": "completed",
+      "normalization_status": "normalized",
+      "run_dir": "r03/edirect/workflow-batch-input",
+      "score_status": "scored",
+      "total_score": 93.75,
+      "score_path": "r03/edirect/workflow-batch-input/score.json"
+    }
+  ],
+  "finished_at": "2026-04-08T10:35:42.854765Z",
+  "summary": {
+    "scheduled_cells": 10,
+    "skipped_cells": 22,
+    "total_runs": 30,
+    "completed_runs": 30,
+    "failed_runs": 0,
+    "preflight_failed_runs": 0,
+    "normalized_runs": 30,
+    "scored_runs": 30,
+    "scorecard_task_rows": 10
+  },
+  "workflow_scorecard_path": "workflow_scorecard.json",
+  "scorecard_generated_at": "2026-04-08T10:35:43.381868Z"
+}

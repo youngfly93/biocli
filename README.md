@@ -48,36 +48,63 @@ Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON ou
 
 > **gget** excels at sequence analysis (BLAST, AlphaFold, MUSCLE). **BioMCP** covers more biomedical entities (drugs, trials, diseases). **EDirect** has the deepest NCBI Entrez integration. **biocli** is the only one that combines query + download + data preparation into agent-orchestrated workflows.
 
-### Benchmark: Agent-First Biological Workflow Tasks (2026-04-08)
+### Benchmark v2 (fair, executed 2026-04-08)
 
-12 tasks across gene intelligence, variant interpretation, literature search, and data preparation. Task scores are automated from raw output; cross-cutting scores are manual audit with published justifications. [Full methodology →](benchmarks/README.md)
+biocli's earlier benchmark used a single weighted total that scored unsupported tasks as zero — which structurally penalized tools with narrower scope. **v2 separates coverage from quality, never scores an unsupported task as zero, and runs every cell three cold times against four tools** (biocli, BioMCP, gget, plus EDirect as the canonical NCBI baseline).
+
+[Full methodology →](benchmarks/v2/rubric.md) · [Capability matrix (frozen) →](benchmarks/v2/capability_matrix.frozen.csv) · [Public report →](benchmarks/v2/runs/report-public-stable/public_report.md)
+
+#### Core retrieval track
 
 <p align="center">
-  <img src="benchmarks/results/2026-04-08/plots/total_scores.png" width="420" alt="Overall benchmark scores">
+  <img src="benchmarks/v2/runs/report-public-stable/core_overview.png" width="540" alt="Core track: coverage vs quality">
 </p>
 
-| Tool | Version | Task Success | Agent Readiness | Workflow Depth | Safety | Reproducibility | **Total** |
-|------|---------|:---:|:---:|:---:|:---:|:---:|:---:|
-| **biocli** | 0.3.9 | 48/49 | 10/10 | 10/10 | 9/10 | 10/10 | **97/100** |
-| BioMCP | 0.8.19 | 20/49 | 6/10 | 4/10 | 3/10 | 2/10 | 44/100 |
-| gget | 0.30.3 | 8/49 | 3/10 | 2/10 | 2/10 | 1/10 | 24/100 |
+| Tool | Version | Coverage % | Quality (supported only) | Latency p50 |
+|------|---------|:---:|:---:|:---:|
+| **biocli** | 0.3.9 | **73** | 96.7 | **128 ms** |
+| EDirect | 25.3 | 65 | **97.4** | 5 291 ms |
+| BioMCP | 0.8.19 | 68 | 84.5 | 2 516 ms |
+| gget | 0.30.3 | 39 | 91.4 | 9 563 ms |
 
-> *biocli 0.4.0 contains only repository metadata and the `ncbicli` stderr deprecation notice; the scored capabilities are identical to 0.3.9.*
+#### Workflow track
+
+<p align="center">
+  <img src="benchmarks/v2/runs/report-public-stable/workflow_overview.png" width="540" alt="Workflow track: coverage vs quality">
+</p>
+
+| Tool | Version | Coverage % | Quality (supported only) | Latency p50 |
+|------|---------|:---:|:---:|:---:|
+| **biocli** | 0.3.9 | **88** | **100.0** | **134 ms** |
+| BioMCP | 0.8.19 | 24 | 97.1 | 3 837 ms |
+| gget | 0.30.3 | 24 | 95.0 | 32 523 ms |
+| EDirect | 25.3 | 10 | 93.8 | 2 323 ms |
+
+> No combined "winner" total is reported. Core and workflow stay separate by design — they measure different things. EDirect is the strongest core baseline on the tasks it supports; biocli leads workflow because automation, previewability, and reproducibility are explicit design goals. **Quality numbers reflect supported tasks only**, so a tool with a smaller surface can still score high inside its scope.
 
 <details>
-<summary>Detailed breakdown by dimension and category</summary>
+<summary>Per-task breakdown (heatmap)</summary>
 
 <p align="center">
-  <img src="benchmarks/results/2026-04-08/plots/dimensions.png" width="560" alt="Cross-cutting quality dimensions">
+  <img src="benchmarks/v2/runs/report-public-stable/task_breakdown.png" width="700" alt="Per-task scores across all 4 tools, with N/A for unsupported tasks">
 </p>
 
-<p align="center">
-  <img src="benchmarks/results/2026-04-08/plots/task_categories.png" width="500" alt="Task success by category">
-</p>
+`N/A` cells are unsupported by that tool — they are deliberately excluded from quality scoring rather than counted as zero. The cells biocli does not cover (`disease-gene`, `drug-trial`, `structure-fetch`, `sequence-similarity`) are out of biocli's current scope and intentionally left to specialists like BioMCP and gget.
 
 </details>
 
-> All three tools were installed (`npm install -g @yangfei_93sky/biocli`, `pip install gget==0.30.3`, `uv tool install biomcp-cli==0.8.19`) and executed on the same machine with the same inputs. Raw stdout/stderr, scoring scripts, and runner scripts are in [`benchmarks/`](benchmarks/). BioMCP excels at biomedical entity breadth (drugs, trials, diseases) not covered by this task set; gget excels at sequence analysis (BLAST, AlphaFold) not covered here.
+#### How to read this
+
+- **Coverage and quality are reported separately.** Don't multiply them — the meaning is "how many of these tasks does the tool ship" vs "how well does the tool perform on the tasks it does ship".
+- **Unsupported tasks are not zeros.** They live in the coverage column. A tool with deliberately narrow scope (e.g. gget for sequence analysis) scoring high quality on its supported subset is the correct outcome.
+- **3 cold runs per cell** (n=3 with median reporting). p50 latency is descriptive, not a quality dimension.
+- **Per-task evidence** lives at `benchmarks/v2/runs/report-public-stable/public_summary.json` and the `score.json` files inside the full audit bundle (attached as a release asset on each GitHub Release — too heavy for git).
+- **Failures are visible.** BioMCP's 3/3 failure on `core-enrichment` (g:Profiler unavailable) is recorded in the manifest, not silently dropped.
+- **EDirect is the strongest core baseline.** On the tasks it supports, EDirect's 97.4 quality edges biocli's 96.7. biocli's advantage shows up in coverage (73 vs 65) and especially in the workflow track (88% coverage at 100 quality).
+
+The historical v1 benchmark (single-total methodology, biocli 97/100) is still available under [`benchmarks/results/2026-04-08/`](benchmarks/results/2026-04-08/) for reference — but v2 is the methodology we publish from this release forward.
+
+> All four tools were installed in their pinned versions and executed against the same task spec on the same machine. Reproducibility artifacts (rubric, capability matrix, scorecards, manifests, plots, public summary) are in [`benchmarks/v2/`](benchmarks/v2/). Per-task stdout/stderr/normalized/score files for the full 105-cell run are attached as a downloadable bundle on each GitHub Release.
 
 ## Quick start
 

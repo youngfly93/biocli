@@ -1,0 +1,861 @@
+{
+  "schema_version": "benchmark-v2-public-summary-v0",
+  "core": {
+    "batch_label": "public-core-x3-stable",
+    "tool_summaries": [
+      {
+        "tool": "biocli",
+        "core_coverage_pct": 73.0,
+        "supported_task_weight": 73,
+        "supported_task_count": 9,
+        "scored_task_count": 9,
+        "weighted_core_quality": 96.747,
+        "latency_p50_ms": 128.13,
+        "latency_p90_ms": 2945.71,
+        "task_breakdown": [
+          {
+            "tool": "biocli",
+            "task_id": "core-dataset-preview",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 125.5,
+            "latency_p90_ms": 129.26,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "core-dataset-search",
+            "task_weight": 9,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 125.77,
+            "latency_p90_ms": 127.4,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "core-enrichment",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 87.5,
+            "score_values": [
+              87.5,
+              87.5,
+              87.5
+            ],
+            "latency_p50_ms": 2585.92,
+            "latency_p90_ms": 2945.71,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "core-gene-basic",
+            "task_weight": 10,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 126.21,
+            "latency_p90_ms": 128.13,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "core-gene-sequence",
+            "task_weight": 8,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 125.83,
+            "latency_p90_ms": 128.24,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "core-literature-fetch",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 128.15,
+            "latency_p90_ms": 138.01,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "core-literature-search",
+            "task_weight": 9,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 125.46,
+            "latency_p90_ms": 128.93,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "core-variant-basic",
+            "task_weight": 9,
+            "replicate_count": 3,
+            "score_p50": 83.333,
+            "score_values": [
+              83.333,
+              83.333,
+              83.333
+            ],
+            "latency_p50_ms": 129.77,
+            "latency_p90_ms": 131.48,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "core-variant-clinical",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 8639.66,
+            "latency_p90_ms": 8640.57,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          }
+        ]
+      },
+      {
+        "tool": "biomcp",
+        "core_coverage_pct": 68.0,
+        "supported_task_weight": 68,
+        "supported_task_count": 9,
+        "scored_task_count": 9,
+        "weighted_core_quality": 84.473,
+        "latency_p50_ms": 2516.05,
+        "latency_p90_ms": 8287.67,
+        "task_breakdown": [
+          {
+            "tool": "biomcp",
+            "task_id": "core-disease-gene",
+            "task_weight": 6,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 7804.07,
+            "latency_p90_ms": 8287.67,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "core-drug-trial",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 87.5,
+            "score_values": [
+              87.5,
+              87.5,
+              87.5
+            ],
+            "latency_p50_ms": 1217.06,
+            "latency_p90_ms": 1458.66,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "core-enrichment",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 28.333,
+            "score_values": [
+              28.333,
+              28.333,
+              28.333
+            ],
+            "latency_p50_ms": 10041.66,
+            "latency_p90_ms": 10043.38,
+            "score_statuses": [
+              "scored_from_failure_artifacts",
+              "scored_from_failure_artifacts",
+              "scored_from_failure_artifacts"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "core-gene-basic",
+            "task_weight": 10,
+            "replicate_count": 3,
+            "score_p50": 80.0,
+            "score_values": [
+              80.0,
+              80.0,
+              80.0
+            ],
+            "latency_p50_ms": 3770.56,
+            "latency_p90_ms": 3838.08,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "core-literature-fetch",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 2514.65,
+            "latency_p90_ms": 2627.53,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "core-literature-search",
+            "task_weight": 9,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 2516.05,
+            "latency_p90_ms": 2758.92,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "core-structure-fetch",
+            "task_weight": 6,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 2715.44,
+            "latency_p90_ms": 2803.02,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "core-variant-basic",
+            "task_weight": 9,
+            "replicate_count": 3,
+            "score_p50": 83.333,
+            "score_values": [
+              83.333,
+              83.333,
+              83.333
+            ],
+            "latency_p50_ms": 1010.89,
+            "latency_p90_ms": 1020.81,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "core-variant-clinical",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 83.333,
+            "score_values": [
+              83.333,
+              83.333,
+              83.333
+            ],
+            "latency_p50_ms": 887.98,
+            "latency_p90_ms": 999.99,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          }
+        ]
+      },
+      {
+        "tool": "gget",
+        "core_coverage_pct": 39.0,
+        "supported_task_weight": 39,
+        "supported_task_count": 5,
+        "scored_task_count": 3,
+        "weighted_core_quality": 91.4,
+        "latency_p50_ms": 9563.16,
+        "latency_p90_ms": 20611.81,
+        "task_breakdown": [
+          {
+            "tool": "gget",
+            "task_id": "core-enrichment",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 75.0,
+            "score_values": [
+              75.0,
+              75.0,
+              75.0
+            ],
+            "latency_p50_ms": 7279.65,
+            "latency_p90_ms": 7346.76,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "gget",
+            "task_id": "core-gene-basic",
+            "task_weight": 10,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 20611.81,
+            "latency_p90_ms": 21058.25,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "gget",
+            "task_id": "core-gene-sequence",
+            "task_weight": 8,
+            "replicate_count": 3,
+            "score_p50": 95.0,
+            "score_values": [
+              95.0,
+              95.0,
+              95.0
+            ],
+            "latency_p50_ms": 9563.16,
+            "latency_p90_ms": 9653.51,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          }
+        ]
+      },
+      {
+        "tool": "edirect",
+        "core_coverage_pct": 65.0,
+        "supported_task_weight": 65,
+        "supported_task_count": 8,
+        "scored_task_count": 5,
+        "weighted_core_quality": 97.398,
+        "latency_p50_ms": 5291.19,
+        "latency_p90_ms": 64613.26,
+        "task_breakdown": [
+          {
+            "tool": "edirect",
+            "task_id": "core-gene-basic",
+            "task_weight": 10,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 4463.43,
+            "latency_p90_ms": 4772.19,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "edirect",
+            "task_id": "core-gene-sequence",
+            "task_weight": 8,
+            "replicate_count": 3,
+            "score_p50": 86.667,
+            "score_values": [
+              86.667,
+              86.667,
+              86.667
+            ],
+            "latency_p50_ms": 64613.26,
+            "latency_p90_ms": 66400.33,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "edirect",
+            "task_id": "core-literature-fetch",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 2153.29,
+            "latency_p90_ms": 4596.62,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "edirect",
+            "task_id": "core-variant-basic",
+            "task_weight": 9,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 5291.19,
+            "latency_p90_ms": 19766.33,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "edirect",
+            "task_id": "core-variant-clinical",
+            "task_weight": 7,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 5780.77,
+            "latency_p90_ms": 20261.71,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          }
+        ]
+      }
+    ],
+    "manifest_summary": {
+      "batch_label": "public-core-x3-stable",
+      "repetitions": 3,
+      "scheduled_cells": 26,
+      "skipped_cells": 26,
+      "run_count": 78,
+      "runner_status_counts": {
+        "completed": 75,
+        "execution_failed": 3
+      },
+      "normalization_status_counts": {
+        "normalized": 75,
+        "runner_not_completed": 3
+      },
+      "skipped_reasons": {
+        "non_native_capability_state": 21,
+        "retry_sensitive_excluded_by_default": 2,
+        "heavy_excluded_by_default": 1,
+        "runner_missing": 2
+      }
+    }
+  },
+  "workflow": {
+    "batch_label": "public-workflow-x3-stable",
+    "tool_summaries": [
+      {
+        "tool": "biocli",
+        "workflow_coverage_pct": 88.0,
+        "supported_task_weight": 88,
+        "supported_task_count": 7,
+        "scored_task_count": 6,
+        "weighted_workflow_quality": 100.0,
+        "latency_p50_ms": 134.7,
+        "latency_p90_ms": 9987.31,
+        "task_breakdown": [
+          {
+            "tool": "biocli",
+            "task_id": "workflow-batch-input",
+            "task_weight": 10,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 134.95,
+            "latency_p90_ms": 145.99,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "workflow-command-discovery",
+            "task_weight": 12,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 132.98,
+            "latency_p90_ms": 147.35,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "workflow-dry-run",
+            "task_weight": 12,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 128.77,
+            "latency_p90_ms": 129.38,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "workflow-schema-output",
+            "task_weight": 12,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 134.45,
+            "latency_p90_ms": 139.04,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "workflow-structured-help",
+            "task_weight": 8,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 136.03,
+            "latency_p90_ms": 138.43,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biocli",
+            "task_id": "workflow-working-dir",
+            "task_weight": 20,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 10386.17,
+            "latency_p90_ms": 13542.62,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          }
+        ]
+      },
+      {
+        "tool": "biomcp",
+        "workflow_coverage_pct": 24.0,
+        "supported_task_weight": 24,
+        "supported_task_count": 2,
+        "scored_task_count": 2,
+        "weighted_workflow_quality": 97.083,
+        "latency_p50_ms": 3837.81,
+        "latency_p90_ms": 6196.41,
+        "task_breakdown": [
+          {
+            "tool": "biomcp",
+            "task_id": "workflow-batch-input",
+            "task_weight": 10,
+            "replicate_count": 3,
+            "score_p50": 100.0,
+            "score_values": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "latency_p50_ms": 6196.41,
+            "latency_p90_ms": 6421.59,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          },
+          {
+            "tool": "biomcp",
+            "task_id": "workflow-partial-failure",
+            "task_weight": 14,
+            "replicate_count": 3,
+            "score_p50": 95.0,
+            "score_values": [
+              95.0,
+              95.0,
+              95.0
+            ],
+            "latency_p50_ms": 1488.04,
+            "latency_p90_ms": 1575.59,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          }
+        ]
+      },
+      {
+        "tool": "gget",
+        "workflow_coverage_pct": 24.0,
+        "supported_task_weight": 24,
+        "supported_task_count": 2,
+        "scored_task_count": 1,
+        "weighted_workflow_quality": 95.0,
+        "latency_p50_ms": 32523.09,
+        "latency_p90_ms": 33637.8,
+        "task_breakdown": [
+          {
+            "tool": "gget",
+            "task_id": "workflow-batch-input",
+            "task_weight": 10,
+            "replicate_count": 3,
+            "score_p50": 95.0,
+            "score_values": [
+              95.0,
+              95.0,
+              95.0
+            ],
+            "latency_p50_ms": 32523.09,
+            "latency_p90_ms": 33637.8,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          }
+        ]
+      },
+      {
+        "tool": "edirect",
+        "workflow_coverage_pct": 10.0,
+        "supported_task_weight": 10,
+        "supported_task_count": 1,
+        "scored_task_count": 1,
+        "weighted_workflow_quality": 93.75,
+        "latency_p50_ms": 2323.39,
+        "latency_p90_ms": 2339.0,
+        "task_breakdown": [
+          {
+            "tool": "edirect",
+            "task_id": "workflow-batch-input",
+            "task_weight": 10,
+            "replicate_count": 3,
+            "score_p50": 93.75,
+            "score_values": [
+              93.75,
+              93.75,
+              93.75
+            ],
+            "latency_p50_ms": 2323.39,
+            "latency_p90_ms": 2339.0,
+            "score_statuses": [
+              "scored",
+              "scored",
+              "scored"
+            ]
+          }
+        ]
+      }
+    ],
+    "manifest_summary": {
+      "batch_label": "public-workflow-x3-stable",
+      "repetitions": 3,
+      "scheduled_cells": 10,
+      "skipped_cells": 22,
+      "run_count": 30,
+      "runner_status_counts": {
+        "completed": 30
+      },
+      "normalization_status_counts": {
+        "normalized": 30
+      },
+      "skipped_reasons": {
+        "non_native_capability_state": 20,
+        "runner_missing": 2
+      }
+    }
+  },
+  "runtime_versions": {
+    "biocli": [
+      {
+        "version": "0.3.9",
+        "source": "cli_help_banner",
+        "path": "/home/yangfei/.nvm/versions/node/v22.22.0/bin/biocli"
+      }
+    ],
+    "biomcp": [
+      {
+        "version": "0.8.19",
+        "source": "cli_version_flag",
+        "path": "/mnt/f/work/yang_ylab/biocli_test/.bench_prefix/local/bin/biomcp"
+      }
+    ],
+    "gget": [
+      {
+        "version": "0.30.3",
+        "source": "python_dist_info",
+        "path": "/mnt/f/work/yang_ylab/biocli_test/.bench_prefix/local/bin/gget"
+      }
+    ],
+    "edirect": [
+      {
+        "version": "25.3",
+        "source": "esearch_version_flag",
+        "path": "/mnt/f/work/yang_ylab/biocli_test/.bench_prefix/edirect-home/edirect/esearch"
+      }
+    ]
+  }
+}

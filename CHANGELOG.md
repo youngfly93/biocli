@@ -98,16 +98,52 @@ access to the ProteomeXchange consortium.
   are now `@yangfei_93sky/biocli` — affects RELEASE_CHECKLIST.md,
   PLUGIN_DEV.md, the registry-api JSDoc, ADR-001, and the benchmark
   install line in `tasks.yaml`.
-- Benchmark refreshed against `biocli 0.3.9 / biomcp 0.8.19 / gget 0.30.3`
-  on 2026-04-08. Scored capabilities unchanged versus the 2026-04-04
-  baseline; this is a re-run for honest version labeling, not a
-  re-evaluation. biocli scored 97/100 (was 96 against 0.2.0; +1 from
-  gene-02 now hitting all four criteria after the 0.3.x network-stack
-  hardening stopped silently truncating one of the upstream responses).
 - The `benchmarks/runners/run_biocli.sh` data-02 task now uses
   `--skip-download` instead of the removed `--plan` flag in
   `aggregate workflow-prepare`. The runner had been silently failing
   this task since the flag was removed earlier in the 0.3.x line.
+
+### Changed — Benchmark methodology (v1 → v2)
+
+The README and the public benchmark surface now ship a new fair-benchmark
+v2 methodology. The previous v1 single-weighted-total layout (biocli
+97/100 vs BioMCP 44 vs gget 24) is preserved historically under
+`benchmarks/results/2026-04-08/` but is no longer the headline.
+
+What's different in v2:
+
+- **No combined "winner" total.** Coverage and quality are reported
+  separately. Core retrieval and workflow tracks are reported separately.
+- **Unsupported tasks are not zeros.** A task a tool does not natively
+  support moves to the coverage column and is excluded from quality
+  scoring entirely. The previous v1 layout structurally penalized any
+  tool with narrower scope than biocli.
+- **Four tools, not three.** EDirect 25.3 was added as the canonical
+  NCBI retrieval baseline. EDirect's 97.4 core quality edges biocli's
+  96.7 on the supported overlap — biocli's lead now correctly shows in
+  *coverage* (73% vs 65%) and especially in the workflow track (88% vs
+  10%).
+- **n=3 cold runs per cell** with median reporting; p50 latency is
+  descriptive, not a quality dimension.
+- **Per-task evidence is preserved.** Each scored cell carries
+  `{stdout, stderr, result, normalized, score}` files with explicit
+  passed/failed checks plus an `evidence` field, so any reviewer can
+  audit why a particular dimension scored as it did.
+- **Failures are visible.** BioMCP's 3/3 failure on `core-enrichment`
+  (g:Profiler upstream unavailable) is recorded in the manifest, not
+  silently dropped.
+- **`benchmarks/v2/`** ships the public-lite bundle with rubric, frozen
+  capability matrix, headline plots, scorecards, and run manifests. The
+  full per-task audit (≈160 MB across 105 cells × `r01..r03`) is
+  attached as a downloadable bundle on each GitHub Release rather than
+  committed into git.
+
+Headline v2 results (biocli 0.3.9):
+
+| Track | Coverage | Quality | p50 latency |
+|---|---:|---:|---:|
+| Core | 73% | 96.7 | 128 ms |
+| Workflow | 88% | 100.0 | 134 ms |
 
 ### Fixed
 
