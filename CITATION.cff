@@ -1,7 +1,11 @@
 cff-version: 1.2.0
 title: "biocli: agent-first CLI for biological databases"
-message: "If you use biocli in your research or software, please cite it using the metadata below. A Zenodo DOI for this exact release will be added once the GitHub → Zenodo webhook archives it."
+message: "If you use biocli in your research or software, please cite it using the metadata below."
 type: software
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.19483760"
+    description: "Zenodo archive (resolves to latest version)"
 authors:
   - family-names: Yang
     given-names: Fei

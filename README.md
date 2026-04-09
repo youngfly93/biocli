@@ -1,5 +1,6 @@
 # biocli
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19483760.svg)](https://doi.org/10.5281/zenodo.19483760)
 [![CI](https://github.com/youngfly93/biocli/actions/workflows/ci.yml/badge.svg)](https://github.com/youngfly93/biocli/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@yangfei_93sky/biocli?color=cb3837&label=npm&logo=npm&logoColor=white)](https://www.npmjs.com/package/@yangfei_93sky/biocli)
 [![node](https://img.shields.io/node/v/@yangfei_93sky/biocli?color=339933&label=node&logo=node.js&logoColor=white)](https://nodejs.org)
