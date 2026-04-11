@@ -34,6 +34,11 @@ export interface RequiredEnv {
   help?: string;
 }
 
+export interface CommandExample {
+  goal: string;
+  command: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- kwargs from CLI parsing are inherently untyped
 export type CommandArgs = Record<string, any>;
 
@@ -53,6 +58,8 @@ export interface CliCommand {
   /** Origin of this command: 'yaml', 'ts', or plugin name. */
   source?: string;
   requiredEnv?: RequiredEnv[];
+  /** Agent-facing examples mapping a task goal to a concrete command. */
+  examples?: CommandExample[];
   /** Deprecation note shown in help / execution warnings. */
   deprecated?: boolean | string;
   /** Preferred replacement command, if any. */
@@ -150,6 +157,7 @@ export function cli(opts: CliOptions): CliCommand {
     pipeline: opts.pipeline,
     timeoutSeconds: opts.timeoutSeconds,
     requiredEnv: opts.requiredEnv,
+    examples: opts.examples,
     deprecated: opts.deprecated,
     replacedBy: opts.replacedBy,
     defaultFormat: opts.defaultFormat,

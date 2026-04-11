@@ -19,6 +19,16 @@ cli({
     { name: 'keyword', positional: true, help: 'Keyword for study name, disease, or cohort (optional)' },
     { name: 'limit', type: 'int', default: 10, help: 'Max studies to return (1-100)' },
   ],
+  examples: [
+    {
+      goal: 'Find lung cancer studies available in cBioPortal',
+      command: 'biocli cbioportal studies lung --limit 10 -f json',
+    },
+    {
+      goal: 'List a few breast cancer cohorts to choose a studyId',
+      command: 'biocli cbioportal studies breast --limit 5 -f json',
+    },
+  ],
   columns: ['studyId', 'name', 'cancerType', 'sequencedSampleCount', 'cnaSampleCount'],
   func: async (ctx, args) => {
     const keyword = String(args.keyword ?? '').trim();

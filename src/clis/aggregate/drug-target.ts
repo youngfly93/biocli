@@ -783,6 +783,16 @@ cli({
     { name: 'diseaseLimit', type: 'int', default: 5, help: 'Number of top associated diseases to surface (1-10)' },
     { name: 'reportLimit', type: 'int', default: 3, help: 'Number of clinical report links to keep per candidate (1-5)' },
   ],
+  examples: [
+    {
+      goal: 'Get tractability and candidate drugs for EGFR',
+      command: 'biocli aggregate drug-target EGFR -f json',
+    },
+    {
+      goal: 'Prioritize EGFR drugs for lung cancer with a tumor-study overlay',
+      command: 'biocli aggregate drug-target EGFR --disease lung --study luad_tcga_pan_can_atlas_2018 -f json',
+    },
+  ],
   columns: ['drugName', 'maxClinicalStage', 'drugType'],
   func: async (_ctx, args) => {
     const gene = String(args.gene).trim();

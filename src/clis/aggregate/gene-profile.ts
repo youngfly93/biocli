@@ -355,6 +355,16 @@ cli({
     { name: 'genes', positional: true, required: true, help: 'Gene symbol(s), comma-separated (e.g. TP53 or TP53,BRCA1,EGFR)' },
     { name: 'organism', default: 'human', help: 'Organism (e.g. human, mouse, 9606)' },
   ],
+  examples: [
+    {
+      goal: 'Get a multi-database profile for TP53 in human',
+      command: 'biocli aggregate gene-profile TP53 --organism human -f json',
+    },
+    {
+      goal: 'Compare several genes in one batch profile request',
+      command: 'biocli aggregate gene-profile TP53,BRCA1,EGFR --organism human -f json',
+    },
+  ],
   columns: ['symbol', 'name', 'organism', 'pathways', 'goTerms', 'interactions'],
   func: async (_ctx, args) => {
     const genes = String(args.genes).split(',').map(s => s.trim()).filter(Boolean);

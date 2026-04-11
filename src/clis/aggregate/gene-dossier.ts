@@ -318,6 +318,16 @@ cli({
     { name: 'organism', default: 'human', help: 'Organism (e.g. human, mouse)' },
     { name: 'papers', type: 'int', default: 5, help: 'Number of recent papers to include' },
   ],
+  examples: [
+    {
+      goal: 'Assemble a gene intelligence dossier for TP53',
+      command: 'biocli aggregate gene-dossier TP53 --organism human --papers 5 -f json',
+    },
+    {
+      goal: 'Get a mouse-focused dossier with fewer literature hits',
+      command: 'biocli aggregate gene-dossier Trp53 --organism mouse --papers 3 -f json',
+    },
+  ],
   columns: ['symbol', 'name', 'pathways', 'interactions', 'literature', 'clinvar'],
   func: async (_ctx, args) => {
     const built = await buildGeneDossier(String(args.gene), String(args.organism), Number(args.papers));

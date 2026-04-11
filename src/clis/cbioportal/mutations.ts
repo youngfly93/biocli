@@ -29,6 +29,16 @@ cli({
     { name: 'sample-list', help: 'Optional sample list ID. Defaults to sequenced/all cases for the study.' },
     { name: 'limit', type: 'int', default: 50, help: 'Max mutation rows to return (1-500)' },
   ],
+  examples: [
+    {
+      goal: 'Fetch TP53 mutation calls for a selected study',
+      command: 'biocli cbioportal mutations TP53 --study luad_tcga_pan_can_atlas_2018 --limit 50 -f json',
+    },
+    {
+      goal: 'Inspect EGFR mutation rows with an explicit sample list',
+      command: 'biocli cbioportal mutations EGFR --study luad_tcga_pan_can_atlas_2018 --sample-list luad_tcga_pan_can_atlas_2018_all -f json',
+    },
+  ],
   columns: ['gene', 'sampleId', 'patientId', 'proteinChange', 'mutationType', 'studyId'],
   func: async (ctx, args) => {
     const geneQuery = String(args.gene ?? '').trim().toUpperCase();

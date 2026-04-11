@@ -368,6 +368,16 @@ cli({
     { name: 'min-co-samples', type: 'int', default: 1, help: 'Minimum co-mutated samples required for a partner gene' },
     { name: 'page-size', type: 'int', default: 500, help: 'Mutation rows fetched per page (1-500)' },
   ],
+  examples: [
+    {
+      goal: 'Summarize TP53 mutation prevalence and co-mutations in a TCGA lung cohort',
+      command: 'biocli aggregate tumor-gene-dossier TP53 --study luad_tcga_pan_can_atlas_2018 -f json',
+    },
+    {
+      goal: 'Inspect EGFR in a study with an explicit molecular profile and sample list',
+      command: 'biocli aggregate tumor-gene-dossier EGFR --study luad_tcga_pan_can_atlas_2018 --profile luad_tcga_pan_can_atlas_2018_mutations --sample-list luad_tcga_pan_can_atlas_2018_all -f json',
+    },
+  ],
   columns: ['symbol', 'studyId', 'alteredSamples', 'mutationFrequencyPct', 'coMutations', 'literature'],
   func: async (_ctx, args) => {
     const gene = String(args.gene ?? '').trim();

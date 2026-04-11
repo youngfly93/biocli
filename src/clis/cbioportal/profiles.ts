@@ -20,6 +20,16 @@ cli({
     { name: 'type', help: 'Optional filter on molecularAlterationType or datatype (e.g. MUTATION_EXTENDED, MRNA_EXPRESSION)' },
     { name: 'limit', type: 'int', default: 50, help: 'Max profiles to return (1-100)' },
   ],
+  examples: [
+    {
+      goal: 'Inspect all molecular profiles for a study before querying mutations',
+      command: 'biocli cbioportal profiles luad_tcga_pan_can_atlas_2018 -f json',
+    },
+    {
+      goal: 'Only list mutation-related profiles for a chosen cohort',
+      command: 'biocli cbioportal profiles luad_tcga_pan_can_atlas_2018 --type MUTATION_EXTENDED -f json',
+    },
+  ],
   columns: ['molecularProfileId', 'molecularAlterationType', 'datatype', 'studyId'],
   func: async (ctx, args) => {
     const studyId = String(args.study ?? '').trim();

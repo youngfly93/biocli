@@ -38,6 +38,16 @@ cli({
     { name: 'outdir', required: true, help: 'Output directory for the prepared workspace' },
     { name: 'skip-download', type: 'boolean', default: false, help: 'Skip data download, only fetch annotations' },
   ],
+  examples: [
+    {
+      goal: 'Prepare a GEO workspace with TP53-focused annotations',
+      command: 'biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir results/GSE315149 -f json',
+    },
+    {
+      goal: 'Prepare an SRA workspace without downloading raw data',
+      command: 'biocli aggregate workflow-prepare SRR12345678 --gene EGFR --outdir results/SRR12345678 --skip-download true -f json',
+    },
+  ],
   columns: ['step', 'status', 'detail'],
   func: async (_ctx, args) => {
     const dataset = String(args.dataset).trim().toUpperCase();

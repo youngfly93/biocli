@@ -89,6 +89,16 @@ cli({
     { name: 'library', default: 'KEGG_2021_Human', help: 'Enrichr library for enrichment analysis' },
     { name: 'plan', type: 'boolean', default: false, help: 'Preview steps without executing' },
   ],
+  examples: [
+    {
+      goal: 'Annotate a small cancer gene set into a report directory',
+      command: 'biocli aggregate workflow-annotate TP53,EGFR,KRAS --outdir results/annotate_tp53_egfr_kras -f json',
+    },
+    {
+      goal: 'Preview the workflow-annotate plan before running it',
+      command: 'biocli aggregate workflow-annotate TP53,BRCA1 --outdir results/annotate_plan --plan true -f json',
+    },
+  ],
   columns: ['step', 'status', 'detail'],
   func: async (_ctx, args) => {
     const geneInput = String(args.genes);

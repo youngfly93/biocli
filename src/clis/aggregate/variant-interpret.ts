@@ -46,6 +46,16 @@ cli({
   args: [
     { name: 'variant', positional: true, required: true, help: 'Variant ID: rsID (rs334), HGVS, or genomic coordinate' },
   ],
+  examples: [
+    {
+      goal: 'Get a concise interpretation of rs334',
+      command: 'biocli aggregate variant-interpret rs334 -f json',
+    },
+    {
+      goal: 'Interpret a transcript-level variant with ClinVar and VEP evidence',
+      command: 'biocli aggregate variant-interpret NM_000518.5:c.20A>T -f json',
+    },
+  ],
   columns: ['variant', 'gene', 'consequence', 'clinicalSignificance', 'interpretation'],
   func: async (_ctx, args) => {
     const variant = String(args.variant).trim();

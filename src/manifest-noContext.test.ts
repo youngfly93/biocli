@@ -60,6 +60,7 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       args: [],
       defaultFormat: 'json',
       requiredEnv: [{ name: 'BIOCLI_TEST_TOKEN', help: 'Set for test snapshots.' }],
+      examples: [{ goal: 'List snapshot records', command: 'biocli snapshotsite list -f json' }],
       noContext: true,
       type: 'ts',
       modulePath: 'snapshotsite/list.js',
@@ -77,6 +78,7 @@ describe('noContext propagation through manifest (F5 regression)', () => {
     expect(cmd?.noContext).toBe(true);
     expect(cmd?.defaultFormat).toBe('json');
     expect(cmd?.requiredEnv).toEqual([{ name: 'BIOCLI_TEST_TOKEN', help: 'Set for test snapshots.' }]);
+    expect(cmd?.examples).toEqual([{ goal: 'List snapshot records', command: 'biocli snapshotsite list -f json' }]);
   });
 
   it('a TS-style manifest entry WITHOUT noContext stays undefined (no spurious flag)', async () => {
@@ -111,6 +113,7 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       pipeline: [{ select: 'data' }],
       defaultFormat: 'yaml',
       requiredEnv: [{ name: 'BIOCLI_YAML_TOKEN' }],
+      examples: [{ goal: 'Preview YAML snapshot output', command: 'biocli snapshotsite list -f yaml' }],
       noContext: true,
       type: 'yaml',
     };
@@ -122,5 +125,6 @@ describe('noContext propagation through manifest (F5 regression)', () => {
     expect(cmd?.noContext).toBe(true);
     expect(cmd?.defaultFormat).toBe('yaml');
     expect(cmd?.requiredEnv).toEqual([{ name: 'BIOCLI_YAML_TOKEN' }]);
+    expect(cmd?.examples).toEqual([{ goal: 'Preview YAML snapshot output', command: 'biocli snapshotsite list -f yaml' }]);
   });
 });

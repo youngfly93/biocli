@@ -26,6 +26,16 @@ cli({
     { name: 'sample-list', help: 'Optional sample list ID. Defaults to sequenced/all cases for the study.' },
     { name: 'page-size', type: 'int', default: 500, help: 'Mutation rows fetched per page (1-500)' },
   ],
+  examples: [
+    {
+      goal: 'Estimate TP53 mutation prevalence in a TCGA lung adenocarcinoma cohort',
+      command: 'biocli cbioportal frequency TP53 --study luad_tcga_pan_can_atlas_2018 -f json',
+    },
+    {
+      goal: 'Run frequency with an explicit profile and cohort',
+      command: 'biocli cbioportal frequency EGFR --study luad_tcga_pan_can_atlas_2018 --profile luad_tcga_pan_can_atlas_2018_mutations --sample-list luad_tcga_pan_can_atlas_2018_all -f json',
+    },
+  ],
   columns: ['gene', 'studyId', 'mutatedSamples', 'totalSamples', 'mutationFrequencyPct', 'mutationEvents'],
   func: async (ctx, args) => {
     const geneQuery = String(args.gene ?? '').trim().toUpperCase();

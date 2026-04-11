@@ -44,6 +44,16 @@ cli({
     { name: 'limit', type: 'int', default: 10, help: 'Max candidates per source' },
     { name: 'type', default: 'gse', choices: ['gse', 'gds', 'all'], help: 'GEO entry type filter' },
   ],
+  examples: [
+    {
+      goal: 'Scout public datasets for an EGFR lung adenocarcinoma project',
+      command: 'biocli aggregate workflow-scout "EGFR lung adenocarcinoma RNA-seq" --gene EGFR --organism "Homo sapiens" -f json',
+    },
+    {
+      goal: 'Find GEO dataset candidates for breast cancer RNA-seq',
+      command: 'biocli aggregate workflow-scout "breast cancer RNA-seq" --type gse -f json',
+    },
+  ],
   columns: ['rank', 'accession', 'title', 'type', 'samples', 'date', 'source'],
   func: async (_ctx, args) => {
     const query = String(args.query).trim();

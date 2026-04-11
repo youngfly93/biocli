@@ -45,6 +45,7 @@ export interface ManifestEntry {
   pipeline?: Record<string, unknown>[];
   timeout?: number;
   requiredEnv?: NonNullable<CliCommand['requiredEnv']>;
+  examples?: NonNullable<CliCommand['examples']>;
   deprecated?: boolean | string;
   replacedBy?: string;
   /**
@@ -116,6 +117,7 @@ function toManifestEntry(cmd: CliCommand, modulePath: string): ManifestEntry {
     defaultFormat: cmd.defaultFormat,
     timeout: cmd.timeoutSeconds,
     requiredEnv: cmd.requiredEnv,
+    examples: cmd.examples,
     deprecated: cmd.deprecated,
     replacedBy: cmd.replacedBy,
     // Only emit when true so we don't bloat the manifest with `false` for
@@ -154,6 +156,11 @@ function scanYaml(filePath: string, site: string): ManifestEntry | null {
       defaultFormat: cliDef.defaultFormat as CliCommand['defaultFormat'] | undefined,
       pipeline: cliDef.pipeline,
       timeout: cliDef.timeout,
+      examples: isRecord(cliDef) && Array.isArray((cliDef as Record<string, unknown>).examples)
+        ? ((cliDef as Record<string, unknown>).examples as unknown[])
+          .filter((value): value is NonNullable<CliCommand['examples']>[number] =>
+            isRecord(value) && typeof value.goal === 'string' && typeof value.command === 'string')
+        : undefined,
       deprecated: (cliDef as Record<string, unknown>).deprecated as boolean | string | undefined,
       replacedBy: (cliDef as Record<string, unknown>).replacedBy as string | undefined,
       type: 'yaml',

@@ -99,6 +99,7 @@ ${chalk.bold('Configuration:')}
             })),
             defaultFormat: c.defaultFormat ?? 'table',
             columns: c.columns ?? [],
+            examples: c.examples ?? [],
             tags,
           };
         });

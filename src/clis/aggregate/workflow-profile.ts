@@ -58,6 +58,16 @@ cli({
     { name: 'library', default: 'KEGG_2021_Human', help: 'Enrichr library' },
     { name: 'plan', type: 'boolean', default: false, help: 'Preview steps without executing' },
   ],
+  examples: [
+    {
+      goal: 'Build a set-level profile workspace for TP53, BRCA1, and EGFR',
+      command: 'biocli aggregate workflow-profile TP53,BRCA1,EGFR --outdir results/profile_panel -f json',
+    },
+    {
+      goal: 'Preview a workflow-profile run without executing it',
+      command: 'biocli aggregate workflow-profile TP53,BRCA1,EGFR --outdir results/profile_plan --plan true -f json',
+    },
+  ],
   columns: ['step', 'status', 'detail'],
   func: async (_ctx, args) => {
     const genes = String(args.genes).split(',').map(s => s.trim()).filter(Boolean);
