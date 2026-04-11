@@ -55,6 +55,7 @@ cli({
       command: 'biocli aggregate workflow-prepare SRR12345678 --gene EGFR --outdir results/SRR12345678 --skip-download true -f json',
     },
   ],
+  whenToUse: 'Use after choosing a dataset when you want a local research workspace with downloaded files, annotations, and provenance.',
   columns: ['step', 'status', 'detail'],
   func: async (_ctx, args) => {
     const dataset = String(args.dataset).trim().toUpperCase();

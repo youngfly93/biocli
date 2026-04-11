@@ -57,6 +57,7 @@ cli({
       command: 'biocli px dataset PXD000001 --detailed false -f json',
     },
   ],
+  whenToUse: 'Use when you already have a PXD accession and need full dataset metadata, provenance, and repository-specific detail.',
   func: async (_ctx, args) => {
     const accession = validatePxd(String(args.accession));
     const detailed = args.detailed !== false;

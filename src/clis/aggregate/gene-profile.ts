@@ -365,6 +365,7 @@ cli({
       command: 'biocli aggregate gene-profile TP53,BRCA1,EGFR --organism human -f json',
     },
   ],
+  whenToUse: 'Use when you need a biology-first summary of one or a few genes across core public databases without literature or clinical interpretation.',
   columns: ['symbol', 'name', 'organism', 'pathways', 'goTerms', 'interactions'],
   func: async (_ctx, args) => {
     const genes = String(args.genes).split(',').map(s => s.trim()).filter(Boolean);

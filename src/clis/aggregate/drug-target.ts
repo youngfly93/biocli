@@ -793,6 +793,7 @@ cli({
       command: 'biocli aggregate drug-target EGFR --disease lung --study luad_tcga_pan_can_atlas_2018 -f json',
     },
   ],
+  whenToUse: 'Use when you need target tractability and candidate therapies for a gene, optionally with tumor-study context.',
   columns: ['drugName', 'maxClinicalStage', 'drugType'],
   func: async (_ctx, args) => {
     const gene = String(args.gene).trim();

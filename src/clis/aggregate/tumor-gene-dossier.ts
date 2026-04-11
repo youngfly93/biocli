@@ -378,6 +378,7 @@ cli({
       command: 'biocli aggregate tumor-gene-dossier EGFR --study luad_tcga_pan_can_atlas_2018 --profile luad_tcga_pan_can_atlas_2018_mutations --sample-list luad_tcga_pan_can_atlas_2018_all -f json',
     },
   ],
+  whenToUse: 'Use when you need a tumor-cohort-specific gene briefing that mixes baseline biology with cBioPortal prevalence, variants, and co-mutations.',
   columns: ['symbol', 'studyId', 'alteredSamples', 'mutationFrequencyPct', 'coMutations', 'literature'],
   func: async (_ctx, args) => {
     const gene = String(args.gene ?? '').trim();

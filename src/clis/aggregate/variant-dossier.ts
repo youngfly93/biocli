@@ -37,6 +37,7 @@ cli({
       command: 'biocli aggregate variant-dossier NM_000518.5:c.20A>T -f json',
     },
   ],
+  whenToUse: 'Use when you need a consolidated evidence packet for one variant across dbSNP, ClinVar, and VEP.',
   columns: ['variant', 'gene', 'consequence', 'clinicalSignificance', 'condition'],
   func: async (_ctx, args) => {
     const variant = String(args.variant).trim();

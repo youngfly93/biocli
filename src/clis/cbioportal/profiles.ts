@@ -30,6 +30,7 @@ cli({
       command: 'biocli cbioportal profiles luad_tcga_pan_can_atlas_2018 --type MUTATION_EXTENDED -f json',
     },
   ],
+  whenToUse: 'Use when you already have a cBioPortal study ID and need valid molecular profile IDs for downstream mutation queries.',
   columns: ['molecularProfileId', 'molecularAlterationType', 'datatype', 'studyId'],
   func: async (ctx, args) => {
     const studyId = String(args.study ?? '').trim();

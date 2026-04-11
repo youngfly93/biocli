@@ -75,6 +75,7 @@ cli({
       command: 'biocli px files PXD000001 -f json',
     },
   ],
+  whenToUse: 'Use when you already have a PRIDE-hosted PXD accession and need the downloadable file inventory.',
   func: async (_ctx, args) => {
     const accession = validatePxd(String(args.accession));
 

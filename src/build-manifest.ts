@@ -47,6 +47,7 @@ export interface ManifestEntry {
   timeout?: number;
   requiredEnv?: NonNullable<CliCommand['requiredEnv']>;
   examples?: NonNullable<CliCommand['examples']>;
+  whenToUse?: string;
   readOnly?: boolean;
   sideEffects?: NonNullable<CliCommand['sideEffects']>;
   artifacts?: NonNullable<CliCommand['artifacts']>;
@@ -123,6 +124,7 @@ function toManifestEntry(cmd: CliCommand, modulePath: string): ManifestEntry {
     timeout: cmd.timeoutSeconds,
     requiredEnv: cmd.requiredEnv,
     examples: cmd.examples,
+    whenToUse: cmd.whenToUse,
     readOnly: cmd.readOnly,
     sideEffects: cmd.sideEffects,
     artifacts: cmd.artifacts,
@@ -168,6 +170,9 @@ function scanYaml(filePath: string, site: string): ManifestEntry | null {
         ? ((cliDef as Record<string, unknown>).examples as unknown[])
           .filter((value): value is NonNullable<CliCommand['examples']>[number] =>
             isRecord(value) && typeof value.goal === 'string' && typeof value.command === 'string')
+        : undefined,
+      whenToUse: typeof (cliDef as Record<string, unknown>).whenToUse === 'string'
+        ? (cliDef as Record<string, unknown>).whenToUse as string
         : undefined,
       readOnly: typeof (cliDef as Record<string, unknown>).readOnly === 'boolean'
         ? (cliDef as Record<string, unknown>).readOnly as boolean

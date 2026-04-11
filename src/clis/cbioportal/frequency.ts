@@ -36,6 +36,7 @@ cli({
       command: 'biocli cbioportal frequency EGFR --study luad_tcga_pan_can_atlas_2018 --profile luad_tcga_pan_can_atlas_2018_mutations --sample-list luad_tcga_pan_can_atlas_2018_all -f json',
     },
   ],
+  whenToUse: 'Use when you need cohort-level mutation prevalence for one gene inside a specific cBioPortal study.',
   columns: ['gene', 'studyId', 'mutatedSamples', 'totalSamples', 'mutationFrequencyPct', 'mutationEvents'],
   func: async (ctx, args) => {
     const geneQuery = String(args.gene ?? '').trim().toUpperCase();

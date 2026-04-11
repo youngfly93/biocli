@@ -39,6 +39,7 @@ cli({
       command: 'biocli cbioportal mutations EGFR --study luad_tcga_pan_can_atlas_2018 --sample-list luad_tcga_pan_can_atlas_2018_all -f json',
     },
   ],
+  whenToUse: 'Use when you need raw mutation rows, sample-level calls, or variant details for one gene in a cBioPortal study.',
   columns: ['gene', 'sampleId', 'patientId', 'proteinChange', 'mutationType', 'studyId'],
   func: async (ctx, args) => {
     const geneQuery = String(args.gene ?? '').trim().toUpperCase();

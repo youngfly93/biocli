@@ -34,6 +34,7 @@ export interface YamlCliDefinition {
   timeout?: number;
   defaultFormat?: string;
   aliases?: string[];
+  whenToUse?: string;
 }
 
 // ── Arg normalizer ──────────────────────────────────────────────────────────
@@ -97,6 +98,7 @@ export function parseYamlCli(
     pipeline: raw.pipeline,
     timeoutSeconds: raw.timeout,
     defaultFormat: raw.defaultFormat as CliCommand['defaultFormat'],
+    whenToUse: raw.whenToUse,
   });
 }
 

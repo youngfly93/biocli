@@ -56,6 +56,7 @@ cli({
       command: 'biocli aggregate variant-interpret NM_000518.5:c.20A>T -f json',
     },
   ],
+  whenToUse: 'Use when you need an interpretation-ready summary for one variant, not just raw evidence from multiple databases.',
   columns: ['variant', 'gene', 'consequence', 'clinicalSignificance', 'interpretation'],
   func: async (_ctx, args) => {
     const variant = String(args.variant).trim();

@@ -68,6 +68,8 @@ export interface CliCommand {
   requiredEnv?: RequiredEnv[];
   /** Agent-facing examples mapping a task goal to a concrete command. */
   examples?: CommandExample[];
+  /** Short routing hint describing when this command is the right tool. */
+  whenToUse?: string;
   /** Whether the command avoids writing local state when executed normally. */
   readOnly?: boolean;
   /** High-level side effects agents should expect before execution. */
@@ -172,6 +174,7 @@ export function cli(opts: CliOptions): CliCommand {
     timeoutSeconds: opts.timeoutSeconds,
     requiredEnv: opts.requiredEnv,
     examples: opts.examples,
+    whenToUse: opts.whenToUse,
     readOnly: opts.readOnly,
     sideEffects: opts.sideEffects,
     artifacts: opts.artifacts,

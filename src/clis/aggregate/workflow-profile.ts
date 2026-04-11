@@ -80,6 +80,7 @@ cli({
       command: 'biocli aggregate workflow-profile TP53,BRCA1,EGFR --outdir results/profile_plan --plan true -f json',
     },
   ],
+  whenToUse: 'Use when you need set-level analysis for multiple genes, especially shared pathways, interaction structure, and aggregate enrichment.',
   columns: ['step', 'status', 'detail'],
   func: async (_ctx, args) => {
     const genes = String(args.genes).split(',').map(s => s.trim()).filter(Boolean);

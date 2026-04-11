@@ -102,6 +102,7 @@ ${chalk.bold('Configuration:')}
             defaultFormat: c.defaultFormat ?? 'table',
             columns: c.columns ?? [],
             examples: c.examples ?? [],
+            whenToUse: c.whenToUse ?? '',
             readOnly: c.readOnly ?? true,
             sideEffects: c.sideEffects ?? [],
             artifacts: c.artifacts ?? [],

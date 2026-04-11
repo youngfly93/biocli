@@ -92,6 +92,7 @@ cli({
       command: 'biocli px search "lung cancer" --repository PRIDE --limit 10 -f json',
     },
   ],
+  whenToUse: 'Use when you need to discover candidate proteomics datasets across ProteomeXchange repositories before drilling into one accession.',
   columns: ['accession', 'title', 'repository', 'species', 'instruments', 'announceDate'],
   func: async (ctx, args) => {
     const query = args.query ? String(args.query).trim() : '';

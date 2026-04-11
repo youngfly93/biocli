@@ -54,6 +54,7 @@ cli({
       command: 'biocli aggregate workflow-scout "breast cancer RNA-seq" --type gse -f json',
     },
   ],
+  whenToUse: 'Use when you are still selecting a GEO or SRA dataset for a research question and need ranked candidates before downloading.',
   columns: ['rank', 'accession', 'title', 'type', 'samples', 'date', 'source'],
   func: async (_ctx, args) => {
     const query = String(args.query).trim();

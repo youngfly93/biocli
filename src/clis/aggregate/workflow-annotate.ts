@@ -110,6 +110,7 @@ cli({
       command: 'biocli aggregate workflow-annotate TP53,BRCA1 --outdir results/annotate_plan --plan true -f json',
     },
   ],
+  whenToUse: 'Use when you already have a gene list and want a local annotation bundle with per-gene, pathway, and enrichment outputs.',
   columns: ['step', 'status', 'detail'],
   func: async (_ctx, args) => {
     const geneInput = String(args.genes);

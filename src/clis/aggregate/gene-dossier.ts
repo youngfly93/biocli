@@ -328,6 +328,7 @@ cli({
       command: 'biocli aggregate gene-dossier Trp53 --organism mouse --papers 3 -f json',
     },
   ],
+  whenToUse: 'Use when you need a higher-level gene briefing that combines baseline biology with recent literature and clinical context.',
   columns: ['symbol', 'name', 'pathways', 'interactions', 'literature', 'clinvar'],
   func: async (_ctx, args) => {
     const built = await buildGeneDossier(String(args.gene), String(args.organism), Number(args.papers));

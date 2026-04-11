@@ -29,6 +29,7 @@ cli({
       command: 'biocli cbioportal studies breast --limit 5 -f json',
     },
   ],
+  whenToUse: 'Use when you need candidate cBioPortal study IDs for a disease, cohort, or cancer keyword.',
   columns: ['studyId', 'name', 'cancerType', 'sequencedSampleCount', 'cnaSampleCount'],
   func: async (ctx, args) => {
     const keyword = String(args.keyword ?? '').trim();
