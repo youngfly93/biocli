@@ -12,6 +12,7 @@ import { buildUniprotUrl } from '../../databases/uniprot.js';
 import { buildKeggUrl, parseKeggTsv } from '../../databases/kegg.js';
 import { buildStringUrl } from '../../databases/string-db.js';
 import { submitGeneList, getEnrichment } from '../../databases/enrichr.js';
+import { reportProgress } from '../../progress.js';
 import { parseGeneSummaries } from '../_shared/xml-helpers.js';
 import { resolveOrganism } from '../_shared/organism-db.js';
 
@@ -331,7 +332,8 @@ cli({
     const geneProfiles: CompareGeneProfile[] = [];
     const geneIds = new Map<string, string>();
 
-    for (const gene of genes) {
+    for (const [index, gene] of genes.entries()) {
+      reportProgress(`Building gene profile ${index + 1}/${genes.length}: ${gene}…`);
       const profile: CompareGeneProfile = {
         symbol: gene,
         pathways: [],
@@ -398,6 +400,7 @@ cli({
     for (const profile of geneProfiles) {
       const geneId = geneIds.get(profile.symbol);
       if (!geneId) continue;
+      reportProgress(`Fetching KEGG pathways for ${profile.symbol}…`);
       try {
         const linkText = await keggCtx.fetchText(buildKeggUrl(`/link/pathway/${org.keggOrg}:${geneId}`));
         const links = parseKeggTsv(linkText)
@@ -411,6 +414,7 @@ cli({
 
     const pathwayNameMap = new Map<string, string>();
     try {
+      reportProgress('Resolving KEGG pathway names…');
       const listText = await keggCtx.fetchText(buildKeggUrl(`/list/pathway/${org.keggOrg}`));
       for (const row of parseKeggTsv(listText)) {
         pathwayNameMap.set(row.key.replace(/^path:/, ''), row.value.replace(/ - .*$/, ''));
@@ -434,6 +438,7 @@ cli({
 
     let interactionSubnetwork: InteractionEdge[] = [];
     try {
+      reportProgress('Fetching STRING interaction subnetwork…');
       const data = await stringCtx.fetchJson(buildStringUrl('network', {
         identifiers: genes.join('%0d'),
         species: String(org.taxId),
@@ -468,6 +473,7 @@ cli({
 
     let goEnrichment: CompareGenesData['goEnrichment'] = [];
     try {
+      reportProgress('Running Enrichr gene-set enrichment…');
       const userListId = await submitGeneList(genes, 'biocli compare-genes');
       const results = await getEnrichment(userListId, library);
       goEnrichment = results.slice(0, limit).map(result => ({
@@ -486,6 +492,7 @@ cli({
       warnings.push(`Enrichr: ${error instanceof Error ? error.message : String(error)}`);
     }
 
+    reportProgress('Computing shared pathways, GO terms, and overlaps…');
     const sharedPathways = buildSharedMembership(geneProfiles, profile => profile.pathways.map(pathway => ({
       id: pathway.pathwayId,
       name: pathway.pathwayName,

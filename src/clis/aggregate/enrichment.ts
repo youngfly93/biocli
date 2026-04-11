@@ -10,6 +10,7 @@ import { CliError } from '../../errors.js';
 import { submitGeneList, getEnrichment } from '../../databases/enrichr.js';
 import { buildStringUrl, encodeStringIds } from '../../databases/string-db.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
+import { allSettledWithProgress } from '../../progress.js';
 import { wrapResult } from '../../types.js';
 
 interface EnrichmentResult {
@@ -47,50 +48,56 @@ cli({
     const errors: string[] = [];
 
     // Run both in parallel
-    const [enrichrResult, stringResult] = await Promise.allSettled([
-      // Enrichr: 2-step workflow
-      (async (): Promise<EnrichmentResult[]> => {
-        const userListId = await submitGeneList(geneList);
-        const results = await getEnrichment(userListId, library);
-        return results.slice(0, limit).map(r => ({
-          term: String(r.term),
-          category: library,
-          source: 'Enrichr',
-          pValue: Number(r.adjustedPValue).toExponential(2),
-          genes: String(r.genes),
-        }));
-      })(),
+    const [enrichrResult, stringResult] = await allSettledWithProgress(
+      'Waiting on',
+      [
+        {
+          label: 'Enrichr',
+          task: async (): Promise<EnrichmentResult[]> => {
+            const userListId = await submitGeneList(geneList);
+            const results = await getEnrichment(userListId, library);
+            return results.slice(0, limit).map(r => ({
+              term: String(r.term),
+              category: library,
+              source: 'Enrichr',
+              pValue: Number(r.adjustedPValue).toExponential(2),
+              genes: String(r.genes),
+            }));
+          },
+        },
+        {
+          label: 'STRING enrichment',
+          task: async (): Promise<EnrichmentResult[]> => {
+            const stringCtx = createHttpContextForDatabase('string');
+            const data = await stringCtx.fetchJson(buildStringUrl('enrichment', {
+              identifiers: encodeStringIds(geneList),
+              species,
+            })) as Record<string, unknown>[];
 
-      // STRING functional enrichment
-      (async (): Promise<EnrichmentResult[]> => {
-        const stringCtx = createHttpContextForDatabase('string');
-        const data = await stringCtx.fetchJson(buildStringUrl('enrichment', {
-          identifiers: encodeStringIds(geneList),
-          species,
-        })) as Record<string, unknown>[];
+            if (!Array.isArray(data)) return [];
 
-        if (!Array.isArray(data)) return [];
-
-        return data
-          .filter(item => {
-            // Only keep KEGG/GO/Reactome categories
-            const cat = String(item.category ?? '');
-            return ['Process', 'Function', 'Component', 'KEGG', 'Reactome'].some(c => cat.includes(c));
-          })
-          .slice(0, limit)
-          .map(item => {
-            const inputGenes = item.inputGenes;
-            const geneStr = Array.isArray(inputGenes) ? inputGenes.join(',') : String(inputGenes ?? '');
-            return {
-              term: String(item.description ?? item.term ?? ''),
-              category: String(item.category ?? ''),
-              source: 'STRING',
-              pValue: Number(item.fdr ?? 1).toExponential(2),
-              genes: geneStr,
-            };
-          });
-      })(),
-    ]);
+            return data
+              .filter(item => {
+                // Only keep KEGG/GO/Reactome categories
+                const cat = String(item.category ?? '');
+                return ['Process', 'Function', 'Component', 'KEGG', 'Reactome'].some(c => cat.includes(c));
+              })
+              .slice(0, limit)
+              .map(item => {
+                const inputGenes = item.inputGenes;
+                const geneStr = Array.isArray(inputGenes) ? inputGenes.join(',') : String(inputGenes ?? '');
+                return {
+                  term: String(item.description ?? item.term ?? ''),
+                  category: String(item.category ?? ''),
+                  source: 'STRING',
+                  pValue: Number(item.fdr ?? 1).toExponential(2),
+                  genes: geneStr,
+                };
+              });
+          },
+        },
+      ],
+    );
 
     const rows: EnrichmentResult[] = [];
 
