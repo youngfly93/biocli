@@ -20,6 +20,7 @@ import { parsePubmedArticles } from '../_shared/xml-helpers.js';
 import { buildUniprotUrl } from '../../databases/uniprot.js';
 import { buildKeggUrl, parseKeggTsv } from '../../databases/kegg.js';
 import { buildStringUrl } from '../../databases/string-db.js';
+import { allSettledWithProgress, reportProgress } from '../../progress.js';
 import { parseGeneSummaries } from '../_shared/xml-helpers.js';
 import { resolveOrganism } from '../_shared/organism-db.js';
 import type { HttpContext } from '../../types.js';
@@ -151,50 +152,53 @@ export async function buildGeneDossier(
   const stringCtx = createHttpContextForDatabase('string');
 
   // Phase 1: Core profile (parallel)
-  const [ncbiResult, uniprotResult, stringResult, litResult, clinvarResult] = await Promise.allSettled([
-    // NCBI Gene
-    (async () => {
-      const sr = await ncbiCtx.fetchJson(buildEutilsUrl('esearch.fcgi', {
-        db: 'gene', term: `${symbol}[Gene Name] AND ${org.name}[Organism]`,
-        retmax: '5', retmode: 'json',
-      })) as Record<string, unknown>;
-      const gids: string[] = (sr?.esearchresult as Record<string, unknown>)?.idlist as string[] ?? [];
-      if (!gids.length) return null;
-      const summ = await ncbiCtx.fetchJson(buildEutilsUrl('esummary.fcgi', {
-        db: 'gene', id: gids.join(','), retmode: 'json',
-      }));
-      const genes = parseGeneSummaries(summ);
-      const best = genes.find(g => g.symbol.toUpperCase() === symbol.toUpperCase()) ?? genes[0];
-      return best ?? null;
-    })(),
-
-    // UniProt
-    (async () => {
-      const data = await uniprotCtx.fetchJson(buildUniprotUrl('/uniprotkb/search', {
-        query: `gene:${symbol} AND organism_id:${org.taxId} AND reviewed:true`,
-        format: 'json', size: '1',
-      })) as Record<string, unknown>;
-      const results = (data?.results ?? []) as Record<string, unknown>[];
-      return results[0] ?? null;
-    })(),
-
-    // STRING partners
-    (async () => {
-      const data = await stringCtx.fetchJson(buildStringUrl('interaction_partners', {
-        identifiers: symbol, species: String(org.taxId), limit: '10', required_score: '400',
-      })) as Record<string, unknown>[];
-      return Array.isArray(data) ? data.map(i => ({
-        partner: String(i.preferredName_B ?? ''),
-        score: Number(i.score ?? 0),
-      })) : [];
-    })(),
-
-    // Literature
-    fetchRecentLiterature(ncbiCtx, symbol, paperCount),
-
-    // ClinVar
-    fetchClinvarSignificance(ncbiCtx, symbol),
-  ]);
+  const [ncbiResult, uniprotResult, stringResult, litResult, clinvarResult] = await allSettledWithProgress(
+    'Waiting on',
+    [
+      {
+        label: 'NCBI Gene',
+        task: async () => {
+          const sr = await ncbiCtx.fetchJson(buildEutilsUrl('esearch.fcgi', {
+            db: 'gene', term: `${symbol}[Gene Name] AND ${org.name}[Organism]`,
+            retmax: '5', retmode: 'json',
+          })) as Record<string, unknown>;
+          const gids: string[] = (sr?.esearchresult as Record<string, unknown>)?.idlist as string[] ?? [];
+          if (!gids.length) return null;
+          const summ = await ncbiCtx.fetchJson(buildEutilsUrl('esummary.fcgi', {
+            db: 'gene', id: gids.join(','), retmode: 'json',
+          }));
+          const genes = parseGeneSummaries(summ);
+          const best = genes.find(g => g.symbol.toUpperCase() === symbol.toUpperCase()) ?? genes[0];
+          return best ?? null;
+        },
+      },
+      {
+        label: 'UniProt',
+        task: async () => {
+          const data = await uniprotCtx.fetchJson(buildUniprotUrl('/uniprotkb/search', {
+            query: `gene:${symbol} AND organism_id:${org.taxId} AND reviewed:true`,
+            format: 'json', size: '1',
+          })) as Record<string, unknown>;
+          const results = (data?.results ?? []) as Record<string, unknown>[];
+          return results[0] ?? null;
+        },
+      },
+      {
+        label: 'STRING',
+        task: async () => {
+          const data = await stringCtx.fetchJson(buildStringUrl('interaction_partners', {
+            identifiers: symbol, species: String(org.taxId), limit: '10', required_score: '400',
+          })) as Record<string, unknown>[];
+          return Array.isArray(data) ? data.map(i => ({
+            partner: String(i.preferredName_B ?? ''),
+            score: Number(i.score ?? 0),
+          })) : [];
+        },
+      },
+      { label: 'PubMed', task: () => fetchRecentLiterature(ncbiCtx, symbol, paperCount) },
+      { label: 'ClinVar', task: () => fetchClinvarSignificance(ncbiCtx, symbol) },
+    ],
+  );
 
   // Extract NCBI
   let ncbiGene: Record<string, string> | null = null;
@@ -253,6 +257,7 @@ export async function buildGeneDossier(
   let pathways: Array<{ id: string; name: string }> = [];
   if (ncbiGene?.geneId) {
     try {
+      reportProgress('Querying KEGG pathways…');
       const keggId = `${org.keggOrg}:${ncbiGene.geneId}`;
       const pathText = await keggCtx.fetchText(buildKeggUrl(`/link/pathway/${keggId}`));
       if (pathText.trim()) {

@@ -2,6 +2,7 @@ import { cli, Strategy } from '../../registry.js';
 import { CliError, EmptyResultError } from '../../errors.js';
 import { wrapResult, type BiocliProvenanceOverride } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
+import { reportProgress } from '../../progress.js';
 import {
   fetchAllStudyMolecularProfiles,
   fetchAllStudySampleLists,
@@ -209,12 +210,14 @@ export async function buildTumorSummary(
   minCoSamples: number,
 ): Promise<TumorBuildResult> {
   const cbioCtx = createHttpContextForDatabase('cbioportal');
+  reportProgress('Resolving cBioPortal gene…');
   const genes = await fetchGenesBySymbol(cbioCtx, gene);
   const cbioGene = genes.find(item => item.hugoGeneSymbol.toUpperCase() === gene.toUpperCase()) ?? genes[0];
   if (!cbioGene) {
     throw new EmptyResultError('aggregate/tumor-gene-dossier', `No cBioPortal gene matched "${gene}". Try a canonical HGNC symbol like TP53 or EGFR.`);
   }
 
+  reportProgress('Loading cBioPortal study profiles and sample lists…');
   const [profiles, sampleLists] = await Promise.all([
     fetchAllStudyMolecularProfiles(cbioCtx, studyId),
     fetchAllStudySampleLists(cbioCtx, studyId),
@@ -254,6 +257,7 @@ export async function buildTumorSummary(
     );
   }
 
+  reportProgress('Fetching cBioPortal anchor mutations…');
   const anchorMutations = await fetchAllMutationPages(cbioCtx, {
     molecularProfileId: profile.molecularProfileId,
     entrezGeneIds: [cbioGene.entrezGeneId],
@@ -277,6 +281,7 @@ export async function buildTumorSummary(
   let coMutations: TumorCoMutationRow[] = [];
   if (anchorSampleIds.length > 0) {
     try {
+      reportProgress('Fetching cBioPortal co-mutations…');
       const cohortMutations = await fetchAllMutationPages(cbioCtx, {
         molecularProfileId: profile.molecularProfileId,
         sampleIds: anchorSampleIds,
@@ -378,6 +383,7 @@ cli({
     const requestedProfileId = String(args.profile ?? '').trim();
     const requestedSampleListId = String(args['sample-list'] ?? '').trim();
 
+    reportProgress('Building baseline gene dossier and cBioPortal tumor overlay…');
     const [geneDossier, tumor] = await Promise.all([
       buildGeneDossier(gene, String(args.organism ?? 'human'), papers),
       buildTumorSummary(

@@ -22,6 +22,7 @@ import { buildEutilsUrl } from '../../databases/ncbi.js';
 import { buildUniprotUrl } from '../../databases/uniprot.js';
 import { buildKeggUrl, parseKeggTsv, parseKeggEntry } from '../../databases/kegg.js';
 import { buildStringUrl } from '../../databases/string-db.js';
+import { allSettledWithProgress, reportProgress } from '../../progress.js';
 import { parseGeneSummaries } from '../_shared/xml-helpers.js';
 import { resolveOrganism } from '../_shared/organism-db.js';
 import type { HttpContext } from '../../types.js';
@@ -260,11 +261,14 @@ async function buildGeneProfile(
   const stringCtx = createHttpContextForDatabase('string');
 
   // Parallel queries with partial failure tolerance
-  const [ncbiResult, uniprotResult, stringResult] = await Promise.allSettled([
-    fetchNcbiGene(ncbiCtx, symbol, organismName),
-    fetchUniprotData(uniprotCtx, symbol, taxId),
-    fetchStringPartners(stringCtx, symbol, taxId),
-  ]);
+  const [ncbiResult, uniprotResult, stringResult] = await allSettledWithProgress(
+    'Waiting on',
+    [
+      { label: 'NCBI Gene', task: () => fetchNcbiGene(ncbiCtx, symbol, organismName) },
+      { label: 'UniProt', task: () => fetchUniprotData(uniprotCtx, symbol, taxId) },
+      { label: 'STRING', task: () => fetchStringPartners(stringCtx, symbol, taxId) },
+    ],
+  );
 
   // Extract NCBI data
   let ncbiData: Awaited<ReturnType<typeof fetchNcbiGene>> = null;
@@ -298,6 +302,7 @@ async function buildGeneProfile(
   let keggData: Awaited<ReturnType<typeof fetchKeggData>> | null = null;
   if (ncbiData?.geneId) {
     try {
+      reportProgress('Querying KEGG pathways and diseases…');
       keggData = await fetchKeggData(keggCtx, keggOrg, ncbiData.geneId, meta.errors);
       if (keggData.pathways.length || keggData.diseases.length) {
         meta.sources.push('KEGG');

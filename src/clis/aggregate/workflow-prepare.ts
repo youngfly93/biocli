@@ -14,6 +14,7 @@ import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
 import { wrapResult } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
+import { allSettledWithProgress, reportProgress } from '../../progress.js';
 import { buildEutilsUrl } from '../../databases/ncbi.js';
 import { buildUniprotUrl } from '../../databases/uniprot.js';
 import { buildKeggUrl, parseKeggTsv } from '../../databases/kegg.js';
@@ -56,6 +57,7 @@ cli({
     }
 
     // Create output directory structure
+    reportProgress('Preparing output directories…');
     const dataDir = join(outdir, 'data');
     const annotDir = join(outdir, 'annotations');
     for (const dir of [outdir, dataDir, annotDir]) {
@@ -74,6 +76,7 @@ cli({
         try {
           const prefix = dataset.slice(0, -3) + 'nnn';
           const supplUrl = `https://ftp.ncbi.nlm.nih.gov/geo/series/${prefix}/${dataset}/suppl/`;
+          reportProgress('Listing GEO supplementary files…');
           const html = await ncbiCtx.fetchText(supplUrl);
 
           // Parse file list
@@ -87,8 +90,9 @@ cli({
           }
 
           let downloaded = 0;
-          for (const file of files) {
+          for (const [index, file] of files.entries()) {
             try {
+              reportProgress(`Downloading GEO file ${index + 1}/${files.length}: ${file.name} (${file.size})…`);
               const resp = await ncbiCtx.fetch(`${supplUrl}${file.name}`);
               if (resp.ok && resp.body) {
                 const ws = createWriteStream(join(dataDir, file.name));
@@ -163,7 +167,13 @@ cli({
         return annotation;
       }
 
-      const annotResults = await Promise.allSettled(genes.map(g => annotateGene(g)));
+      const annotResults = await allSettledWithProgress(
+        'Waiting on gene annotations for',
+        genes.map(gene => ({
+          label: gene,
+          task: () => annotateGene(gene),
+        })),
+      );
       const geneAnnotations: Record<string, unknown>[] = [];
       const annotSources = new Set<string>();
       for (let i = 0; i < annotResults.length; i++) {
@@ -186,15 +196,21 @@ cli({
       // KEGG pathways for genes (parallel) — use NCBI Gene IDs (stable)
       try {
         const keggCtx = createHttpContextForDatabase('kegg');
-        const pathwayResults = await Promise.allSettled(geneAnnotations.map(async (annot) => {
-          const geneId = annot.ncbiGeneId as string | undefined;
-          const symbol = annot.symbol as string;
-          if (!geneId) return [];
-          const linkText = await keggCtx.fetchText(buildKeggUrl(`/link/pathway/hsa:${geneId}`));
-          if (!linkText?.trim()) return [];
-          const links = parseKeggTsv(linkText);
-          return links.map(l => ({ gene: symbol, ncbiGeneId: geneId, pathway: l.value }));
-        }));
+        const pathwayResults = await allSettledWithProgress(
+          'Waiting on KEGG pathways for',
+          geneAnnotations.map(annot => ({
+            label: String(annot.symbol ?? ''),
+            task: async () => {
+              const geneId = annot.ncbiGeneId as string | undefined;
+              const symbol = annot.symbol as string;
+              if (!geneId) return [];
+              const linkText = await keggCtx.fetchText(buildKeggUrl(`/link/pathway/hsa:${geneId}`));
+              if (!linkText?.trim()) return [];
+              const links = parseKeggTsv(linkText);
+              return links.map(l => ({ gene: symbol, ncbiGeneId: geneId, pathway: l.value }));
+            },
+          })),
+        );
         const allPathways: Record<string, unknown>[] = [];
         for (let i = 0; i < pathwayResults.length; i++) {
           const r = pathwayResults[i];
@@ -218,6 +234,7 @@ cli({
     }
 
     // ── Step 3: Generate manifest ───────────────────────────────────────
+    reportProgress('Writing manifest…');
     steps.push({ step: 'manifest', status: 'done', detail: `manifest.json → ${outdir}` });
     const result = wrapResult({
       outdir,

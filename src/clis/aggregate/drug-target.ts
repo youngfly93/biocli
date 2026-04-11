@@ -12,6 +12,7 @@ import { cli, Strategy } from '../../registry.js';
 import { CliError, EmptyResultError } from '../../errors.js';
 import { wrapResult } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
+import { reportProgress } from '../../progress.js';
 import { fetchStudy, type CbioPortalStudy } from '../../databases/cbioportal.js';
 import {
   fetchDrugsByIds,
@@ -800,6 +801,7 @@ cli({
     const reportLimit = Math.max(1, Math.min(Number(args.reportLimit ?? 3), 5));
 
     const opentargetsCtx = createHttpContextForDatabase('opentargets');
+    reportProgress('Resolving Open Targets target…');
     const resolved = await resolveTarget(opentargetsCtx, gene);
     if (!resolved) {
       throw new EmptyResultError(
@@ -808,6 +810,7 @@ cli({
       );
     }
 
+    reportProgress('Fetching Open Targets drug snapshot…');
     const snapshot = await fetchTargetDrugSnapshot(opentargetsCtx, resolved.id, 0, diseaseLimit);
     if (!snapshot) {
       throw new EmptyResultError(
@@ -819,7 +822,9 @@ cli({
     const chemblIds = snapshot.drugAndClinicalCandidates.rows
       .map(row => row.drug?.id ?? '')
       .filter(Boolean);
+    reportProgress('Fetching Open Targets drug details…');
     const drugDetails = await fetchDrugsByIds(opentargetsCtx, chemblIds);
+    if (studyId) reportProgress('Fetching cBioPortal tumor overlay…');
     const tumorOverlay: TumorBuildResult | null = studyId
       ? await buildTumorSummary(
           resolved.approvedSymbol || gene,
@@ -844,6 +849,7 @@ cli({
     const gdscWarnings: string[] = [];
     let gdscIndex: GdscSensitivityIndex | null = null;
     try {
+      reportProgress('Loading GDSC sensitivity index…');
       const gdscCtx = createHttpContextForDatabase('gdsc');
       gdscIndex = await loadGdscSensitivityIndex(gdscCtx);
     } catch (error) {
@@ -855,6 +861,7 @@ cli({
     if (studyId) {
       const cbioCtx = createHttpContextForDatabase('cbioportal');
       try {
+        reportProgress('Fetching cBioPortal study metadata…');
         studyMeta = await fetchStudy(cbioCtx, studyId);
       } catch (error) {
         studyMetaWarnings.push(
@@ -880,6 +887,7 @@ cli({
       ...studyTerms,
     ]);
 
+    reportProgress('Ranking drug candidates…');
     const {
       totalCandidates,
       matchedCandidateCount,
