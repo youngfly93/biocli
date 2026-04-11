@@ -15,7 +15,7 @@ import { printCompletionScript, getCompletions } from './completion.js';
 import { registerAllCommands } from './commander-adapter.js';
 import { validateAll } from './validate.js';
 import { runDoctor, formatDoctorText, formatDoctorJson } from './doctor.js';
-import { biocliResultSchema, resultWithMetaSchema } from './schema.js';
+import { getJsonSchemaForTarget } from './schema.js';
 import { runVerify, formatVerifyText, formatVerifyJson } from './verify.js';
 import { loadConfig, saveConfig, getConfigPath } from './config.js';
 import { getStats as getCacheStats, clearCache } from './cache.js';
@@ -250,9 +250,15 @@ ${chalk.bold('Configuration:')}
 
   program
     .command('schema [type]')
-    .description('Output JSON Schema for biocli result types (default: result, or: meta)')
+    .description('Output JSON Schema for result/meta or a specific command (e.g. aggregate/gene-dossier)')
     .action((type?: string) => {
-      const schema = type === 'meta' ? resultWithMetaSchema : biocliResultSchema;
+      const schema = getJsonSchemaForTarget(type);
+      if (!schema) {
+        console.error(chalk.red(`Unknown schema target: "${type}".`));
+        console.error(chalk.dim('Use "biocli schema", "biocli schema meta", or "biocli schema <site/command>".'));
+        process.exitCode = 1;
+        return;
+      }
       console.log(JSON.stringify(schema, null, 2));
     });
 
