@@ -268,59 +268,6 @@ ${chalk.bold('Configuration:')}
       console.log(renderMethods(payload, parseMethodsFormat(String(opts.format))));
     });
 
-  // ── Built-in: MCP ──────────────────────────────────────────────────────────
-
-  const mcpCmd = program
-    .command('mcp')
-    .description('Run biocli as an MCP server or install MCP client config');
-
-  mcpCmd
-    .command('serve')
-    .description('Start a stdio MCP server')
-    .option('--scope <scope>', 'Tool scope: hero or all', 'hero')
-    .action(async (opts) => {
-      const { parseMcpScope, serveMcpServer } = await import('./mcp.js');
-      await serveMcpServer(parseMcpScope(String(opts.scope)));
-    });
-
-  mcpCmd
-    .command('install')
-    .description('Install Claude Desktop MCP config')
-    .option('--client <client>', 'Target client (currently only claude-desktop)', 'claude-desktop')
-    .option('--path <path>', 'Override the target config file path')
-    .option('--name <name>', 'Server name in the MCP client config', 'biocli')
-    .option('--scope <scope>', 'Tool scope to expose: hero or all', 'hero')
-    .option('--dry-run', 'Print the config entry without writing the file', false)
-    .action(async (opts) => {
-      if (opts.client !== 'claude-desktop') {
-        console.error(chalk.red(`Unsupported MCP client: "${opts.client}".`));
-        console.error(chalk.dim('Currently supported: claude-desktop'));
-        process.exitCode = 1;
-        return;
-      }
-
-      const { installMcpServer, parseMcpScope } = await import('./mcp.js');
-      const result = installMcpServer({
-        path: typeof opts.path === 'string' ? opts.path : undefined,
-        serverName: String(opts.name),
-        scope: parseMcpScope(String(opts.scope)),
-        dryRun: opts.dryRun === true,
-      });
-
-      if (opts.dryRun === true) {
-        console.log(JSON.stringify({
-          mcpServers: {
-            [String(opts.name)]: result.entry,
-          },
-        }, null, 2));
-        return;
-      }
-
-      const action = result.overwritten ? 'Updated' : 'Installed';
-      console.log(chalk.green(`${action} MCP config for "${String(opts.name)}".`));
-      console.log(chalk.dim(result.configPath));
-    });
-
   // ── Built-in: doctor ───────────────────────────────────────────────────────
 
   program

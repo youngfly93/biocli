@@ -141,7 +141,7 @@ biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
 
 Benchmark v2 shows biocli at **88% workflow coverage with 100.0 quality** on supported tasks; next-best (BioMCP) is 24% at 97.1. See the [benchmark section](#benchmark-v2) for the full four-tool comparison.
 
-Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache, and a built-in MCP server.
+Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache, and an optional MCP companion package.
 
 ## Who is this for
 
@@ -186,7 +186,7 @@ Agents that parse biocli output never need to branch on command type — every `
 
 ## Use it with your agent
 
-biocli supports both shell-first and MCP-first agent workflows. Agents can either run shell commands and parse JSON, or discover biocli as MCP tools via `biocli mcp`.
+biocli is shell-first by default. Agents can run commands directly and parse JSON. If you need MCP transport, use the optional companion package under [`packages/biocli-mcp`](packages/biocli-mcp/README.md).
 
 ### Shell-first
 
@@ -251,12 +251,12 @@ Every biocli command keeps **warnings on stderr** and **payload on stdout**, so 
 ### MCP-first
 
 ```bash
-biocli mcp install --dry-run
-biocli mcp install
-biocli mcp serve --scope hero
+npm run build
+node packages/biocli-mcp/cli.js install --dry-run
+node packages/biocli-mcp/cli.js serve --scope hero
 ```
 
-That path exposes hero workflows such as `gene-dossier`, `tumor-gene-dossier`, `drug-target`, `variant-dossier`, `literature-brief`, and `workflow-prepare` as MCP tools for Claude Desktop or any compatible MCP client.
+That companion package exposes hero workflows such as `gene-dossier`, `tumor-gene-dossier`, `drug-target`, `variant-dossier`, `literature-brief`, and `workflow-prepare` as MCP tools for Claude Desktop or any compatible MCP client, while keeping the core `biocli` install lean.
 
 ## How biocli compares
 

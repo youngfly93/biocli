@@ -57,7 +57,8 @@ try {
 
   assert(readme.includes('conda install -c bioconda -c conda-forge biocli'), 'Top-level README must document the preferred conda install command');
   assert(readme.includes('packaging/conda/README.md'), 'Top-level README must link to conda packaging docs');
-  assert(readme.includes('biocli mcp install'), 'Top-level README must document MCP install');
+  assert(readme.includes('packages/biocli-mcp'), 'Top-level README must document the optional MCP companion package');
+  assert(readme.includes('node packages/biocli-mcp/cli.js install --dry-run'), 'Top-level README must document MCP install via the companion package');
 
   assert(recipeReadme.includes('npm run verify:conda'), 'Conda packaging README must document static scaffold verification');
   assert(recipeReadme.includes('npm run build:conda:local'), 'Conda packaging README must document the local conda build helper');

@@ -22,7 +22,7 @@ describe('distribution scaffolding', () => {
     const readme = readFileSync(resolve(ROOT, 'README.md'), 'utf8');
     expect(readme).toContain('conda install -c bioconda -c conda-forge biocli');
     expect(readme).toContain('packaging/conda/README.md');
-    expect(readme).toContain('biocli mcp install');
+    expect(readme).toContain('packages/biocli-mcp');
     expect(readme).toContain('npm run verify:conda');
   });
 

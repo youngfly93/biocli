@@ -178,36 +178,6 @@ describe('biocli smoke: core', () => {
     expect(result.stderr).toContain('unknown step');
   });
 
-  it('mcp install writes a Claude Desktop config entry from source', () => {
-    const homeDir = makeIsolatedHome();
-    const configPath = resolve(homeDir, 'claude_desktop_config.json');
-
-    const result = runCliWithHome([
-      'mcp',
-      'install',
-      '--path',
-      configPath,
-      '--name',
-      'biocli-test',
-      '--scope',
-      'hero',
-    ], homeDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('Installed MCP config');
-
-    const config = readJson(configPath);
-    expect(config.mcpServers['biocli-test'].command).toBe(process.execPath);
-    expect(config.mcpServers['biocli-test'].args).toEqual([
-      TSX_CLI,
-      MAIN_SRC,
-      'mcp',
-      'serve',
-      '--scope',
-      'hero',
-    ]);
-  });
-
   it('methods renders a methods-ready paragraph from source', () => {
     const homeDir = makeIsolatedHome();
     const resultPath = writeMethodsFixture(homeDir);
@@ -269,35 +239,6 @@ describe('biocli smoke: dist build', () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('bad.yaml');
     expect(result.stderr).toContain('unknown step');
-  });
-
-  it('dist mcp install writes a Claude Desktop config entry', () => {
-    const homeDir = makeIsolatedHome();
-    const configPath = resolve(homeDir, 'claude_desktop_config.json');
-
-    const result = runDistWithHome([
-      'mcp',
-      'install',
-      '--path',
-      configPath,
-      '--name',
-      'biocli-test',
-      '--scope',
-      'all',
-    ], homeDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('Installed MCP config');
-
-    const config = readJson(configPath);
-    expect(config.mcpServers['biocli-test'].command).toBe(process.execPath);
-    expect(config.mcpServers['biocli-test'].args).toEqual([
-      MAIN_DIST,
-      'mcp',
-      'serve',
-      '--scope',
-      'all',
-    ]);
   });
 
   it('dist methods renders markdown output', () => {

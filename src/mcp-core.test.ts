@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mergeMcpServerConfig, getMcpToolName, normalizeMcpResult, parseMcpScope } from './mcp.js';
+import { getMcpToolName, normalizeMcpResult, parseMcpScope } from './mcp-core.js';
 import type { CliCommand } from './registry.js';
 import { withMeta, wrapResult } from './types.js';
 
@@ -13,7 +13,7 @@ function makeCommand(overrides: Partial<CliCommand> = {}): CliCommand {
   };
 }
 
-describe('mcp', () => {
+describe('mcp-core', () => {
   it('parses known MCP scopes', () => {
     expect(parseMcpScope('hero')).toBe('hero');
     expect(parseMcpScope('all')).toBe('all');
@@ -75,35 +75,6 @@ describe('mcp', () => {
               recordIds: ['7157'],
             },
           ],
-        },
-      },
-    });
-  });
-
-  it('merges MCP client config without dropping existing servers', () => {
-    expect(mergeMcpServerConfig(
-      {
-        mcpServers: {
-          existing: {
-            command: 'node',
-            args: ['/tmp/existing.js'],
-          },
-        },
-      },
-      'biocli',
-      {
-        command: 'node',
-        args: ['/tmp/biocli.js', 'mcp', 'serve'],
-      },
-    )).toEqual({
-      mcpServers: {
-        existing: {
-          command: 'node',
-          args: ['/tmp/existing.js'],
-        },
-        biocli: {
-          command: 'node',
-          args: ['/tmp/biocli.js', 'mcp', 'serve'],
         },
       },
     });
