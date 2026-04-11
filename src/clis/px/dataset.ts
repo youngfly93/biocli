@@ -39,7 +39,7 @@ cli({
   strategy: Strategy.PUBLIC,
   defaultFormat: 'json',
   args: [
-    { name: 'accession', positional: true, required: true, help: 'PXD accession (e.g. PXD000001)' },
+    { name: 'accession', positional: true, required: true, help: 'PXD accession (e.g. PXD000001)', producedBy: ['px/search'] },
     {
       name: 'detailed',
       type: 'boolean',

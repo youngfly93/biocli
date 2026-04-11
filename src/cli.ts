@@ -96,6 +96,7 @@ ${chalk.bold('Configuration:')}
               ...(a.positional ? { positional: true } : {}),
               ...(a.default !== undefined ? { default: a.default } : {}),
               ...(a.choices ? { choices: a.choices } : {}),
+              ...(a.producedBy ? { producedBy: a.producedBy } : {}),
               ...(a.help ? { help: a.help } : {}),
             })),
             defaultFormat: c.defaultFormat ?? 'table',

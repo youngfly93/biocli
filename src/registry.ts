@@ -27,6 +27,8 @@ export interface Arg {
   positional?: boolean;
   help?: string;
   choices?: string[];
+  /** Commands that can produce candidate values for this argument. */
+  producedBy?: string[];
 }
 
 export interface RequiredEnv {

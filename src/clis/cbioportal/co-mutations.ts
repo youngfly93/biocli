@@ -32,8 +32,8 @@ cli({
   strategy: Strategy.PUBLIC,
   args: [
     { name: 'gene', positional: true, required: true, help: 'Anchor HGNC gene symbol (e.g. TP53, EGFR)' },
-    { name: 'study', required: true, help: 'cBioPortal study ID (e.g. acc_tcga_pan_can_atlas_2018)' },
-    { name: 'profile', help: 'Optional molecular profile ID. Defaults to the study mutation profile.' },
+    { name: 'study', required: true, help: 'cBioPortal study ID (e.g. acc_tcga_pan_can_atlas_2018)', producedBy: ['cbioportal/studies'] },
+    { name: 'profile', help: 'Optional molecular profile ID. Defaults to the study mutation profile.', producedBy: ['cbioportal/profiles'] },
     { name: 'sample-list', help: 'Optional sample list ID. Defaults to sequenced/all cases for the study.' },
     { name: 'limit', type: 'int', default: 20, help: 'Max partner genes to return (1-100)' },
     { name: 'min-samples', type: 'int', default: 1, help: 'Minimum co-mutated samples required for a partner gene' },

@@ -40,7 +40,7 @@ cli({
     { path: '<outdir>/manifest.json', kind: 'file', description: 'Workflow provenance manifest' },
   ],
   args: [
-    { name: 'dataset', positional: true, required: true, help: 'GEO accession (GSE*) or SRA accession (SRR*)' },
+    { name: 'dataset', positional: true, required: true, help: 'GEO accession (GSE*) or SRA accession (SRR*)', producedBy: ['aggregate/workflow-scout', 'geo/search', 'sra/search'] },
     { name: 'gene', help: 'Focus gene symbol(s), comma-separated (e.g. TP53,BRCA1)' },
     { name: 'outdir', required: true, help: 'Output directory for the prepared workspace' },
     { name: 'skip-download', type: 'boolean', default: false, help: 'Skip data download, only fetch annotations' },

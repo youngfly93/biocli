@@ -772,8 +772,8 @@ cli({
   args: [
     { name: 'gene', positional: true, required: true, help: 'Gene symbol or Ensembl gene ID (for example EGFR or ENSG00000146648)' },
     { name: 'disease', help: 'Optional disease filter applied to disease contexts (for example lung or glioblastoma)' },
-    { name: 'study', help: 'Optional cBioPortal study ID for a tumor-specific overlay (for example luad_tcga_pan_can_atlas_2018)' },
-    { name: 'profile', help: 'Optional cBioPortal molecular profile ID. Only used with --study.' },
+    { name: 'study', help: 'Optional cBioPortal study ID for a tumor-specific overlay (for example luad_tcga_pan_can_atlas_2018)', producedBy: ['cbioportal/studies'] },
+    { name: 'profile', help: 'Optional cBioPortal molecular profile ID. Only used with --study.', producedBy: ['cbioportal/profiles'] },
     { name: 'sample-list', help: 'Optional cBioPortal sample list ID. Only used with --study.' },
     { name: 'co-mutations', type: 'int', default: 5, help: 'Number of co-mutated partner genes to include when --study is set' },
     { name: 'variants', type: 'int', default: 3, help: 'Number of exemplar variant groups to include when --study is set' },

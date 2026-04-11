@@ -39,6 +39,7 @@ export interface ManifestEntry {
     positional?: boolean;
     help?: string;
     choices?: string[];
+    producedBy?: string[];
   }>;
   columns?: string[];
   defaultFormat?: CliCommand['defaultFormat'];
@@ -80,6 +81,7 @@ function toManifestArgs(args: CliCommand['args']): ManifestEntry['args'] {
     positional: arg.positional || undefined,
     help: arg.help ?? '',
     choices: arg.choices,
+    producedBy: arg.producedBy,
   }));
 }
 

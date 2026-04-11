@@ -16,7 +16,7 @@ cli({
   database: 'cbioportal',
   strategy: Strategy.PUBLIC,
   args: [
-    { name: 'study', positional: true, required: true, help: 'cBioPortal study ID (e.g. acc_tcga_pan_can_atlas_2018)' },
+    { name: 'study', positional: true, required: true, help: 'cBioPortal study ID (e.g. acc_tcga_pan_can_atlas_2018)', producedBy: ['cbioportal/studies'] },
     { name: 'type', help: 'Optional filter on molecularAlterationType or datatype (e.g. MUTATION_EXTENDED, MRNA_EXPRESSION)' },
     { name: 'limit', type: 'int', default: 50, help: 'Max profiles to return (1-100)' },
   ],

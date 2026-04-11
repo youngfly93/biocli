@@ -67,7 +67,7 @@ cli({
   strategy: Strategy.PUBLIC,
   defaultFormat: 'json',
   args: [
-    { name: 'accession', positional: true, required: true, help: 'PXD accession (PRIDE-hosted)' },
+    { name: 'accession', positional: true, required: true, help: 'PXD accession (PRIDE-hosted)', producedBy: ['px/search'] },
   ],
   examples: [
     {

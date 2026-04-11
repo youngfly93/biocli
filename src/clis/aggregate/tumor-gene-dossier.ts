@@ -358,10 +358,10 @@ cli({
   timeoutSeconds: 120,
   args: [
     { name: 'gene', positional: true, required: true, help: 'Gene symbol (e.g. TP53, EGFR)' },
-    { name: 'study', required: true, help: 'cBioPortal study ID (e.g. luad_tcga_pan_can_atlas_2018)' },
+    { name: 'study', required: true, help: 'cBioPortal study ID (e.g. luad_tcga_pan_can_atlas_2018)', producedBy: ['cbioportal/studies'] },
     { name: 'organism', default: 'human', help: 'Organism for the baseline gene dossier (e.g. human, mouse)' },
     { name: 'papers', type: 'int', default: 5, help: 'Number of recent papers to include in the baseline dossier' },
-    { name: 'profile', help: 'Optional molecular profile ID. Defaults to the study mutation profile.' },
+    { name: 'profile', help: 'Optional molecular profile ID. Defaults to the study mutation profile.', producedBy: ['cbioportal/profiles'] },
     { name: 'sample-list', help: 'Optional sample list ID. Defaults to sequenced/all cases for the study.' },
     { name: 'co-mutations', type: 'int', default: 10, help: 'Number of co-mutated partner genes to include' },
     { name: 'variants', type: 'int', default: 5, help: 'Number of exemplar variant groups to include' },
