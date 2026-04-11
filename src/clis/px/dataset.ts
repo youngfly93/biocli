@@ -106,6 +106,7 @@ cli({
         warnings,
         query: accession,
         ids: { pxd: accession, hostingRepository },
+        completeness: repositoryStatus === 'degraded' ? 'degraded' : undefined,
       },
     );
   },

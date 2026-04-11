@@ -6,7 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
-import { buildEnsemblUrl } from '../../databases/ensembl.js';
+import { buildEnsemblUrl, isEnsemblId } from '../../databases/ensembl.js';
 import { withMeta } from '../../types.js';
 
 cli({
@@ -16,7 +16,7 @@ cli({
   database: 'ensembl',
   strategy: Strategy.PUBLIC,
   args: [
-    { name: 'symbol', positional: true, required: true, help: 'Gene symbol (e.g. BRCA2)' },
+    { name: 'symbol', positional: true, required: true, help: 'Gene symbol (e.g. BRCA2) or Ensembl ID (e.g. ENSG00000141510)' },
     { name: 'species', default: 'homo_sapiens', help: 'Species name' },
   ],
   columns: ['database', 'primaryId', 'displayId', 'description'],
@@ -24,8 +24,12 @@ cli({
     const symbol = String(args.symbol).trim();
     const species = String(args.species).toLowerCase().replace(/\s+/g, '_');
 
+    const apiPath = isEnsemblId(symbol)
+      ? `/xrefs/id/${symbol}`
+      : `/xrefs/symbol/${species}/${symbol}`;
+
     const data = await ctx.fetchJson(
-      buildEnsemblUrl(`/xrefs/symbol/${species}/${symbol}`),
+      buildEnsemblUrl(apiPath),
     ) as Record<string, unknown>[];
 
     if (!Array.isArray(data) || !data.length) {

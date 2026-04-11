@@ -17,6 +17,7 @@ cli({
   name: 'analyze',
   description: 'Run gene set enrichment analysis',
   database: 'enrichr',
+  noBatch: true,
   strategy: Strategy.PUBLIC,
   args: [
     { name: 'genes', positional: true, required: true, help: 'Comma-separated gene symbols (e.g. TP53,BRCA1,EGFR,MYC,CDK2)' },

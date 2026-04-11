@@ -116,6 +116,19 @@ describe('aggregate/variant-interpret', () => {
     expect(result).toEqual(expect.objectContaining({
       sources: expect.arrayContaining(['dbSNP', 'ClinVar', 'Ensembl VEP', 'UniProt']),
       query: 'rs334',
+      completeness: 'complete',
+      provenance: expect.objectContaining({
+        sources: expect.arrayContaining([
+          expect.objectContaining({
+            source: 'dbSNP',
+            recordIds: ['rs334'],
+          }),
+          expect.objectContaining({
+            source: 'ClinVar',
+            recordIds: ['VCV000012345'],
+          }),
+        ]),
+      }),
     }));
 
     const data = result.data as Record<string, unknown>;

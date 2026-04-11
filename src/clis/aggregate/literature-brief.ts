@@ -88,6 +88,10 @@ cli({
         warnings,
         query,
         ids: { totalPmids: String(totalCount) },
+        provenance: [{
+          source: 'PubMed',
+          recordIds: papers.map(item => item.pmid),
+        }],
       },
     );
   },

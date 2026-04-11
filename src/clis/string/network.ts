@@ -15,6 +15,7 @@ cli({
   name: 'network',
   description: 'Get protein interaction network',
   database: 'string',
+  noBatch: true,
   strategy: Strategy.PUBLIC,
   args: [
     { name: 'proteins', positional: true, required: true, help: 'Comma-separated protein/gene names (e.g. TP53,BRCA1,EGFR)' },

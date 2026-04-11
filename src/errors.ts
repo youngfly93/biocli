@@ -72,7 +72,7 @@ export class TimeoutError extends CliError {
     super(
       'TIMEOUT',
       `${label} timed out after ${seconds}s`,
-      hint ?? 'Try again later, or increase the timeout if the NCBI server is slow',
+      hint ?? 'Try again later — the server may be slow or temporarily unavailable',
       EXIT_CODES.TEMPFAIL,
     );
   }
@@ -105,8 +105,8 @@ export class RateLimitError extends CliError {
   constructor(message?: string, hint?: string) {
     super(
       'RATE_LIMITED',
-      message ?? 'NCBI API rate limit exceeded',
-      hint ?? 'Add an API key (biocli config set api_key YOUR_KEY) to increase the rate limit from 3 to 10 requests/sec',
+      message ?? 'API rate limit exceeded',
+      hint ?? 'Wait a moment and retry, or reduce request frequency',
       EXIT_CODES.TEMPFAIL,
     );
   }
@@ -117,7 +117,7 @@ export class ApiError extends CliError {
     super(
       'API_ERROR',
       message,
-      hint ?? 'Check the NCBI API status at https://www.ncbi.nlm.nih.gov/home/develop/',
+      hint ?? 'Check the API status page for the relevant database, or try again later',
       EXIT_CODES.GENERIC_ERROR,
     );
   }

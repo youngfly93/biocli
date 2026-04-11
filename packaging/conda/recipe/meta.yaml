@@ -1,0 +1,42 @@
+{% set name = "biocli" %}
+{% set version = "0.4.1" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ../../..
+
+build:
+  number: 0
+
+requirements:
+  host:
+    - nodejs >=20
+  run:
+    - nodejs >=20
+
+test:
+  commands:
+    - biocli --version
+    - biocli schema
+    - biocli list -f json
+    - biocli methods - --format text < {{ RECIPE_DIR }}/methods-fixture.json  # [unix]
+    - type {{ RECIPE_DIR }}\\methods-fixture.json | biocli methods - --format text  # [win]
+
+about:
+  home: https://github.com/youngfly93/biocli
+  summary: Agent-first CLI for biological databases and workflow aggregation
+  description: |
+    biocli is a Node.js CLI for biological data retrieval, aggregation, and
+    workflow preparation across NCBI, UniProt, KEGG, STRING, Ensembl,
+    Enrichr, ProteomeXchange, PRIDE, and a local Unimod snapshot.
+  license: MIT
+  license_file: LICENSE
+  doc_url: https://github.com/youngfly93/biocli#readme
+  dev_url: https://github.com/youngfly93/biocli
+
+extra:
+  recipe-maintainers:
+    - youngfly93

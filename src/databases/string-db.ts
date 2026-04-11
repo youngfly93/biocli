@@ -63,11 +63,11 @@ async function stringFetch(url: string, opts?: FetchOptions): Promise<Response> 
           await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
           continue;
         }
-        throw new ApiError('STRING API rate limit exceeded. Try again in a few seconds.');
+        throw new ApiError('STRING API rate limit exceeded. Try again in a few seconds.', 'Check STRING at https://string-db.org');
       }
 
       if (!response.ok) {
-        throw new ApiError(`STRING API returned HTTP ${response.status}: ${response.statusText}`);
+        throw new ApiError(`STRING API returned HTTP ${response.status}: ${response.statusText}`, 'Check STRING at https://string-db.org');
       }
 
       return response;
@@ -83,6 +83,7 @@ async function stringFetch(url: string, opts?: FetchOptions): Promise<Response> 
 
   throw new ApiError(
     `STRING request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    'Check STRING at https://string-db.org',
   );
 }
 

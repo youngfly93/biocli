@@ -9,6 +9,7 @@ import { buildUniprotUrl } from './databases/uniprot.js';
 import { buildKeggUrl } from './databases/kegg.js';
 import { buildStringUrl, encodeStringIds } from './databases/string-db.js';
 import { buildEnsemblUrl } from './databases/ensembl.js';
+import { buildCbioPortalUrl } from './databases/cbioportal.js';
 
 describe('buildEutilsUrl', () => {
   it('builds correct E-utilities URL with params', () => {
@@ -84,5 +85,14 @@ describe('buildEnsemblUrl', () => {
   it('works without params', () => {
     const url = buildEnsemblUrl('/info/ping');
     expect(url).toContain('rest.ensembl.org/info/ping');
+  });
+});
+
+describe('buildCbioPortalUrl', () => {
+  it('builds correct cBioPortal URLs', () => {
+    const url = buildCbioPortalUrl('/studies', { keyword: 'breast', projection: 'SUMMARY' });
+    expect(url).toContain('www.cbioportal.org/api/studies');
+    expect(url).toContain('keyword=breast');
+    expect(url).toContain('projection=SUMMARY');
   });
 });

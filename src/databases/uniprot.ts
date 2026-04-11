@@ -67,7 +67,7 @@ async function uniprotFetch(url: string, opts?: FetchOptions): Promise<Response>
           await sleep(delayMs);
           continue;
         }
-        throw new ApiError('UniProt API rate limit exceeded');
+        throw new ApiError('UniProt API rate limit exceeded', 'Check UniProt API at https://rest.uniprot.org');
       }
 
       if (!response.ok) {
@@ -90,6 +90,7 @@ async function uniprotFetch(url: string, opts?: FetchOptions): Promise<Response>
 
   throw new ApiError(
     `UniProt request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    'Check UniProt API at https://rest.uniprot.org',
   );
 }
 

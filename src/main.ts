@@ -27,6 +27,9 @@ import './databases/ensembl.js';
 import './databases/enrichr.js';
 import './databases/proteomexchange.js';
 import './databases/pride.js';
+import './databases/cbioportal.js';
+import './databases/opentargets.js';
+import './databases/gdsc.js';
 
 // Warn on stderr when invoked as the legacy `ncbicli` binary. No-op when
 // invoked as `biocli` or when BIOCLI_NO_DEPRECATION=1 is set.

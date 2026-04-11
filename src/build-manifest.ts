@@ -53,6 +53,8 @@ export interface ManifestEntry {
    * skip HttpContext creation and the response cache.
    */
   noContext?: boolean;
+  /** Mirrors CliCommand.noBatch. Prevents batch-splitting of comma-separated positional args. */
+  noBatch?: boolean;
   /** 'yaml' or 'ts' — determines how executeCommand loads the handler */
   type: 'yaml' | 'ts';
   /** Relative path from clis/ dir, e.g. 'pubmed/search.yaml' or 'gene/info.js' */
@@ -104,6 +106,7 @@ function toManifestEntry(cmd: CliCommand, modulePath: string): ManifestEntry {
     // Only emit when true so we don't bloat the manifest with `false` for
     // every command. Reader treats undefined and false the same.
     noContext: cmd.noContext === true ? true : undefined,
+    noBatch: cmd.noBatch === true ? true : undefined,
     type: 'ts',
     modulePath,
   };

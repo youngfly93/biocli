@@ -222,6 +222,12 @@ cli({
       sources,
       warnings,
       query: variant,
+      provenance: [
+        ...(clinvar.length > 0 ? [{
+          source: 'ClinVar',
+          recordIds: clinvar.map(item => item.accession),
+        }] : []),
+      ],
     });
   },
 });

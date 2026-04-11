@@ -3,6 +3,8 @@ dist/
 *.tsbuildinfo
 *.tgz
 .ncbicli/
+.conda/
+.npm-cache/
 *.log
 .DS_Store
 ._*

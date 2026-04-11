@@ -1,0 +1,33 @@
+{
+  "biocliVersion": "0.4.1",
+  "query": "TP53",
+  "organism": "Homo sapiens",
+  "queriedAt": "2026-04-10T12:00:00.000Z",
+  "completeness": "complete",
+  "warnings": [],
+  "sources": [
+    "NCBI Gene",
+    "UniProt"
+  ],
+  "provenance": {
+    "retrievedAt": "2026-04-10T12:00:00.000Z",
+    "sources": [
+      {
+        "source": "NCBI Gene",
+        "apiVersion": "E-utilities",
+        "recordIds": [
+          "7157"
+        ],
+        "url": "https://www.ncbi.nlm.nih.gov/gene/7157"
+      },
+      {
+        "source": "UniProt",
+        "apiVersion": "REST",
+        "recordIds": [
+          "P04637"
+        ],
+        "url": "https://www.uniprot.org/uniprotkb/P04637"
+      }
+    ]
+  }
+}

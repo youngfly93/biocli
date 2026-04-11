@@ -13,12 +13,12 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
-import { wrapResult } from '../../types.js';
+import { wrapResult, type BiocliProvenanceOverride } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { buildEutilsUrl } from '../../databases/ncbi.js';
 import { parsePubmedArticles } from '../_shared/xml-helpers.js';
 import { buildUniprotUrl } from '../../databases/uniprot.js';
-import { buildKeggUrl, parseKeggTsv, parseKeggEntry } from '../../databases/kegg.js';
+import { buildKeggUrl, parseKeggTsv } from '../../databases/kegg.js';
 import { buildStringUrl } from '../../databases/string-db.js';
 import { parseGeneSummaries } from '../_shared/xml-helpers.js';
 import { resolveOrganism } from '../_shared/organism-db.js';
@@ -107,6 +107,199 @@ async function fetchClinvarSignificance(ctx: HttpContext, symbol: string): Promi
   });
 }
 
+export interface GeneDossierData {
+  symbol: string;
+  name: string;
+  summary: string;
+  function: string;
+  chromosome: string;
+  location: string;
+  pathways: Array<{ id: string; name: string }>;
+  goTerms: Array<{ id: string; name: string; aspect: string }>;
+  interactions: Array<{ partner: string; score: number }>;
+  recentLiterature: Array<{ pmid: string; title: string; authors: string; journal: string; year: string; doi: string }>;
+  clinicalVariants: Array<{ title: string; significance: string; condition: string; accession: string }>;
+}
+
+export interface GeneDossierBuildResult {
+  data: GeneDossierData;
+  ids: Record<string, string>;
+  sources: string[];
+  warnings: string[];
+  organism: string;
+  provenance: BiocliProvenanceOverride[];
+}
+
+export async function buildGeneDossier(
+  geneArg: string,
+  organismArg: string,
+  papersArg: number,
+): Promise<GeneDossierBuildResult> {
+  const symbol = String(geneArg).trim();
+  if (!symbol) throw new CliError('ARGUMENT', 'Gene symbol is required');
+
+  const org = resolveOrganism(String(organismArg));
+  const paperCount = Math.max(1, Math.min(Number(papersArg), 20));
+
+  const sources: string[] = [];
+  const warnings: string[] = [];
+  const ids: Record<string, string> = {};
+
+  const ncbiCtx = createHttpContextForDatabase('ncbi');
+  const uniprotCtx = createHttpContextForDatabase('uniprot');
+  const keggCtx = createHttpContextForDatabase('kegg');
+  const stringCtx = createHttpContextForDatabase('string');
+
+  // Phase 1: Core profile (parallel)
+  const [ncbiResult, uniprotResult, stringResult, litResult, clinvarResult] = await Promise.allSettled([
+    // NCBI Gene
+    (async () => {
+      const sr = await ncbiCtx.fetchJson(buildEutilsUrl('esearch.fcgi', {
+        db: 'gene', term: `${symbol}[Gene Name] AND ${org.name}[Organism]`,
+        retmax: '5', retmode: 'json',
+      })) as Record<string, unknown>;
+      const gids: string[] = (sr?.esearchresult as Record<string, unknown>)?.idlist as string[] ?? [];
+      if (!gids.length) return null;
+      const summ = await ncbiCtx.fetchJson(buildEutilsUrl('esummary.fcgi', {
+        db: 'gene', id: gids.join(','), retmode: 'json',
+      }));
+      const genes = parseGeneSummaries(summ);
+      const best = genes.find(g => g.symbol.toUpperCase() === symbol.toUpperCase()) ?? genes[0];
+      return best ?? null;
+    })(),
+
+    // UniProt
+    (async () => {
+      const data = await uniprotCtx.fetchJson(buildUniprotUrl('/uniprotkb/search', {
+        query: `gene:${symbol} AND organism_id:${org.taxId} AND reviewed:true`,
+        format: 'json', size: '1',
+      })) as Record<string, unknown>;
+      const results = (data?.results ?? []) as Record<string, unknown>[];
+      return results[0] ?? null;
+    })(),
+
+    // STRING partners
+    (async () => {
+      const data = await stringCtx.fetchJson(buildStringUrl('interaction_partners', {
+        identifiers: symbol, species: String(org.taxId), limit: '10', required_score: '400',
+      })) as Record<string, unknown>[];
+      return Array.isArray(data) ? data.map(i => ({
+        partner: String(i.preferredName_B ?? ''),
+        score: Number(i.score ?? 0),
+      })) : [];
+    })(),
+
+    // Literature
+    fetchRecentLiterature(ncbiCtx, symbol, paperCount),
+
+    // ClinVar
+    fetchClinvarSignificance(ncbiCtx, symbol),
+  ]);
+
+  // Extract NCBI
+  let ncbiGene: Record<string, string> | null = null;
+  if (ncbiResult.status === 'fulfilled' && ncbiResult.value) {
+    ncbiGene = ncbiResult.value as unknown as Record<string, string>;
+    sources.push('NCBI Gene');
+    ids.ncbiGeneId = String(ncbiGene.geneId);
+  } else {
+    warnings.push(`NCBI Gene: ${ncbiResult.status === 'rejected' ? ncbiResult.reason : 'not found'}`);
+  }
+
+  // Extract UniProt (function + GO terms)
+  let uniprotFunc = '';
+  let goTerms: Array<{ id: string; name: string; aspect: string }> = [];
+  if (uniprotResult.status === 'fulfilled' && uniprotResult.value) {
+    const entry = uniprotResult.value as Record<string, unknown>;
+    ids.uniprotAccession = String(entry.primaryAccession ?? '');
+    const comments = (entry.comments ?? []) as Record<string, unknown>[];
+    const fc = comments.find(c => c.commentType === 'FUNCTION');
+    const texts = (fc?.texts ?? []) as Record<string, unknown>[];
+    uniprotFunc = texts.map(t => String(t.value ?? '')).join(' ');
+
+    // Extract GO terms from cross-references
+    const xrefs = (entry.uniProtKBCrossReferences ?? []) as Record<string, unknown>[];
+    goTerms = xrefs
+      .filter(x => x.database === 'GO')
+      .map(x => {
+        const id = String(x.id ?? '');
+        const props = (x.properties ?? []) as Record<string, unknown>[];
+        const termProp = props.find(p => p.key === 'GoTerm');
+        const term = String(termProp?.value ?? '');
+        const aspectMap: Record<string, string> = { C: 'CC', F: 'MF', P: 'BP' };
+        const [aspect, ...nameParts] = term.split(':');
+        return { id, name: nameParts.join(':'), aspect: aspectMap[aspect] ?? aspect };
+      });
+
+    sources.push('UniProt');
+  } else {
+    warnings.push(`UniProt: ${uniprotResult.status === 'rejected' ? uniprotResult.reason : 'not found'}`);
+  }
+
+  // Extract STRING
+  const interactions = stringResult.status === 'fulfilled' ? stringResult.value : [];
+  if (interactions.length) sources.push('STRING');
+
+  // Extract literature
+  const literature = litResult.status === 'fulfilled' ? litResult.value : [];
+  if (literature.length) sources.push('PubMed');
+  else warnings.push(`PubMed: ${litResult.status === 'rejected' ? litResult.reason : 'no recent papers'}`);
+
+  // Extract ClinVar
+  const clinvar = clinvarResult.status === 'fulfilled' ? clinvarResult.value : [];
+  if (clinvar.length) sources.push('ClinVar');
+
+  // KEGG pathways (sequential, needs gene ID)
+  let pathways: Array<{ id: string; name: string }> = [];
+  if (ncbiGene?.geneId) {
+    try {
+      const keggId = `${org.keggOrg}:${ncbiGene.geneId}`;
+      const pathText = await keggCtx.fetchText(buildKeggUrl(`/link/pathway/${keggId}`));
+      if (pathText.trim()) {
+        const links = parseKeggTsv(pathText);
+        const pathIds = links.map(l => l.value.replace(/^path:/, '')).filter(Boolean);
+        const listText = await keggCtx.fetchText(buildKeggUrl(`/list/pathway/${org.keggOrg}`));
+        const pathMap = new Map(parseKeggTsv(listText).map(p => [p.key, p.value.replace(/ - .*$/, '')]));
+        pathways = pathIds.map(id => ({ id, name: pathMap.get(id) ?? id }));
+        ids.keggId = keggId;
+        sources.push('KEGG');
+      }
+    } catch (err) {
+      warnings.push(`KEGG: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  return {
+    data: {
+      symbol,
+      name: String(ncbiGene?.name ?? ''),
+      summary: String(ncbiGene?.summary ?? ''),
+      function: uniprotFunc,
+      chromosome: String(ncbiGene?.chromosome ?? ''),
+      location: String(ncbiGene?.location ?? ''),
+      pathways,
+      goTerms,
+      interactions,
+      recentLiterature: literature,
+      clinicalVariants: clinvar,
+    },
+    ids,
+    sources,
+    warnings,
+    organism: org.name,
+    provenance: [
+      ...(literature.length > 0 ? [{
+        source: 'PubMed',
+        recordIds: literature.map(item => item.pmid),
+      }] : []),
+      ...(clinvar.length > 0 ? [{
+        source: 'ClinVar',
+        recordIds: clinvar.map(item => item.accession),
+      }] : []),
+    ],
+  };
+}
+
 cli({
   site: 'aggregate',
   name: 'gene-dossier',
@@ -122,160 +315,14 @@ cli({
   ],
   columns: ['symbol', 'name', 'pathways', 'interactions', 'literature', 'clinvar'],
   func: async (_ctx, args) => {
-    const symbol = String(args.gene).trim();
-    if (!symbol) throw new CliError('ARGUMENT', 'Gene symbol is required');
-
-    const org = resolveOrganism(String(args.organism));
-    const paperCount = Math.max(1, Math.min(Number(args.papers), 20));
-
-    const sources: string[] = [];
-    const warnings: string[] = [];
-    const ids: Record<string, string> = {};
-
-    const ncbiCtx = createHttpContextForDatabase('ncbi');
-    const uniprotCtx = createHttpContextForDatabase('uniprot');
-    const keggCtx = createHttpContextForDatabase('kegg');
-    const stringCtx = createHttpContextForDatabase('string');
-
-    // Phase 1: Core profile (parallel)
-    const [ncbiResult, uniprotResult, stringResult, litResult, clinvarResult] = await Promise.allSettled([
-      // NCBI Gene
-      (async () => {
-        const sr = await ncbiCtx.fetchJson(buildEutilsUrl('esearch.fcgi', {
-          db: 'gene', term: `${symbol}[Gene Name] AND ${org.name}[Organism]`,
-          retmax: '5', retmode: 'json',
-        })) as Record<string, unknown>;
-        const gids: string[] = (sr?.esearchresult as Record<string, unknown>)?.idlist as string[] ?? [];
-        if (!gids.length) return null;
-        const summ = await ncbiCtx.fetchJson(buildEutilsUrl('esummary.fcgi', {
-          db: 'gene', id: gids.join(','), retmode: 'json',
-        }));
-        const genes = parseGeneSummaries(summ);
-        const best = genes.find(g => g.symbol.toUpperCase() === symbol.toUpperCase()) ?? genes[0];
-        return best ?? null;
-      })(),
-
-      // UniProt
-      (async () => {
-        const data = await uniprotCtx.fetchJson(buildUniprotUrl('/uniprotkb/search', {
-          query: `gene:${symbol} AND organism_id:${org.taxId} AND reviewed:true`,
-          format: 'json', size: '1',
-        })) as Record<string, unknown>;
-        const results = (data?.results ?? []) as Record<string, unknown>[];
-        return results[0] ?? null;
-      })(),
-
-      // STRING partners
-      (async () => {
-        const data = await stringCtx.fetchJson(buildStringUrl('interaction_partners', {
-          identifiers: symbol, species: String(org.taxId), limit: '10', required_score: '400',
-        })) as Record<string, unknown>[];
-        return Array.isArray(data) ? data.map(i => ({
-          partner: String(i.preferredName_B ?? ''),
-          score: Number(i.score ?? 0),
-        })) : [];
-      })(),
-
-      // Literature
-      fetchRecentLiterature(ncbiCtx, symbol, paperCount),
-
-      // ClinVar
-      fetchClinvarSignificance(ncbiCtx, symbol),
-    ]);
-
-    // Extract NCBI
-    let ncbiGene: Record<string, string> | null = null;
-    if (ncbiResult.status === 'fulfilled' && ncbiResult.value) {
-      ncbiGene = ncbiResult.value as unknown as Record<string, string>;
-      sources.push('NCBI Gene');
-      ids.ncbiGeneId = String(ncbiGene.geneId);
-    } else {
-      warnings.push(`NCBI Gene: ${ncbiResult.status === 'rejected' ? ncbiResult.reason : 'not found'}`);
-    }
-
-    // Extract UniProt (function + GO terms)
-    let uniprotFunc = '';
-    let goTerms: Array<{ id: string; name: string; aspect: string }> = [];
-    if (uniprotResult.status === 'fulfilled' && uniprotResult.value) {
-      const entry = uniprotResult.value as Record<string, unknown>;
-      ids.uniprotAccession = String(entry.primaryAccession ?? '');
-      const comments = (entry.comments ?? []) as Record<string, unknown>[];
-      const fc = comments.find(c => c.commentType === 'FUNCTION');
-      const texts = (fc?.texts ?? []) as Record<string, unknown>[];
-      uniprotFunc = texts.map(t => String(t.value ?? '')).join(' ');
-
-      // Extract GO terms from cross-references
-      const xrefs = (entry.uniProtKBCrossReferences ?? []) as Record<string, unknown>[];
-      goTerms = xrefs
-        .filter(x => x.database === 'GO')
-        .map(x => {
-          const id = String(x.id ?? '');
-          const props = (x.properties ?? []) as Record<string, unknown>[];
-          const termProp = props.find(p => p.key === 'GoTerm');
-          const term = String(termProp?.value ?? '');
-          const aspectMap: Record<string, string> = { C: 'CC', F: 'MF', P: 'BP' };
-          const [aspect, ...nameParts] = term.split(':');
-          return { id, name: nameParts.join(':'), aspect: aspectMap[aspect] ?? aspect };
-        });
-
-      sources.push('UniProt');
-    } else {
-      warnings.push(`UniProt: ${uniprotResult.status === 'rejected' ? uniprotResult.reason : 'not found'}`);
-    }
-
-    // Extract STRING
-    const interactions = stringResult.status === 'fulfilled' ? stringResult.value : [];
-    if (interactions.length) sources.push('STRING');
-
-    // Extract literature
-    const literature = litResult.status === 'fulfilled' ? litResult.value : [];
-    if (literature.length) sources.push('PubMed');
-    else warnings.push(`PubMed: ${litResult.status === 'rejected' ? litResult.reason : 'no recent papers'}`);
-
-    // Extract ClinVar
-    const clinvar = clinvarResult.status === 'fulfilled' ? clinvarResult.value : [];
-    if (clinvar.length) sources.push('ClinVar');
-
-    // KEGG pathways (sequential, needs gene ID)
-    let pathways: Array<{ id: string; name: string }> = [];
-    if (ncbiGene?.geneId) {
-      try {
-        const keggId = `${org.keggOrg}:${ncbiGene.geneId}`;
-        const pathText = await keggCtx.fetchText(buildKeggUrl(`/link/pathway/${keggId}`));
-        if (pathText.trim()) {
-          const links = parseKeggTsv(pathText);
-          const pathIds = links.map(l => l.value.replace(/^path:/, '')).filter(Boolean);
-          const listText = await keggCtx.fetchText(buildKeggUrl(`/list/pathway/${org.keggOrg}`));
-          const pathMap = new Map(parseKeggTsv(listText).map(p => [p.key, p.value.replace(/ - .*$/, '')]));
-          pathways = pathIds.map(id => ({ id, name: pathMap.get(id) ?? id }));
-          ids.keggId = keggId;
-          sources.push('KEGG');
-        }
-      } catch (err) {
-        warnings.push(`KEGG: ${err instanceof Error ? err.message : String(err)}`);
-      }
-    }
-
-    const dossier = {
-      symbol,
-      name: String(ncbiGene?.name ?? ''),
-      summary: String(ncbiGene?.summary ?? ''),
-      function: uniprotFunc,
-      chromosome: String(ncbiGene?.chromosome ?? ''),
-      location: String(ncbiGene?.location ?? ''),
-      pathways,
-      goTerms,
-      interactions,
-      recentLiterature: literature,
-      clinicalVariants: clinvar,
-    };
-
-    return wrapResult(dossier, {
-      ids,
-      sources,
-      warnings,
-      organism: org.name,
-      query: symbol,
+    const built = await buildGeneDossier(String(args.gene), String(args.organism), Number(args.papers));
+    return wrapResult(built.data, {
+      ids: built.ids,
+      sources: built.sources,
+      warnings: built.warnings,
+      organism: built.organism,
+      query: built.data.symbol,
+      provenance: built.provenance,
     });
   },
 });

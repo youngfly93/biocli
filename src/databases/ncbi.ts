@@ -102,6 +102,7 @@ export async function ncbiFetch(
         }
         throw new RateLimitError(
           `NCBI returned 429 after ${MAX_RETRIES + 1} attempts`,
+          'Add an NCBI API key (biocli config set api_key YOUR_KEY) to increase the rate limit from 3 to 10 req/s',
         );
       }
 
@@ -127,6 +128,7 @@ export async function ncbiFetch(
 
   throw new ApiError(
     `NCBI request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    'Check NCBI API status at https://www.ncbi.nlm.nih.gov/home/develop/',
   );
 }
 

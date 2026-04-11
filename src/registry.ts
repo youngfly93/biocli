@@ -73,6 +73,14 @@ export interface CliCommand {
    *      themselves or are no-ops where caching is meaningless).
    */
   noContext?: boolean;
+  /**
+   * Disable automatic batch splitting for comma-separated positional arguments.
+   *
+   * Set to `true` for commands where the positional argument is a
+   * comma-separated list that must be passed whole to the handler
+   * (e.g. gene-set enrichment, protein-network queries).
+   */
+  noBatch?: boolean;
 }
 
 /** Internal extension for lazy-loaded TS modules (not exposed in public API). */
@@ -142,6 +150,7 @@ export function cli(opts: CliOptions): CliCommand {
     replacedBy: opts.replacedBy,
     defaultFormat: opts.defaultFormat,
     noContext: opts.noContext,
+    noBatch: opts.noBatch,
   };
 
   registerCommand(cmd);
