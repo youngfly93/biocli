@@ -21,6 +21,10 @@ const MAX_RETRIES = 2;
 const BASE_RETRY_DELAY_MS = 1000;
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 
+function buildGdscHint(): string {
+  return 'Run biocli gdsc refresh to re-download the official bulk files and rebuild the local index, then retry the command that depends on GDSC.';
+}
+
 async function gdscFetch(url: string, opts?: FetchOptions): Promise<Response> {
   const finalUrl = url;
 
@@ -49,14 +53,14 @@ async function gdscFetch(url: string, opts?: FetchOptions): Promise<Response> {
         }
         throw new ApiError(
           `GDSC returned HTTP ${response.status} after ${MAX_RETRIES + 1} attempts`,
-          `Check GDSC bulk downloads at ${GDSC_BASE_URL}`,
+          buildGdscHint(),
         );
       }
 
       if (!response.ok) {
         throw new ApiError(
           `GDSC returned HTTP ${response.status}: ${response.statusText}`,
-          `Request URL: ${finalUrl}`,
+          buildGdscHint(),
         );
       }
 
@@ -73,7 +77,7 @@ async function gdscFetch(url: string, opts?: FetchOptions): Promise<Response> {
 
   throw new ApiError(
     `GDSC request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
-    `Check GDSC bulk downloads at ${GDSC_BASE_URL}`,
+    buildGdscHint(),
   );
 }
 
@@ -102,7 +106,7 @@ function createContext(): HttpContext {
   };
 }
 
-const backend: DatabaseBackend = {
+export const gdscBackend: DatabaseBackend = {
   id: 'gdsc',
   name: 'GDSC',
   baseUrl: GDSC_BASE_URL,
@@ -110,5 +114,4 @@ const backend: DatabaseBackend = {
   createContext,
 };
 
-registerBackend(backend);
-
+registerBackend(gdscBackend);

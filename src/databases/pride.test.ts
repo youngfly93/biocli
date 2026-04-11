@@ -56,7 +56,9 @@ describe('pride backend', () => {
     const ctx = prideBackend.createContext();
     await expect(
       ctx.fetchJson(buildPrideUrl('/projects/PXD9999999'), { skipRateLimit: true }),
-    ).rejects.toBeInstanceOf(ApiError);
+    ).rejects.toMatchObject({
+      hint: expect.stringContaining('biocli px search <query> -f json'),
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

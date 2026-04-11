@@ -115,6 +115,31 @@ function buildOpenTargetsError(message: string, details?: string): ApiError {
   );
 }
 
+function extractGraphqlOperationName(body: unknown): string | undefined {
+  if (typeof body !== 'string') return undefined;
+  try {
+    const payload = JSON.parse(body) as { query?: unknown };
+    if (typeof payload.query !== 'string') return undefined;
+    return payload.query.match(/\bquery\s+([A-Za-z0-9_]+)/)?.[1];
+  } catch {
+    return undefined;
+  }
+}
+
+function buildOpenTargetsHint(body?: unknown): string {
+  const operation = extractGraphqlOperationName(body);
+  if (operation === 'SearchTargets') {
+    return 'Retry with a canonical HGNC symbol or Ensembl gene ID. Example: biocli aggregate drug-target EGFR -f json.';
+  }
+  if (operation === 'TargetDrugSnapshot') {
+    return 'Retry with a valid Ensembl gene ID, or start from biocli aggregate drug-target <gene> -f json and let biocli resolve the target.';
+  }
+  if (operation === 'DrugsByIds') {
+    return 'Retry after resolving the target with biocli aggregate drug-target <gene> -f json so you have valid ChEMBL drug IDs.';
+  }
+  return 'Retry biocli aggregate drug-target <gene> -f json with a canonical HGNC symbol like EGFR or TP53.';
+}
+
 async function openTargetsFetch(url: string, opts?: FetchOptions): Promise<Response> {
   const finalUrl = url;
 
@@ -143,13 +168,14 @@ async function openTargetsFetch(url: string, opts?: FetchOptions): Promise<Respo
         }
         throw buildOpenTargetsError(
           `Open Targets returned HTTP ${response.status} after ${MAX_RETRIES + 1} attempts`,
+          buildOpenTargetsHint(opts?.body),
         );
       }
 
       if (!response.ok) {
         throw buildOpenTargetsError(
           `Open Targets returned HTTP ${response.status}: ${response.statusText}`,
-          `Request URL: ${finalUrl}`,
+          buildOpenTargetsHint(opts?.body),
         );
       }
 
@@ -166,6 +192,7 @@ async function openTargetsFetch(url: string, opts?: FetchOptions): Promise<Respo
 
   throw buildOpenTargetsError(
     `Open Targets request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    buildOpenTargetsHint(opts?.body),
   );
 }
 

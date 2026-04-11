@@ -138,4 +138,13 @@ describe('opentargets backend', () => {
     expect(result[0]?.name).toBe('AFATINIB');
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it('search-target HTTP failures return an agent-actionable hint', async () => {
+    fetchMock.mockResolvedValueOnce(mockResponse(404));
+
+    const ctx = opentargetsBackend.createContext();
+    await expect(resolveTarget(ctx, 'TP53')).rejects.toMatchObject({
+      hint: expect.stringContaining('biocli aggregate drug-target EGFR -f json'),
+    });
+  });
 });

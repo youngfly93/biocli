@@ -95,7 +95,23 @@ describe('cbioportal backend', () => {
     const ctx = cbioportalBackend.createContext();
     await expect(
       ctx.fetchJson(buildCbioPortalUrl('/studies/bad-study'), { skipRateLimit: true }),
-    ).rejects.toBeInstanceOf(ApiError);
+    ).rejects.toMatchObject({
+      hint: expect.stringContaining('biocli cbioportal studies -f json'),
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('mutation profile 404 suggests inspecting profiles instead of exposing a URL', async () => {
+    fetchMock.mockResolvedValueOnce(mockResponse(404));
+    const ctx = cbioportalBackend.createContext();
+    await expect(
+      fetchMutationsForProfile(ctx, {
+        molecularProfileId: 'bad_profile',
+        sampleIds: ['S1'],
+      }),
+    ).rejects.toMatchObject({
+      hint: expect.stringContaining('biocli cbioportal profiles <studyId> -f json'),
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

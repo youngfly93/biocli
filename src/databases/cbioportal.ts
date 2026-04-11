@@ -109,6 +109,25 @@ export function buildCbioPortalUrl(
   return url.toString();
 }
 
+function buildCbioPortalHint(finalUrl: string): string {
+  const url = new URL(finalUrl);
+  const path = decodeURIComponent(url.pathname).replace(/\/api(?=\/|$)/, '');
+
+  if (/^\/studies\/[^/]+(?:\/molecular-profiles|\/sample-lists)?$/.test(path)) {
+    return 'Run biocli cbioportal studies -f json to find a valid studyId, then retry with --study <studyId>.';
+  }
+  if (/^\/molecular-profiles\/[^/]+\/mutations\/fetch$/.test(path)) {
+    return 'Run biocli cbioportal profiles <studyId> -f json to find a valid molecularProfileId, then retry with --profile <molecularProfileId>.';
+  }
+  if (/^\/sample-lists\/[^/]+(?:\/sample-ids)?$/.test(path)) {
+    return 'Retry without --sample-list to let biocli auto-select a cohort, or use a sampleListId returned for your study.';
+  }
+  if (path === '/genes/fetch') {
+    return 'Retry with a canonical HGNC gene symbol like TP53 or EGFR.';
+  }
+  return 'Run biocli cbioportal studies -f json to confirm the study and cohort IDs, then retry.';
+}
+
 async function cbioPortalFetch(url: string, opts?: FetchOptions): Promise<Response> {
   const parsed = new URL(url);
   if (opts?.params) {
@@ -151,7 +170,7 @@ async function cbioPortalFetch(url: string, opts?: FetchOptions): Promise<Respon
       if (!response.ok) {
         throw new ApiError(
           `cBioPortal returned HTTP ${response.status}: ${response.statusText}`,
-          `Request URL: ${finalUrl}`,
+          buildCbioPortalHint(finalUrl),
         );
       }
 
