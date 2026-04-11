@@ -45,6 +45,11 @@ cli({
   description: 'Download GEO supplementary files (expression matrices, etc.)',
   database: 'gds',
   strategy: Strategy.PUBLIC,
+  readOnly: false,
+  sideEffects: ['writes-filesystem', 'downloads-remote-files'],
+  artifacts: [
+    { path: '<outdir>/', kind: 'directory', description: 'Destination directory for downloaded supplementary files' },
+  ],
   args: [
     { name: 'accession', positional: true, required: true, help: 'GEO Series accession (e.g. GSE12345)' },
     { name: 'outdir', default: '.', help: 'Output directory (default: current directory)' },

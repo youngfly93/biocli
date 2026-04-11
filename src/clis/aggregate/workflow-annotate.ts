@@ -82,6 +82,17 @@ cli({
   strategy: Strategy.PUBLIC,
   defaultFormat: 'json',
   timeoutSeconds: 120,
+  readOnly: false,
+  sideEffects: ['writes-filesystem'],
+  artifacts: [
+    { path: '<outdir>/', kind: 'directory', description: 'Annotation workspace directory' },
+    { path: '<outdir>/genes.csv', kind: 'file', description: 'Per-gene annotations table' },
+    { path: '<outdir>/pathways.csv', kind: 'file', description: 'Pathway links table' },
+    { path: '<outdir>/enrichment.csv', kind: 'file', description: 'Enrichment results table' },
+    { path: '<outdir>/report.md', kind: 'file', description: 'Human-readable workflow report' },
+    { path: '<outdir>/summary.json', kind: 'file', description: 'Summary metrics for the run' },
+    { path: '<outdir>/manifest.json', kind: 'file', description: 'Workflow provenance manifest' },
+  ],
   args: [
     { name: 'genes', positional: true, required: true, help: 'Gene symbols: comma-separated (TP53,BRCA1) or use --input file' },
     { name: 'outdir', required: true, help: 'Output directory for annotation results' },

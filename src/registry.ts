@@ -39,6 +39,12 @@ export interface CommandExample {
   command: string;
 }
 
+export interface CommandArtifact {
+  path: string;
+  kind: 'file' | 'directory';
+  description: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- kwargs from CLI parsing are inherently untyped
 export type CommandArgs = Record<string, any>;
 
@@ -60,6 +66,12 @@ export interface CliCommand {
   requiredEnv?: RequiredEnv[];
   /** Agent-facing examples mapping a task goal to a concrete command. */
   examples?: CommandExample[];
+  /** Whether the command avoids writing local state when executed normally. */
+  readOnly?: boolean;
+  /** High-level side effects agents should expect before execution. */
+  sideEffects?: string[];
+  /** Files or directories the command may create or update. */
+  artifacts?: CommandArtifact[];
   /** Deprecation note shown in help / execution warnings. */
   deprecated?: boolean | string;
   /** Preferred replacement command, if any. */
@@ -158,6 +170,9 @@ export function cli(opts: CliOptions): CliCommand {
     timeoutSeconds: opts.timeoutSeconds,
     requiredEnv: opts.requiredEnv,
     examples: opts.examples,
+    readOnly: opts.readOnly,
+    sideEffects: opts.sideEffects,
+    artifacts: opts.artifacts,
     deprecated: opts.deprecated,
     replacedBy: opts.replacedBy,
     defaultFormat: opts.defaultFormat,

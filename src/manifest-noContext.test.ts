@@ -61,6 +61,9 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       defaultFormat: 'json',
       requiredEnv: [{ name: 'BIOCLI_TEST_TOKEN', help: 'Set for test snapshots.' }],
       examples: [{ goal: 'List snapshot records', command: 'biocli snapshotsite list -f json' }],
+      readOnly: false,
+      sideEffects: ['writes-filesystem'],
+      artifacts: [{ path: '<outdir>/records.json', kind: 'file', description: 'Snapshot export' }],
       noContext: true,
       type: 'ts',
       modulePath: 'snapshotsite/list.js',
@@ -79,6 +82,9 @@ describe('noContext propagation through manifest (F5 regression)', () => {
     expect(cmd?.defaultFormat).toBe('json');
     expect(cmd?.requiredEnv).toEqual([{ name: 'BIOCLI_TEST_TOKEN', help: 'Set for test snapshots.' }]);
     expect(cmd?.examples).toEqual([{ goal: 'List snapshot records', command: 'biocli snapshotsite list -f json' }]);
+    expect(cmd?.readOnly).toBe(false);
+    expect(cmd?.sideEffects).toEqual(['writes-filesystem']);
+    expect(cmd?.artifacts).toEqual([{ path: '<outdir>/records.json', kind: 'file', description: 'Snapshot export' }]);
   });
 
   it('a TS-style manifest entry WITHOUT noContext stays undefined (no spurious flag)', async () => {
@@ -114,6 +120,9 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       defaultFormat: 'yaml',
       requiredEnv: [{ name: 'BIOCLI_YAML_TOKEN' }],
       examples: [{ goal: 'Preview YAML snapshot output', command: 'biocli snapshotsite list -f yaml' }],
+      readOnly: false,
+      sideEffects: ['writes-filesystem'],
+      artifacts: [{ path: '<outdir>/records.yaml', kind: 'file', description: 'Snapshot export' }],
       noContext: true,
       type: 'yaml',
     };
@@ -126,5 +135,8 @@ describe('noContext propagation through manifest (F5 regression)', () => {
     expect(cmd?.defaultFormat).toBe('yaml');
     expect(cmd?.requiredEnv).toEqual([{ name: 'BIOCLI_YAML_TOKEN' }]);
     expect(cmd?.examples).toEqual([{ goal: 'Preview YAML snapshot output', command: 'biocli snapshotsite list -f yaml' }]);
+    expect(cmd?.readOnly).toBe(false);
+    expect(cmd?.sideEffects).toEqual(['writes-filesystem']);
+    expect(cmd?.artifacts).toEqual([{ path: '<outdir>/records.yaml', kind: 'file', description: 'Snapshot export' }]);
   });
 });

@@ -12,6 +12,16 @@ cli({
   name: 'refresh',
   database: 'gdsc',
   noContext: true,
+  readOnly: false,
+  sideEffects: ['writes-filesystem', 'downloads-remote-files', 'updates-local-dataset-cache'],
+  artifacts: [
+    { path: '<datasets-dir>/gdsc/', kind: 'directory', description: 'Local GDSC dataset cache directory' },
+    { path: '<datasets-dir>/gdsc/screened_compounds_rel_8.5.csv', kind: 'file', description: 'GDSC screened compounds table' },
+    { path: '<datasets-dir>/gdsc/GDSC1_fitted_dose_response_27Oct23.xlsx', kind: 'file', description: 'Cached GDSC1 dose-response workbook' },
+    { path: '<datasets-dir>/gdsc/GDSC2_fitted_dose_response_27Oct23.xlsx', kind: 'file', description: 'Cached GDSC2 dose-response workbook' },
+    { path: '<datasets-dir>/gdsc/gdsc.meta.json', kind: 'file', description: 'Metadata for the cached GDSC release' },
+    { path: '<datasets-dir>/gdsc/gdsc.sensitivity-index.v1.json', kind: 'file', description: 'Built sensitivity index (version suffix may change)' },
+  ],
   description:
     'Force re-download of official GDSC files and rebuild the local sensitivity index.',
   args: [],
@@ -28,4 +38,3 @@ cli({
     return null;
   },
 });
-

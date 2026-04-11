@@ -32,6 +32,13 @@ cli({
   strategy: Strategy.PUBLIC,
   defaultFormat: 'json',
   timeoutSeconds: 300,
+  readOnly: false,
+  sideEffects: ['writes-filesystem', 'downloads-remote-files'],
+  artifacts: [
+    { path: '<outdir>/data/', kind: 'directory', description: 'Downloaded dataset files or dataset staging area' },
+    { path: '<outdir>/annotations/', kind: 'directory', description: 'Gene and pathway annotation files' },
+    { path: '<outdir>/manifest.json', kind: 'file', description: 'Workflow provenance manifest' },
+  ],
   args: [
     { name: 'dataset', positional: true, required: true, help: 'GEO accession (GSE*) or SRA accession (SRR*)' },
     { name: 'gene', help: 'Focus gene symbol(s), comma-separated (e.g. TP53,BRCA1)' },

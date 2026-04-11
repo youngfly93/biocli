@@ -21,6 +21,12 @@ cli({
   name: 'install',
   database: 'unimod',
   noContext: true,
+  readOnly: false,
+  sideEffects: ['writes-filesystem', 'updates-local-dataset-cache'],
+  artifacts: [
+    { path: '<datasets-dir>/unimod.xml', kind: 'file', description: 'Cached Unimod XML dump (defaults to ~/.biocli/datasets/unimod.xml)' },
+    { path: '<datasets-dir>/unimod.meta.json', kind: 'file', description: 'Metadata for the cached Unimod dataset' },
+  ],
   description:
     'Install the Unimod PTM dictionary locally (no-op if already installed). ' +
     'Data: Unimod (https://www.unimod.org), Design Science License.',

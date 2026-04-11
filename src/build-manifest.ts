@@ -46,6 +46,9 @@ export interface ManifestEntry {
   timeout?: number;
   requiredEnv?: NonNullable<CliCommand['requiredEnv']>;
   examples?: NonNullable<CliCommand['examples']>;
+  readOnly?: boolean;
+  sideEffects?: NonNullable<CliCommand['sideEffects']>;
+  artifacts?: NonNullable<CliCommand['artifacts']>;
   deprecated?: boolean | string;
   replacedBy?: string;
   /**
@@ -118,6 +121,9 @@ function toManifestEntry(cmd: CliCommand, modulePath: string): ManifestEntry {
     timeout: cmd.timeoutSeconds,
     requiredEnv: cmd.requiredEnv,
     examples: cmd.examples,
+    readOnly: cmd.readOnly,
+    sideEffects: cmd.sideEffects,
+    artifacts: cmd.artifacts,
     deprecated: cmd.deprecated,
     replacedBy: cmd.replacedBy,
     // Only emit when true so we don't bloat the manifest with `false` for
@@ -160,6 +166,21 @@ function scanYaml(filePath: string, site: string): ManifestEntry | null {
         ? ((cliDef as Record<string, unknown>).examples as unknown[])
           .filter((value): value is NonNullable<CliCommand['examples']>[number] =>
             isRecord(value) && typeof value.goal === 'string' && typeof value.command === 'string')
+        : undefined,
+      readOnly: typeof (cliDef as Record<string, unknown>).readOnly === 'boolean'
+        ? (cliDef as Record<string, unknown>).readOnly as boolean
+        : undefined,
+      sideEffects: isRecord(cliDef) && Array.isArray((cliDef as Record<string, unknown>).sideEffects)
+        ? ((cliDef as Record<string, unknown>).sideEffects as unknown[])
+          .filter((value): value is string => typeof value === 'string')
+        : undefined,
+      artifacts: isRecord(cliDef) && Array.isArray((cliDef as Record<string, unknown>).artifacts)
+        ? ((cliDef as Record<string, unknown>).artifacts as unknown[])
+          .filter((value): value is NonNullable<CliCommand['artifacts']>[number] =>
+            isRecord(value)
+            && typeof value.path === 'string'
+            && (value.kind === 'file' || value.kind === 'directory')
+            && typeof value.description === 'string')
         : undefined,
       deprecated: (cliDef as Record<string, unknown>).deprecated as boolean | string | undefined,
       replacedBy: (cliDef as Record<string, unknown>).replacedBy as string | undefined,
