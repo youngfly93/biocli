@@ -6,6 +6,7 @@
  */
 
 import type { HttpContext } from './types.js';
+import { fileURLToPath } from 'node:url';
 
 // ── Strategy ─────────────────────────────────────────────────────────────────
 
@@ -87,6 +88,7 @@ export interface CliCommand {
 export interface InternalCliCommand extends CliCommand {
   _lazy?: boolean;
   _modulePath?: string;
+  _sourceFile?: string;
 }
 
 export interface CliOptions extends Partial<Omit<CliCommand, 'args' | 'description'>> {
@@ -114,6 +116,8 @@ const _registry: Map<string, CliCommand> =
 // Keep legacy alias in sync
 globalThis.__ncbicli_registry__ = _registry;
 
+const REGISTRY_MODULE_FILE = fileURLToPath(import.meta.url);
+
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
@@ -133,7 +137,7 @@ globalThis.__ncbicli_registry__ = _registry;
 export function cli(opts: CliOptions): CliCommand {
   const strategy = opts.strategy ?? Strategy.PUBLIC;
   const aliases = normalizeAliases(opts.aliases, opts.name);
-  const cmd: CliCommand = {
+  const cmd: InternalCliCommand = {
     site: opts.site,
     name: opts.name,
     aliases,
@@ -151,6 +155,7 @@ export function cli(opts: CliOptions): CliCommand {
     defaultFormat: opts.defaultFormat,
     noContext: opts.noContext,
     noBatch: opts.noBatch,
+    _sourceFile: inferCallerFileFromStack(),
   };
 
   registerCommand(cmd);
@@ -205,4 +210,22 @@ export function normalizeAliases(aliases: string[] | undefined, commandName: str
     normalized.push(value);
   }
   return normalized;
+}
+
+function inferCallerFileFromStack(): string | undefined {
+  const stack = new Error().stack?.split('\n') ?? [];
+  for (const line of stack.slice(1)) {
+    const filePath = parseStackFile(line);
+    if (!filePath || filePath === REGISTRY_MODULE_FILE) continue;
+    return filePath;
+  }
+  return undefined;
+}
+
+function parseStackFile(line: string): string | undefined {
+  const fileUrlMatch = line.match(/(file:\/\/[^\s)]+):\d+:\d+/);
+  if (fileUrlMatch) return fileURLToPath(fileUrlMatch[1]);
+
+  const absolutePathMatch = line.match(/((?:\/|[A-Za-z]:\\)[^:\s)]+\.(?:[cm]?js|ts)):\d+:\d+/);
+  return absolutePathMatch?.[1];
 }

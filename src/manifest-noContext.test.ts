@@ -58,6 +58,8 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       database: 'snapshotsite',
       strategy: 'public',
       args: [],
+      defaultFormat: 'json',
+      requiredEnv: [{ name: 'BIOCLI_TEST_TOKEN', help: 'Set for test snapshots.' }],
       noContext: true,
       type: 'ts',
       modulePath: 'snapshotsite/list.js',
@@ -73,6 +75,8 @@ describe('noContext propagation through manifest (F5 regression)', () => {
     const cmd = getRegistry().get(REGISTRY_KEY);
     expect(cmd).toBeDefined();
     expect(cmd?.noContext).toBe(true);
+    expect(cmd?.defaultFormat).toBe('json');
+    expect(cmd?.requiredEnv).toEqual([{ name: 'BIOCLI_TEST_TOKEN', help: 'Set for test snapshots.' }]);
   });
 
   it('a TS-style manifest entry WITHOUT noContext stays undefined (no spurious flag)', async () => {
@@ -105,6 +109,8 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       strategy: 'public',
       args: [],
       pipeline: [{ select: 'data' }],
+      defaultFormat: 'yaml',
+      requiredEnv: [{ name: 'BIOCLI_YAML_TOKEN' }],
       noContext: true,
       type: 'yaml',
     };
@@ -114,5 +120,7 @@ describe('noContext propagation through manifest (F5 regression)', () => {
     const cmd = getRegistry().get(REGISTRY_KEY);
     expect(cmd).toBeDefined();
     expect(cmd?.noContext).toBe(true);
+    expect(cmd?.defaultFormat).toBe('yaml');
+    expect(cmd?.requiredEnv).toEqual([{ name: 'BIOCLI_YAML_TOKEN' }]);
   });
 });
