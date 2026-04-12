@@ -413,7 +413,6 @@ function buildCandidateSensitivity(
   const strongestHits: DrugTargetSensitivityHit[] = [];
 
   const includeAllTissues = tissueTerms.length === 0;
-
   for (const entry of entries) {
     matchedDrugIds.add(entry.compound.drugId);
     matchedDrugNames.add(entry.compound.drugName);
@@ -435,8 +434,15 @@ function buildCandidateSensitivity(
 
       if (!includeAllTissues && selectedTissues.length === 0) continue;
 
+      const datasetWideHits = includeAllTissues
+        ? [
+            ...dataset.topHits,
+            ...dataset.tissues.flatMap(tissue => tissue.topHits),
+          ]
+        : selectedTissues.flatMap(item => item.tissue.topHits);
+
       const topSensitiveHits = uniqueByKey(
-        (includeAllTissues ? dataset.topHits : selectedTissues.flatMap(item => item.tissue.topHits))
+        datasetWideHits
           .map(hit => ({
             ...hit,
             gdscDrugId: entry.compound.drugId,
@@ -880,7 +886,9 @@ cli({
         );
       }
     }
-    const studyTerms = buildStudyContextTerms(studyMeta, associatedDiseases);
+    const studyTerms = studyId
+      ? buildStudyContextTerms(studyMeta, associatedDiseases)
+      : [];
     const geneTerms = studyId
       ? uniqueNormalizedTerms([
           snapshot.approvedSymbol,
