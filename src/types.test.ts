@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildBiocliProvenance, wrapResult } from './types.js';
+import { getVersion } from './version.js';
 
 describe('types', () => {
   beforeEach(() => {
@@ -26,7 +27,7 @@ describe('types', () => {
     );
 
     expect(result.queriedAt).toBe('2026-04-10T12:00:00.000Z');
-    expect(result.biocliVersion).toBe('0.4.1');
+    expect(result.biocliVersion).toBe(getVersion());
     expect(result.completeness).toBe('complete');
     expect(result.provenance).toEqual({
       retrievedAt: '2026-04-10T12:00:00.000Z',

@@ -11,7 +11,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import chalk from 'chalk';
-import { runDoctor, formatDoctorJson, formatDoctorText } from './doctor.js';
+import { runDoctor, formatDoctorJson, formatDoctorText, PING_ENDPOINTS } from './doctor.js';
 
 interface CheckResult {
   name: string;
@@ -169,5 +169,23 @@ describe('checkUnimodDataset via runDoctor', () => {
     const { checks } = await runDoctor();
     const check = findUnimodCheck(checks);
     expect(check.ok).toBe(false);
+  });
+});
+
+describe('doctor ping endpoint configuration', () => {
+  it('uses a real GraphQL POST probe for Open Targets', () => {
+    expect(PING_ENDPOINTS.opentargets).toEqual({
+      url: 'https://api.platform.opentargets.org/api/v4/graphql',
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: JSON.stringify({ query: 'query Ping { __typename }' }),
+    });
+  });
+
+  it('uses a stable static asset probe for GDSC', () => {
+    expect(PING_ENDPOINTS.gdsc?.url).toContain('/GDSC_release8.5/screened_compounds_rel_8.5.csv');
   });
 });

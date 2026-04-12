@@ -6,6 +6,7 @@ import {
   summarizeMethodsInput,
 } from './methods.js';
 import { wrapResult } from './types.js';
+import { getVersion } from './version.js';
 
 describe('methods', () => {
   beforeEach(() => {
@@ -30,7 +31,7 @@ describe('methods', () => {
     );
 
     expect(summarizeMethodsInput(payload)).toEqual({
-      biocliVersion: '0.4.1',
+      biocliVersion: getVersion(),
       query: 'TP53',
       organism: 'Homo sapiens',
       retrievedAt: '2026-04-10T12:00:00.000Z',

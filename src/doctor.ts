@@ -34,15 +34,34 @@ interface CheckResult {
 
 // ── Health-check endpoints per backend ───────────────────────────────────────
 
-const PING_ENDPOINTS: Record<string, string> = {
-  ncbi: 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi?retmode=json',
-  uniprot: 'https://rest.uniprot.org/uniprotkb/search?query=*&size=1&format=json',
-  kegg: 'https://rest.kegg.jp/info/kegg',
-  string: 'https://string-db.org/api/json/version',
-  ensembl: 'https://rest.ensembl.org/info/ping?content-type=application/json',
-  enrichr: 'https://maayanlab.cloud/Enrichr/datasetStatistics',
-  proteomexchange: 'https://proteomecentral.proteomexchange.org/api/proxi/v0.1/datasets?keywords=proteomics&pageSize=1',
-  pride: 'https://www.ebi.ac.uk/pride/ws/archive/v3/projects/PXD000001',
+interface PingEndpoint {
+  url: string;
+  method?: 'GET' | 'POST';
+  headers?: Record<string, string>;
+  body?: string;
+}
+
+export const PING_ENDPOINTS: Record<string, PingEndpoint> = {
+  ncbi: { url: 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi?retmode=json' },
+  uniprot: { url: 'https://rest.uniprot.org/uniprotkb/search?query=*&size=1&format=json' },
+  kegg: { url: 'https://rest.kegg.jp/info/kegg' },
+  string: { url: 'https://string-db.org/api/json/version' },
+  ensembl: { url: 'https://rest.ensembl.org/info/ping?content-type=application/json' },
+  enrichr: { url: 'https://maayanlab.cloud/Enrichr/datasetStatistics' },
+  proteomexchange: { url: 'https://proteomecentral.proteomexchange.org/api/proxi/v0.1/datasets?keywords=proteomics&pageSize=1' },
+  pride: { url: 'https://www.ebi.ac.uk/pride/ws/archive/v3/projects/PXD000001' },
+  opentargets: {
+    url: 'https://api.platform.opentargets.org/api/v4/graphql',
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'accept': 'application/json',
+    },
+    body: JSON.stringify({ query: 'query Ping { __typename }' }),
+  },
+  gdsc: {
+    url: 'https://cog.sanger.ac.uk/cancerrxgene/GDSC_release8.5/screened_compounds_rel_8.5.csv',
+  },
 };
 
 // 15s tolerates dual-stack Happy Eyeballs (IPv6 attempt + IPv4 fallback)
@@ -103,15 +122,21 @@ function checkConfig(): CheckResult[] {
   return results;
 }
 
-async function pingBackend(name: string, url: string): Promise<CheckResult> {
+async function pingBackend(name: string, endpoint: PingEndpoint): Promise<CheckResult> {
   const start = Date.now();
+  const origin = endpoint.url.split('/').slice(0, 3).join('/');
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), PING_TIMEOUT);
     // Use fetchWithIPv4Fallback so doctor benefits from the same IPv4 retry
     // logic that protects data-path commands. On WSL2 / dual-stack networks
     // with broken IPv6, this is the difference between FAIL and OK.
-    const response = await fetchWithIPv4Fallback(url, { signal: controller.signal });
+    const response = await fetchWithIPv4Fallback(endpoint.url, {
+      signal: controller.signal,
+      method: endpoint.method ?? 'GET',
+      headers: endpoint.headers,
+      body: endpoint.body,
+    });
     clearTimeout(timeout);
     const elapsed = Date.now() - start;
 
@@ -119,9 +144,9 @@ async function pingBackend(name: string, url: string): Promise<CheckResult> {
     await response.text().catch(() => {});
 
     if (response.ok) {
-      return { name, value: url.split('/').slice(0, 3).join('/'), ok: true, detail: `${elapsed}ms` };
+      return { name, value: origin, ok: true, detail: `${elapsed}ms` };
     }
-    return { name, value: url.split('/').slice(0, 3).join('/'), ok: false, detail: `HTTP ${response.status} (${elapsed}ms)` };
+    return { name, value: origin, ok: false, detail: `HTTP ${response.status} (${elapsed}ms)` };
   } catch (err) {
     const elapsed = Date.now() - start;
     let msg: string;
@@ -136,7 +161,7 @@ async function pingBackend(name: string, url: string): Promise<CheckResult> {
     } else {
       msg = String(err);
     }
-    return { name, value: url.split('/').slice(0, 3).join('/'), ok: false, detail: `${msg} (${elapsed}ms)` };
+    return { name, value: origin, ok: false, detail: `${msg} (${elapsed}ms)` };
   }
 }
 
@@ -232,8 +257,8 @@ export async function runDoctor(): Promise<{ checks: CheckResult[]; allPassed: b
   // Backend connectivity (parallel)
   const backends = getAllBackends();
   const pingPromises = backends.map(b => {
-    const url = PING_ENDPOINTS[b.id] ?? `${b.baseUrl}`;
-    return pingBackend(b.name, url);
+    const endpoint = PING_ENDPOINTS[b.id] ?? { url: `${b.baseUrl}` };
+    return pingBackend(b.name, endpoint);
   });
   const pingResults = await Promise.allSettled(pingPromises);
   for (const result of pingResults) {
