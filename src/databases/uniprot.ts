@@ -29,6 +29,17 @@ export function buildUniprotUrl(path: string, params?: Record<string, string>): 
   return url.toString();
 }
 
+function buildUniprotHint(finalUrl: string): string {
+  const path = decodeURIComponent(new URL(finalUrl).pathname);
+  if (path === '/uniprotkb/search') {
+    return 'Refine the query and retry with biocli uniprot search <query> -f json.';
+  }
+  if (/^\/uniprotkb\/[^/]+(?:\.fasta)?$/.test(path)) {
+    return 'Run biocli uniprot search <query> -f json to find a valid accession, then retry with biocli uniprot fetch <accession> -f json or biocli uniprot sequence <accession>.';
+  }
+  return 'Retry with a valid UniProt accession or search query, preferably via biocli uniprot search -f json first.';
+}
+
 /** Low-level UniProt fetch with rate limiting and retry. */
 async function uniprotFetch(url: string, opts?: FetchOptions): Promise<Response> {
   const parsed = new URL(url);
@@ -67,13 +78,13 @@ async function uniprotFetch(url: string, opts?: FetchOptions): Promise<Response>
           await sleep(delayMs);
           continue;
         }
-        throw new ApiError('UniProt API rate limit exceeded');
+        throw new ApiError('UniProt API rate limit exceeded', 'Check UniProt API at https://rest.uniprot.org');
       }
 
       if (!response.ok) {
         throw new ApiError(
           `UniProt API returned HTTP ${response.status}: ${response.statusText}`,
-          `Request URL: ${finalUrl}`,
+          buildUniprotHint(finalUrl),
         );
       }
 
@@ -90,6 +101,7 @@ async function uniprotFetch(url: string, opts?: FetchOptions): Promise<Response>
 
   throw new ApiError(
     `UniProt request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    'Check UniProt API at https://rest.uniprot.org',
   );
 }
 

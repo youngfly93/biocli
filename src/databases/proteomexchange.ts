@@ -73,6 +73,17 @@ export function buildProxiUrl(path: string, params?: Record<string, string | und
   return url.toString();
 }
 
+function buildProteomeXchangeHint(finalUrl: string): string {
+  const path = decodeURIComponent(new URL(finalUrl).pathname);
+  if (/\/datasets\/[^/]+$/.test(path)) {
+    return 'Run biocli px search <query> -f json to find a valid PXD accession, then retry with biocli px dataset <PXD> -f json.';
+  }
+  if (path.endsWith('/datasets')) {
+    return 'Adjust the search term or repository filter, then retry with biocli px search <query> -f json.';
+  }
+  return 'Retry with a valid PXD accession or ProteomeXchange search query.';
+}
+
 // ── Low-level fetch with 5xx retry ───────────────────────────────────────────
 
 /**
@@ -126,7 +137,7 @@ async function proxiFetch(url: string, opts?: FetchOptions): Promise<Response> {
         // Exhausted — throw with the final status.
         throw new ApiError(
           `ProteomeXchange returned HTTP ${response.status} after ${MAX_RETRIES + 1} attempts`,
-          `The ProteomeCentral hub is currently unreliable. Try again in a minute or two. URL: ${finalUrl}`,
+          'The ProteomeCentral hub is currently unreliable. Retry biocli px search/dataset in a minute or two.',
         );
       }
 
@@ -134,7 +145,7 @@ async function proxiFetch(url: string, opts?: FetchOptions): Promise<Response> {
       if (!response.ok) {
         throw new ApiError(
           `ProteomeXchange returned HTTP ${response.status}: ${response.statusText}`,
-          `Request URL: ${finalUrl}`,
+          buildProteomeXchangeHint(finalUrl),
         );
       }
 
@@ -155,7 +166,7 @@ async function proxiFetch(url: string, opts?: FetchOptions): Promise<Response> {
   // Only reached if the final attempt threw a network-level error.
   throw new ApiError(
     `ProteomeXchange request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? `HTTP ${lastResponse?.status ?? 'unknown'}`}`,
-    `URL: ${finalUrl}`,
+    'Retry biocli px search/dataset in a minute or two, or try a narrower query.',
   );
 }
 

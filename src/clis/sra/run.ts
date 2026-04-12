@@ -31,7 +31,7 @@ cli({
   database: 'sra',
   strategy: Strategy.PUBLIC,
   args: [
-    { name: 'accession', positional: true, required: true, help: 'SRA accession (e.g. SRR1234567, SRX1234567)' },
+    { name: 'accession', positional: true, required: true, help: 'SRA accession (e.g. SRR1234567, SRX1234567)', producedBy: ['sra/search', 'aggregate/workflow-scout'] },
   ],
   columns: ['accession', 'title', 'platform', 'organism', 'strategy', 'source', 'layout', 'date'],
   func: async (ctx, args) => {

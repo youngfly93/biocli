@@ -212,6 +212,23 @@ describe('aggregate/gene-dossier adapter', () => {
         warnings: [],
         organism: 'Homo sapiens',
         query: 'TP53',
+        completeness: 'complete',
+        provenance: expect.objectContaining({
+          sources: expect.arrayContaining([
+            expect.objectContaining({
+              source: 'NCBI Gene',
+              recordIds: ['7157'],
+            }),
+            expect.objectContaining({
+              source: 'PubMed',
+              recordIds: ['36766853'],
+            }),
+            expect.objectContaining({
+              source: 'ClinVar',
+              recordIds: ['VCV000000123'],
+            }),
+          ]),
+        }),
         data: expect.objectContaining({
           symbol: 'TP53',
           function: 'Acts as a tumor suppressor.',

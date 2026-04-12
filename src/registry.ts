@@ -6,6 +6,7 @@
  */
 
 import type { HttpContext } from './types.js';
+import { fileURLToPath } from 'node:url';
 
 // ── Strategy ─────────────────────────────────────────────────────────────────
 
@@ -26,11 +27,24 @@ export interface Arg {
   positional?: boolean;
   help?: string;
   choices?: string[];
+  /** Commands that can produce candidate values for this argument. */
+  producedBy?: string[];
 }
 
 export interface RequiredEnv {
   name: string;
   help?: string;
+}
+
+export interface CommandExample {
+  goal: string;
+  command: string;
+}
+
+export interface CommandArtifact {
+  path: string;
+  kind: 'file' | 'directory';
+  description: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- kwargs from CLI parsing are inherently untyped
@@ -52,6 +66,16 @@ export interface CliCommand {
   /** Origin of this command: 'yaml', 'ts', or plugin name. */
   source?: string;
   requiredEnv?: RequiredEnv[];
+  /** Agent-facing examples mapping a task goal to a concrete command. */
+  examples?: CommandExample[];
+  /** Short routing hint describing when this command is the right tool. */
+  whenToUse?: string;
+  /** Whether the command avoids writing local state when executed normally. */
+  readOnly?: boolean;
+  /** High-level side effects agents should expect before execution. */
+  sideEffects?: string[];
+  /** Files or directories the command may create or update. */
+  artifacts?: CommandArtifact[];
   /** Deprecation note shown in help / execution warnings. */
   deprecated?: boolean | string;
   /** Preferred replacement command, if any. */
@@ -73,12 +97,21 @@ export interface CliCommand {
    *      themselves or are no-ops where caching is meaningless).
    */
   noContext?: boolean;
+  /**
+   * Disable automatic batch splitting for comma-separated positional arguments.
+   *
+   * Set to `true` for commands where the positional argument is a
+   * comma-separated list that must be passed whole to the handler
+   * (e.g. gene-set enrichment, protein-network queries).
+   */
+  noBatch?: boolean;
 }
 
 /** Internal extension for lazy-loaded TS modules (not exposed in public API). */
 export interface InternalCliCommand extends CliCommand {
   _lazy?: boolean;
   _modulePath?: string;
+  _sourceFile?: string;
 }
 
 export interface CliOptions extends Partial<Omit<CliCommand, 'args' | 'description'>> {
@@ -106,6 +139,8 @@ const _registry: Map<string, CliCommand> =
 // Keep legacy alias in sync
 globalThis.__ncbicli_registry__ = _registry;
 
+const REGISTRY_MODULE_FILE = fileURLToPath(import.meta.url);
+
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
@@ -125,7 +160,7 @@ globalThis.__ncbicli_registry__ = _registry;
 export function cli(opts: CliOptions): CliCommand {
   const strategy = opts.strategy ?? Strategy.PUBLIC;
   const aliases = normalizeAliases(opts.aliases, opts.name);
-  const cmd: CliCommand = {
+  const cmd: InternalCliCommand = {
     site: opts.site,
     name: opts.name,
     aliases,
@@ -138,10 +173,17 @@ export function cli(opts: CliOptions): CliCommand {
     pipeline: opts.pipeline,
     timeoutSeconds: opts.timeoutSeconds,
     requiredEnv: opts.requiredEnv,
+    examples: opts.examples,
+    whenToUse: opts.whenToUse,
+    readOnly: opts.readOnly,
+    sideEffects: opts.sideEffects,
+    artifacts: opts.artifacts,
     deprecated: opts.deprecated,
     replacedBy: opts.replacedBy,
     defaultFormat: opts.defaultFormat,
     noContext: opts.noContext,
+    noBatch: opts.noBatch,
+    _sourceFile: inferCallerFileFromStack(),
   };
 
   registerCommand(cmd);
@@ -196,4 +238,22 @@ export function normalizeAliases(aliases: string[] | undefined, commandName: str
     normalized.push(value);
   }
   return normalized;
+}
+
+function inferCallerFileFromStack(): string | undefined {
+  const stack = new Error().stack?.split('\n') ?? [];
+  for (const line of stack.slice(1)) {
+    const filePath = parseStackFile(line);
+    if (!filePath || filePath === REGISTRY_MODULE_FILE) continue;
+    return filePath;
+  }
+  return undefined;
+}
+
+function parseStackFile(line: string): string | undefined {
+  const fileUrlMatch = line.match(/(file:\/\/[^\s)]+):\d+:\d+/);
+  if (fileUrlMatch) return fileURLToPath(fileUrlMatch[1]);
+
+  const absolutePathMatch = line.match(/((?:\/|[A-Za-z]:\\)[^:\s)]+\.(?:[cm]?js|ts)):\d+:\d+/);
+  return absolutePathMatch?.[1];
 }

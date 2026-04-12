@@ -27,6 +27,17 @@ cli({
   args: [
     { name: 'variant', positional: true, required: true, help: 'Variant ID: rsID (rs334), HGVS, or genomic coordinate' },
   ],
+  examples: [
+    {
+      goal: 'Assemble a dossier for the sickle-cell rs334 variant',
+      command: 'biocli aggregate variant-dossier rs334 -f json',
+    },
+    {
+      goal: 'Inspect a transcript-level HGVS variant in one report',
+      command: 'biocli aggregate variant-dossier NM_000518.5:c.20A>T -f json',
+    },
+  ],
+  whenToUse: 'Use when you need a consolidated evidence packet for one variant across dbSNP, ClinVar, and VEP.',
   columns: ['variant', 'gene', 'consequence', 'clinicalSignificance', 'condition'],
   func: async (_ctx, args) => {
     const variant = String(args.variant).trim();
@@ -170,6 +181,12 @@ cli({
       sources,
       warnings,
       query: variant,
+      provenance: [
+        ...(clinvar.length > 0 ? [{
+          source: 'ClinVar',
+          recordIds: clinvar.map(item => item.accession),
+        }] : []),
+      ],
     });
   },
 });

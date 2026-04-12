@@ -17,6 +17,12 @@ cli({
   name: 'refresh',
   database: 'unimod',
   noContext: true,
+  readOnly: false,
+  sideEffects: ['writes-filesystem', 'downloads-remote-files', 'updates-local-dataset-cache'],
+  artifacts: [
+    { path: '<datasets-dir>/unimod.xml', kind: 'file', description: 'Cached Unimod XML dump (defaults to ~/.biocli/datasets/unimod.xml)' },
+    { path: '<datasets-dir>/unimod.meta.json', kind: 'file', description: 'Metadata for the cached Unimod dataset' },
+  ],
   description:
     'Force re-download of the Unimod PTM dictionary (bypasses the local cache). ' +
     'Data: Unimod (https://www.unimod.org), Design Science License.',

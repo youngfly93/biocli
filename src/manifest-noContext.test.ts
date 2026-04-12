@@ -57,7 +57,14 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       description: 'a snapshot dataset list command',
       database: 'snapshotsite',
       strategy: 'public',
-      args: [],
+      args: [{ name: 'snapshot', help: 'Snapshot accession', producedBy: ['snapshotsite/search'] }],
+      defaultFormat: 'json',
+      requiredEnv: [{ name: 'BIOCLI_TEST_TOKEN', help: 'Set for test snapshots.' }],
+      examples: [{ goal: 'List snapshot records', command: 'biocli snapshotsite list -f json' }],
+      whenToUse: 'Use when a snapshot record must be exported by accession.',
+      readOnly: false,
+      sideEffects: ['writes-filesystem'],
+      artifacts: [{ path: '<outdir>/records.json', kind: 'file', description: 'Snapshot export' }],
       noContext: true,
       type: 'ts',
       modulePath: 'snapshotsite/list.js',
@@ -73,6 +80,14 @@ describe('noContext propagation through manifest (F5 regression)', () => {
     const cmd = getRegistry().get(REGISTRY_KEY);
     expect(cmd).toBeDefined();
     expect(cmd?.noContext).toBe(true);
+    expect(cmd?.defaultFormat).toBe('json');
+    expect(cmd?.requiredEnv).toEqual([{ name: 'BIOCLI_TEST_TOKEN', help: 'Set for test snapshots.' }]);
+    expect(cmd?.examples).toEqual([{ goal: 'List snapshot records', command: 'biocli snapshotsite list -f json' }]);
+    expect(cmd?.whenToUse).toBe('Use when a snapshot record must be exported by accession.');
+    expect(cmd?.args).toEqual([{ name: 'snapshot', help: 'Snapshot accession', producedBy: ['snapshotsite/search'] }]);
+    expect(cmd?.readOnly).toBe(false);
+    expect(cmd?.sideEffects).toEqual(['writes-filesystem']);
+    expect(cmd?.artifacts).toEqual([{ path: '<outdir>/records.json', kind: 'file', description: 'Snapshot export' }]);
   });
 
   it('a TS-style manifest entry WITHOUT noContext stays undefined (no spurious flag)', async () => {
@@ -82,7 +97,7 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       description: 'a normal command',
       database: 'pubmed',
       strategy: 'public',
-      args: [],
+      args: [{ name: 'snapshot', help: 'Snapshot accession', producedBy: ['snapshotsite/search'] }],
       type: 'ts',
       modulePath: 'snapshotsite/list.js',
     };
@@ -103,8 +118,15 @@ describe('noContext propagation through manifest (F5 regression)', () => {
       description: 'a yaml snapshot dataset',
       database: 'snapshotsite',
       strategy: 'public',
-      args: [],
+      args: [{ name: 'snapshot', help: 'Snapshot accession', producedBy: ['snapshotsite/search'] }],
       pipeline: [{ select: 'data' }],
+      defaultFormat: 'yaml',
+      requiredEnv: [{ name: 'BIOCLI_YAML_TOKEN' }],
+      examples: [{ goal: 'Preview YAML snapshot output', command: 'biocli snapshotsite list -f yaml' }],
+      whenToUse: 'Use when a snapshot record must be exported by accession.',
+      readOnly: false,
+      sideEffects: ['writes-filesystem'],
+      artifacts: [{ path: '<outdir>/records.yaml', kind: 'file', description: 'Snapshot export' }],
       noContext: true,
       type: 'yaml',
     };
@@ -114,5 +136,13 @@ describe('noContext propagation through manifest (F5 regression)', () => {
     const cmd = getRegistry().get(REGISTRY_KEY);
     expect(cmd).toBeDefined();
     expect(cmd?.noContext).toBe(true);
+    expect(cmd?.defaultFormat).toBe('yaml');
+    expect(cmd?.requiredEnv).toEqual([{ name: 'BIOCLI_YAML_TOKEN' }]);
+    expect(cmd?.examples).toEqual([{ goal: 'Preview YAML snapshot output', command: 'biocli snapshotsite list -f yaml' }]);
+    expect(cmd?.whenToUse).toBe('Use when a snapshot record must be exported by accession.');
+    expect(cmd?.args).toEqual([{ name: 'snapshot', help: 'Snapshot accession', producedBy: ['snapshotsite/search'] }]);
+    expect(cmd?.readOnly).toBe(false);
+    expect(cmd?.sideEffects).toEqual(['writes-filesystem']);
+    expect(cmd?.artifacts).toEqual([{ path: '<outdir>/records.yaml', kind: 'file', description: 'Snapshot export' }]);
   });
 });

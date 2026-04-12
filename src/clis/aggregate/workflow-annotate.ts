@@ -82,6 +82,17 @@ cli({
   strategy: Strategy.PUBLIC,
   defaultFormat: 'json',
   timeoutSeconds: 120,
+  readOnly: false,
+  sideEffects: ['writes-filesystem'],
+  artifacts: [
+    { path: '<outdir>/', kind: 'directory', description: 'Annotation workspace directory' },
+    { path: '<outdir>/genes.csv', kind: 'file', description: 'Per-gene annotations table' },
+    { path: '<outdir>/pathways.csv', kind: 'file', description: 'Pathway links table' },
+    { path: '<outdir>/enrichment.csv', kind: 'file', description: 'Enrichment results table' },
+    { path: '<outdir>/report.md', kind: 'file', description: 'Human-readable workflow report' },
+    { path: '<outdir>/summary.json', kind: 'file', description: 'Summary metrics for the run' },
+    { path: '<outdir>/manifest.json', kind: 'file', description: 'Workflow provenance manifest' },
+  ],
   args: [
     { name: 'genes', positional: true, required: true, help: 'Gene symbols: comma-separated (TP53,BRCA1) or use --input file' },
     { name: 'outdir', required: true, help: 'Output directory for annotation results' },
@@ -89,6 +100,17 @@ cli({
     { name: 'library', default: 'KEGG_2021_Human', help: 'Enrichr library for enrichment analysis' },
     { name: 'plan', type: 'boolean', default: false, help: 'Preview steps without executing' },
   ],
+  examples: [
+    {
+      goal: 'Annotate a small cancer gene set into a report directory',
+      command: 'biocli aggregate workflow-annotate TP53,EGFR,KRAS --outdir results/annotate_tp53_egfr_kras -f json',
+    },
+    {
+      goal: 'Preview the workflow-annotate plan before running it',
+      command: 'biocli aggregate workflow-annotate TP53,BRCA1 --outdir results/annotate_plan --plan true -f json',
+    },
+  ],
+  whenToUse: 'Use when you already have a gene list and want a local annotation bundle with per-gene, pathway, and enrichment outputs.',
   columns: ['step', 'status', 'detail'],
   func: async (_ctx, args) => {
     const geneInput = String(args.genes);

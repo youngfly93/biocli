@@ -82,6 +82,17 @@ cli({
     { name: 'limit', type: 'int', default: 20, help: 'Max results per page' },
     { name: 'page', type: 'int', default: 1, help: 'Page number (1-indexed)' },
   ],
+  examples: [
+    {
+      goal: 'Find phosphoproteomics datasets mentioning TP53',
+      command: 'biocli px search TP53 --modification Phospho --limit 10 -f json',
+    },
+    {
+      goal: 'Search PRIDE only for lung cancer proteomics studies',
+      command: 'biocli px search "lung cancer" --repository PRIDE --limit 10 -f json',
+    },
+  ],
+  whenToUse: 'Use when you need to discover candidate proteomics datasets across ProteomeXchange repositories before drilling into one accession.',
   columns: ['accession', 'title', 'repository', 'species', 'instruments', 'announceDate'],
   func: async (ctx, args) => {
     const query = args.query ? String(args.query).trim() : '';

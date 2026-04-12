@@ -14,7 +14,7 @@ import * as path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import yaml from 'js-yaml';
 import { getErrorMessage } from './errors.js';
-import { fullName, getRegistry, type CliCommand } from './registry.js';
+import { fullName, getRegistry, type CliCommand, type InternalCliCommand } from './registry.js';
 import { type YamlCliDefinition, parseYamlArgs } from './yaml-schema.js';
 import { isRecord } from './utils.js';
 
@@ -39,10 +39,18 @@ export interface ManifestEntry {
     positional?: boolean;
     help?: string;
     choices?: string[];
+    producedBy?: string[];
   }>;
   columns?: string[];
+  defaultFormat?: CliCommand['defaultFormat'];
   pipeline?: Record<string, unknown>[];
   timeout?: number;
+  requiredEnv?: NonNullable<CliCommand['requiredEnv']>;
+  examples?: NonNullable<CliCommand['examples']>;
+  whenToUse?: string;
+  readOnly?: boolean;
+  sideEffects?: NonNullable<CliCommand['sideEffects']>;
+  artifacts?: NonNullable<CliCommand['artifacts']>;
   deprecated?: boolean | string;
   replacedBy?: string;
   /**
@@ -53,6 +61,8 @@ export interface ManifestEntry {
    * skip HttpContext creation and the response cache.
    */
   noContext?: boolean;
+  /** Mirrors CliCommand.noBatch. Prevents batch-splitting of comma-separated positional args. */
+  noBatch?: boolean;
   /** 'yaml' or 'ts' — determines how executeCommand loads the handler */
   type: 'yaml' | 'ts';
   /** Relative path from clis/ dir, e.g. 'pubmed/search.yaml' or 'gene/info.js' */
@@ -72,12 +82,24 @@ function toManifestArgs(args: CliCommand['args']): ManifestEntry['args'] {
     positional: arg.positional || undefined,
     help: arg.help ?? '',
     choices: arg.choices,
+    producedBy: arg.producedBy,
   }));
 }
 
 function toTsModulePath(filePath: string, site: string): string {
   const baseName = path.basename(filePath, path.extname(filePath));
   return `${site}/${baseName}.js`;
+}
+
+function commandBelongsToFile(cmd: CliCommand, filePath: string): boolean {
+  const sourceFile = (cmd as InternalCliCommand)._sourceFile;
+  return typeof sourceFile === 'string' && path.resolve(sourceFile) === path.resolve(filePath);
+}
+
+function preferCommandsForFile(commands: CliCommand[], filePath: string): CliCommand[] {
+  const deduped = [...new Map(commands.map(cmd => [fullName(cmd), cmd] as const)).values()];
+  const matched = deduped.filter(cmd => commandBelongsToFile(cmd, filePath));
+  return matched.length > 0 ? matched : deduped;
 }
 
 function isCliCommandValue(value: unknown, site: string): value is CliCommand {
@@ -98,12 +120,20 @@ function toManifestEntry(cmd: CliCommand, modulePath: string): ManifestEntry {
     strategy: (cmd.strategy ?? 'public').toString().toLowerCase(),
     args: toManifestArgs(cmd.args),
     columns: cmd.columns,
+    defaultFormat: cmd.defaultFormat,
     timeout: cmd.timeoutSeconds,
+    requiredEnv: cmd.requiredEnv,
+    examples: cmd.examples,
+    whenToUse: cmd.whenToUse,
+    readOnly: cmd.readOnly,
+    sideEffects: cmd.sideEffects,
+    artifacts: cmd.artifacts,
     deprecated: cmd.deprecated,
     replacedBy: cmd.replacedBy,
     // Only emit when true so we don't bloat the manifest with `false` for
     // every command. Reader treats undefined and false the same.
     noContext: cmd.noContext === true ? true : undefined,
+    noBatch: cmd.noBatch === true ? true : undefined,
     type: 'ts',
     modulePath,
   };
@@ -133,8 +163,32 @@ function scanYaml(filePath: string, site: string): ManifestEntry | null {
         : undefined,
       args,
       columns: cliDef.columns,
+      defaultFormat: cliDef.defaultFormat as CliCommand['defaultFormat'] | undefined,
       pipeline: cliDef.pipeline,
       timeout: cliDef.timeout,
+      examples: isRecord(cliDef) && Array.isArray((cliDef as Record<string, unknown>).examples)
+        ? ((cliDef as Record<string, unknown>).examples as unknown[])
+          .filter((value): value is NonNullable<CliCommand['examples']>[number] =>
+            isRecord(value) && typeof value.goal === 'string' && typeof value.command === 'string')
+        : undefined,
+      whenToUse: typeof (cliDef as Record<string, unknown>).whenToUse === 'string'
+        ? (cliDef as Record<string, unknown>).whenToUse as string
+        : undefined,
+      readOnly: typeof (cliDef as Record<string, unknown>).readOnly === 'boolean'
+        ? (cliDef as Record<string, unknown>).readOnly as boolean
+        : undefined,
+      sideEffects: isRecord(cliDef) && Array.isArray((cliDef as Record<string, unknown>).sideEffects)
+        ? ((cliDef as Record<string, unknown>).sideEffects as unknown[])
+          .filter((value): value is string => typeof value === 'string')
+        : undefined,
+      artifacts: isRecord(cliDef) && Array.isArray((cliDef as Record<string, unknown>).artifacts)
+        ? ((cliDef as Record<string, unknown>).artifacts as unknown[])
+          .filter((value): value is NonNullable<CliCommand['artifacts']>[number] =>
+            isRecord(value)
+            && typeof value.path === 'string'
+            && (value.kind === 'file' || value.kind === 'directory')
+            && typeof value.description === 'string')
+        : undefined,
       deprecated: (cliDef as Record<string, unknown>).deprecated as boolean | string | undefined,
       replacedBy: (cliDef as Record<string, unknown>).replacedBy as string | undefined,
       type: 'yaml',
@@ -170,19 +224,40 @@ export async function loadTsManifestEntries(
 
     // Strategy 1: Check exports for CliCommand objects.
     if (moduleExports && typeof moduleExports === 'object') {
+      const exportedCommands: CliCommand[] = [];
       for (const value of Object.values(moduleExports as Record<string, unknown>)) {
         if (isCliCommandValue(value, site)) {
-          entries.push(toManifestEntry(value, modulePath));
+          exportedCommands.push(value);
         }
+      }
+      for (const cmd of preferCommandsForFile(exportedCommands, filePath)) {
+        entries.push(toManifestEntry(cmd, modulePath));
       }
     }
 
     // Strategy 2: Check newly registered commands in the registry.
     if (entries.length === 0) {
+      const fileOwnedCommands: CliCommand[] = [];
+      for (const [key, cmd] of getRegistry()) {
+        if (key === fullName(cmd) && cmd.site === site && commandBelongsToFile(cmd, filePath)) {
+          fileOwnedCommands.push(cmd);
+        }
+      }
+      for (const cmd of preferCommandsForFile(fileOwnedCommands, filePath)) {
+        entries.push(toManifestEntry(cmd, modulePath));
+      }
+    }
+
+    // Fallback when source-file attribution is unavailable.
+    if (entries.length === 0) {
+      const newCommands: CliCommand[] = [];
       for (const [key, cmd] of getRegistry()) {
         if (!before.has(key) && key === fullName(cmd) && cmd.site === site) {
-          entries.push(toManifestEntry(cmd, modulePath));
+          newCommands.push(cmd);
         }
+      }
+      for (const cmd of preferCommandsForFile(newCommands, filePath)) {
+        entries.push(toManifestEntry(cmd, modulePath));
       }
     }
 

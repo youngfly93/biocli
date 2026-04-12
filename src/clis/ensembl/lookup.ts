@@ -6,7 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
-import { buildEnsemblUrl } from '../../databases/ensembl.js';
+import { buildEnsemblUrl, isEnsemblId } from '../../databases/ensembl.js';
 
 cli({
   site: 'ensembl',
@@ -15,7 +15,7 @@ cli({
   database: 'ensembl',
   strategy: Strategy.PUBLIC,
   args: [
-    { name: 'symbol', positional: true, required: true, help: 'Gene symbol (e.g. BRCA2, TP53)' },
+    { name: 'symbol', positional: true, required: true, help: 'Gene symbol (e.g. TP53) or Ensembl ID (e.g. ENSG00000141510)' },
     { name: 'species', default: 'homo_sapiens', help: 'Species name (e.g. homo_sapiens, mus_musculus)' },
   ],
   columns: ['ensemblId', 'symbol', 'biotype', 'chromosome', 'start', 'end', 'strand', 'description'],
@@ -23,8 +23,12 @@ cli({
     const symbol = String(args.symbol).trim();
     const species = String(args.species).toLowerCase().replace(/\s+/g, '_');
 
+    const apiPath = isEnsemblId(symbol)
+      ? `/lookup/id/${symbol}`
+      : `/lookup/symbol/${species}/${symbol}`;
+
     const data = await ctx.fetchJson(
-      buildEnsemblUrl(`/lookup/symbol/${species}/${symbol}`, { expand: '1' }),
+      buildEnsemblUrl(apiPath, { expand: '1' }),
     ) as Record<string, unknown>;
 
     if (!data || !data.id) {

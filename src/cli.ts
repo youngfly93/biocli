@@ -7,6 +7,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { existsSync } from 'node:fs';
 import { type CliCommand, fullName, getRegistry, strategyLabel } from './registry.js';
 import { render as renderOutput } from './output.js';
 import { getVersion } from './version.js';
@@ -14,11 +15,12 @@ import { printCompletionScript, getCompletions } from './completion.js';
 import { registerAllCommands } from './commander-adapter.js';
 import { validateAll } from './validate.js';
 import { runDoctor, formatDoctorText, formatDoctorJson } from './doctor.js';
-import { biocliResultSchema, resultWithMetaSchema } from './schema.js';
+import { getJsonSchemaForTarget } from './schema.js';
 import { runVerify, formatVerifyText, formatVerifyJson } from './verify.js';
 import { loadConfig, saveConfig, getConfigPath } from './config.js';
 import { getStats as getCacheStats, clearCache } from './cache.js';
 import { BUILTIN_CLIS_DIR, USER_CLIS_DIR } from './discovery.js';
+import { getWorkflowCatalog } from './workflows.js';
 
 export function runCli(): void {
   const program = new Command();
@@ -94,10 +96,16 @@ ${chalk.bold('Configuration:')}
               ...(a.positional ? { positional: true } : {}),
               ...(a.default !== undefined ? { default: a.default } : {}),
               ...(a.choices ? { choices: a.choices } : {}),
+              ...(a.producedBy ? { producedBy: a.producedBy } : {}),
               ...(a.help ? { help: a.help } : {}),
             })),
             defaultFormat: c.defaultFormat ?? 'table',
             columns: c.columns ?? [],
+            examples: c.examples ?? [],
+            whenToUse: c.whenToUse ?? '',
+            readOnly: c.readOnly ?? true,
+            sideEffects: c.sideEffects ?? [],
+            artifacts: c.artifacts ?? [],
             tags,
           };
         });
@@ -145,11 +153,7 @@ ${chalk.bold('Configuration:')}
     .option('-d, --dir <path>', 'Directory to validate', BUILTIN_CLIS_DIR)
     .action((opts) => {
       const dirs = [opts.dir];
-      // Also check user CLIs if they exist
-      try {
-        const { existsSync } = require('node:fs');
-        if (existsSync(USER_CLIS_DIR)) dirs.push(USER_CLIS_DIR);
-      } catch { /* ignore */ }
+      if (existsSync(USER_CLIS_DIR)) dirs.push(USER_CLIS_DIR);
 
       let totalErrors = 0;
       for (const dir of dirs) {
@@ -253,10 +257,64 @@ ${chalk.bold('Configuration:')}
 
   program
     .command('schema [type]')
-    .description('Output JSON Schema for biocli result types (default: result, or: meta)')
+    .description('Output JSON Schema for result/meta or a specific command (e.g. aggregate/gene-dossier)')
     .action((type?: string) => {
-      const schema = type === 'meta' ? resultWithMetaSchema : biocliResultSchema;
+      const schema = getJsonSchemaForTarget(type);
+      if (!schema) {
+        console.error(chalk.red(`Unknown schema target: "${type}".`));
+        console.error(chalk.dim('Use "biocli schema", "biocli schema meta", or "biocli schema <site/command>".'));
+        process.exitCode = 1;
+        return;
+      }
       console.log(JSON.stringify(schema, null, 2));
+    });
+
+  // ── Built-in: workflows ───────────────────────────────────────────────────
+
+  program
+    .command('workflows')
+    .description('List canonical multi-command workflows for agent planning')
+    .option('-f, --format <fmt>', 'Output format: table, json, yaml, md, csv', 'table')
+    .option('--json', 'JSON output (shorthand)')
+    .action((opts) => {
+      const fmt = opts.json && opts.format === 'table' ? 'json' : opts.format;
+      const workflows = getWorkflowCatalog();
+
+      if (fmt !== 'table') {
+        renderOutput(workflows, {
+          fmt,
+          columns: ['name', 'description', 'steps', 'outputs'],
+          title: 'biocli/workflows',
+          source: 'biocli workflows',
+        });
+        return;
+      }
+
+      const rows = workflows.map(workflow => ({
+        name: workflow.name,
+        description: workflow.description,
+        steps: workflow.steps.map(step => step.command).join(' -> '),
+        outputs: workflow.outputs.join(', '),
+      }));
+
+      renderOutput(rows, {
+        fmt: 'table',
+        columns: ['name', 'description', 'steps'],
+        title: 'biocli/workflows',
+        source: 'biocli workflows',
+      });
+    });
+
+  // ── Built-in: methods ──────────────────────────────────────────────────────
+
+  program
+    .command('methods <input>')
+    .description('Generate a methods-ready summary from a biocli result JSON or workflow manifest')
+    .option('-f, --format <fmt>', 'Output format: text, md, json', 'text')
+    .action(async (input: string, opts) => {
+      const { loadMethodsInput, parseMethodsFormat, renderMethods } = await import('./methods.js');
+      const payload = loadMethodsInput(input);
+      console.log(renderMethods(payload, parseMethodsFormat(String(opts.format))));
     });
 
   // ── Built-in: doctor ───────────────────────────────────────────────────────

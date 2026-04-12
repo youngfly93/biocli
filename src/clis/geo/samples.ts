@@ -17,7 +17,7 @@ cli({
   database: 'gds',
   strategy: Strategy.PUBLIC,
   args: [
-    { name: 'accession', positional: true, required: true, help: 'GEO series accession (e.g. GSE12345)' },
+    { name: 'accession', positional: true, required: true, help: 'GEO series accession (e.g. GSE12345)', producedBy: ['geo/search', 'aggregate/workflow-scout'] },
     { name: 'limit', type: 'int', default: 20, help: 'Max results (1-200)' },
   ],
   columns: ['accession', 'title', 'organism', 'type'],

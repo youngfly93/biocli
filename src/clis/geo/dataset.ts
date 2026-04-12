@@ -17,7 +17,7 @@ cli({
   database: 'gds',
   strategy: Strategy.PUBLIC,
   args: [
-    { name: 'accession', positional: true, required: true, help: 'GEO accession (e.g. GSE12345, GDS1234)' },
+    { name: 'accession', positional: true, required: true, help: 'GEO accession (e.g. GSE12345, GDS1234)', producedBy: ['geo/search', 'aggregate/workflow-scout'] },
   ],
   columns: ['accession', 'title', 'organism', 'type', 'platform', 'samples', 'summary', 'date'],
   func: async (ctx, args) => {

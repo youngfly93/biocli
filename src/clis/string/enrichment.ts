@@ -15,6 +15,7 @@ cli({
   name: 'enrichment',
   description: 'Functional enrichment analysis for a gene set',
   database: 'string',
+  noBatch: true,
   strategy: Strategy.PUBLIC,
   args: [
     { name: 'proteins', positional: true, required: true, help: 'Comma-separated protein/gene names (e.g. TP53,BRCA1,EGFR,MYC)' },

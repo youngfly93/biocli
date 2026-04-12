@@ -19,6 +19,7 @@ export interface YamlArgDefinition {
   description?: string;
   help?: string;
   choices?: string[];
+  producedBy?: string[];
 }
 
 export interface YamlCliDefinition {
@@ -33,6 +34,7 @@ export interface YamlCliDefinition {
   timeout?: number;
   defaultFormat?: string;
   aliases?: string[];
+  whenToUse?: string;
 }
 
 // ── Arg normalizer ──────────────────────────────────────────────────────────
@@ -50,6 +52,9 @@ export function parseYamlArgs(args: Record<string, YamlArgDefinition> | undefine
       positional: argDef?.positional ?? false,
       help: argDef?.description ?? argDef?.help ?? '',
       choices: argDef?.choices,
+      producedBy: Array.isArray(argDef?.producedBy)
+        ? argDef.producedBy.filter((value): value is string => typeof value === 'string')
+        : undefined,
     });
   }
   return result;
@@ -93,6 +98,7 @@ export function parseYamlCli(
     pipeline: raw.pipeline,
     timeoutSeconds: raw.timeout,
     defaultFormat: raw.defaultFormat as CliCommand['defaultFormat'],
+    whenToUse: raw.whenToUse,
   });
 }
 

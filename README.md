@@ -6,27 +6,43 @@
 [![node](https://img.shields.io/node/v/@yangfei_93sky/biocli?color=339933&label=node&logo=node.js&logoColor=white)](https://nodejs.org)
 [![license](https://img.shields.io/github/license/youngfly93/biocli?color=blue)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/youngfly93/biocli?label=release&color=orange&logo=github)](https://github.com/youngfly93/biocli/releases)
-[![commands](https://img.shields.io/badge/commands-55-7c3aed)](#all-commands)
+[![commands](https://img.shields.io/badge/commands-65-7c3aed)](#all-commands)
 [![benchmark v2](https://img.shields.io/badge/benchmark%20v2-workflow%20100%2F100-brightgreen)](benchmarks/v2/runs/report-public-stable/public_report.md)
 
 **One terminal command replaces four browser tabs.**
-biocli is the agent-first CLI for biological databases — 55 commands across 8 backends (NCBI, UniProt, KEGG, STRING, Ensembl, Enrichr, ProteomeXchange, PRIDE) plus the local Unimod PTM dictionary, all behind a strict JSON contract.
+biocli is the agent-first CLI for biological databases — 65 commands across 11 backends (NCBI, UniProt, KEGG, STRING, Ensembl, Enrichr, ProteomeXchange, PRIDE, cBioPortal, Open Targets, GDSC) plus local reference datasets, all behind a strict JSON contract.
 
 <p align="center">
   <img src="docs/demo.gif" width="820" alt="biocli demo: pubmed search 'CRISPR cancer' returns a structured table with PMID, title, authors, journal, year, and source">
 </p>
 
 ```
-biocli v0.4.0
-NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · Unimod (local)
-55 commands · 8 database backends · 1 reference dataset · 11 workflow commands · 4 download commands
+biocli v0.4.1
+NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · cBioPortal · Open Targets · GDSC · Unimod (local)
+65 commands · 11 database backends · 2 reference datasets · 14 workflow commands · 4 download commands
 ```
 
 ## Install
 
-### 1. Prerequisites
+biocli is published on npm today, and this repository now includes a conda packaging scaffold under [`packaging/conda`](packaging/conda/README.md). The long-term preferred command for research environments will be:
 
-biocli ships as an npm package, so it needs **Node.js >= 20** (which includes `npm`). If you don't already have Node.js installed:
+```bash
+conda install -c bioconda -c conda-forge biocli
+```
+
+Until that public conda channel exists, use one of the install paths below.
+
+### 1. Choose an install path
+
+| Path | Command | When to use |
+|---|---|---|
+| Conda-managed env + npm | `conda create -n biocli -c conda-forge "nodejs>=20" && conda activate biocli && npm install -g @yangfei_93sky/biocli` | Best current path if you already work inside conda |
+| npm global | `npm install -g @yangfei_93sky/biocli` | Fastest path today |
+| Local conda package | `npm run verify:conda && npm run build:conda:local && conda install -c local biocli` | Internal mirrors, packagers, or early conda validation |
+
+### 2. Prerequisites
+
+biocli needs **Node.js >= 20**. If you don't already have Node.js installed:
 
 | Platform | Command |
 |---|---|
@@ -40,20 +56,24 @@ Confirm you have Node >= 20: `node -v` should print `v20.x` or higher.
 
 No API keys are needed. An optional NCBI API key raises your NCBI rate limit from 3 to 10 req/s (see [Configuration](#configuration)), but biocli works out of the box without one.
 
-### 2. Install biocli
+### 3. Install biocli
 
 ```bash
 npm install -g @yangfei_93sky/biocli
 ```
 
-### 3. Verify the install
+If you want the conda route instead, see [`packaging/conda/README.md`](packaging/conda/README.md). That guide now includes a repo-local build helper and notes about the several GB of disk conda packaging can consume.
+
+### 4. Verify the install
 
 Three commands that confirm biocli is wired up end-to-end. Expected runtime: under 15 seconds.
 
 ```bash
-biocli --version                              # should print 0.4.0
+biocli --version                              # should print 0.4.1
 biocli verify --smoke -f json                 # config + doctor + 6 core smoke tests
 biocli aggregate gene-dossier TP53 -f json    # real query across NCBI / UniProt / KEGG / STRING / PubMed / ClinVar
+biocli aggregate tumor-gene-dossier TP53 --study acc_tcga_pan_can_atlas_2018 -f json
+biocli aggregate drug-target EGFR --disease lung -f json
 ```
 
 If all three return without error, biocli is installed and every upstream API is reachable from your network.
@@ -82,6 +102,27 @@ biocli aggregate enrichment TP53,BRCA1,EGFR,MYC,CDK2
 # Gene profile (NCBI + UniProt + KEGG + STRING)
 biocli aggregate gene-profile TP53
 
+# Structured cross-gene comparison
+biocli aggregate compare-genes TP53,BRCA1,EGFR -f json
+
+# Tumor genomics prevalence in cBioPortal
+biocli cbioportal frequency TP53 --study acc_tcga_pan_can_atlas_2018 -f json
+
+# Tumor-aware hero workflow
+biocli aggregate tumor-gene-dossier TP53 --study acc_tcga_pan_can_atlas_2018 --co-mutations 5 -f json
+
+# Target tractability + drug candidates with GDSC sensitivity evidence
+biocli aggregate drug-target EGFR --disease lung -f json
+
+# Add a tumor-study overlay from cBioPortal with study-aware ranking
+biocli aggregate drug-target EGFR --disease lung --study luad_tcga_pan_can_atlas_2018 -f json
+
+# Tumor co-mutation partners in cBioPortal
+biocli cbioportal co-mutations EGFR --study luad_tcga_pan_can_atlas_2018 --limit 10 -f json
+
+# Prewarm local GDSC sensitivity evidence before first drug-target query
+biocli gdsc prewarm
+
 # Cross-omics: find proteomics datasets reporting a PTM on a specific gene
 biocli aggregate ptm-datasets TP53 --modification phospho --limit 5
 ```
@@ -100,13 +141,13 @@ biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
 
 Benchmark v2 shows biocli at **88% workflow coverage with 100.0 quality** on supported tasks; next-best (BioMCP) is 24% at 97.1. See the [benchmark section](#benchmark-v2) for the full four-tool comparison.
 
-Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache.
+Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache, and an optional MCP companion package.
 
 ## Who is this for
 
 **biocli is for you if:**
 
-- You run multi-database biological queries and the browser-tab shuffle between NCBI, UniProt, KEGG, STRING, and Ensembl is eating your mornings.
+- You run multi-database biological queries and the browser-tab shuffle between NCBI, UniProt, KEGG, STRING, Ensembl, and cBioPortal is eating your mornings.
 - You're a grad student, postdoc, or research engineer who wants programmatic access to public biology data without writing a dozen bespoke HTTP clients.
 - You use Claude Code, Codex CLI, Cursor, or any AI coding agent that needs **reliable, structured, self-describing** biological data — not screen-scraped HTML or ad-hoc JSON shapes.
 - You're a proteomics researcher looking for the first CLI with a native Unimod PTM dictionary plus ProteomeXchange / PRIDE federation.
@@ -114,7 +155,7 @@ Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON ou
 **biocli is *not*:**
 
 - A sequence-analysis framework. No BLAST, no multiple-sequence alignment, no AlphaFold. Use [gget](https://github.com/pachterlab/gget) for sequence-centric workflows.
-- A drug / clinical-trial / disease-entity explorer. Use [BioMCP](https://github.com/genomoncology/biomcp) for deeper biomedical entity breadth.
+- A full drug / clinical-trial / disease-entity explorer. biocli now has a target-centric `aggregate drug-target` workflow, but use [BioMCP](https://github.com/genomoncology/biomcp) when you need broader biomedical entity coverage.
 - A Bioconductor or Biopython replacement. biocli retrieves data; it does not run statistical models, build plots, or manipulate sequences. Feed its JSON output into your existing analysis framework.
 - A local database or offline store. biocli wraps live REST APIs with a 24-hour local response cache; it does not bulk-download and index anything server-side. The one exception is the `unimod` command family, which queries a local snapshot.
 
@@ -145,12 +186,14 @@ Agents that parse biocli output never need to branch on command type — every `
 
 ## Use it with your agent
 
-biocli is designed to be driven directly by an AI coding agent — no MCP server, no custom wrapper, no HTML scraping. The agent runs shell commands and parses JSON.
+biocli is shell-first by default. Agents can run commands directly and parse JSON. If you need MCP transport, use the optional companion package under [`packages/biocli-mcp`](packages/biocli-mcp/README.md).
+
+### Shell-first
 
 ### Discover capabilities at runtime
 
 ```bash
-biocli list -f json          # full catalog of all 55 commands with args, types, defaults, columns
+biocli list -f json          # full catalog of all 65 commands with args, types, defaults, columns
 biocli schema                # JSON Schema for the BiocliResult envelope
 biocli schema meta           # JSON Schema for the result metadata wrapper
 biocli verify --smoke -f json   # preflight: config + doctor + smoke tests in one call
@@ -204,6 +247,16 @@ done
 ```
 
 Every biocli command keeps **warnings on stderr** and **payload on stdout**, so pipes into `jq` / `python -m json.tool` never choke on noise.
+
+### MCP-first
+
+```bash
+npm run build
+node packages/biocli-mcp/cli.js install --dry-run
+node packages/biocli-mcp/cli.js serve --scope hero
+```
+
+That companion package exposes hero workflows such as `gene-dossier`, `tumor-gene-dossier`, `drug-target`, `variant-dossier`, `literature-brief`, and `workflow-prepare` as MCP tools for Claude Desktop or any compatible MCP client, while keeping the core `biocli` install lean.
 
 ## How biocli compares
 
@@ -274,7 +327,7 @@ Four tools (biocli, BioMCP, gget, EDirect), **n=3 cold runs per cell**, coverage
 
 ## Command reference
 
-biocli ships **55 commands** across 11 agent-optimized workflows and 14 database surfaces. For the live, machine-readable catalog (including args, types, defaults, and columns):
+biocli ships **65 commands** across 13 agent-optimized workflows. For the live, machine-readable catalog (including args, types, defaults, and columns):
 
 ```bash
 biocli list                 # human-readable table
@@ -289,6 +342,9 @@ biocli list -f json         # full JSON with per-command schema
 | Command | Sources | Use case |
 |---------|---------|----------|
 | `aggregate gene-dossier <gene>` | NCBI+UniProt+KEGG+STRING+PubMed+ClinVar | Complete gene intelligence report |
+| `aggregate compare-genes <genes>` | NCBI+UniProt+KEGG+STRING+Enrichr | Compare a gene set across shared pathways, GO terms, STRING subnetwork, and set-level GO enrichment |
+| `aggregate tumor-gene-dossier <gene> --study <study>` | gene-dossier + cBioPortal | Tumor-focused gene dossier with prevalence, exemplar variants, and co-mutations |
+| `aggregate drug-target <gene> [--disease <term>] [--study <study>]` | Open Targets + GDSC + optional cBioPortal overlay | Target tractability, candidate drugs, disease context, clinical evidence links, GDSC sensitivity support, optional tumor prevalence / co-mutations, and study-aware ranking signals |
 | `aggregate variant-dossier <variant>` | dbSNP+ClinVar+Ensembl VEP | Variant interpretation |
 | `aggregate variant-interpret <variant>` | dbSNP+ClinVar+VEP+UniProt | Variant interpretation with clinical context |
 | `aggregate literature-brief <query>` | PubMed | Literature summary with abstracts |
@@ -316,6 +372,8 @@ biocli list -f json         # full JSON with per-command schema
 | **STRING** | `string partners`, `network`, `enrichment` |
 | **Ensembl** | `ensembl lookup`, `vep`, `xrefs` |
 | **Enrichr** | `enrichr analyze` |
+| **GDSC** | `gdsc prewarm`, `gdsc refresh` |
+| **Open Targets** | workflow-only in v1 via `aggregate drug-target` |
 | **ProteomeXchange** | `px search`, `dataset`, `files` |
 | **Unimod** *(local snapshot)* | `unimod fetch`, `install`, `refresh`, `search`, `list`, `by-mass`, `by-residue` |
 

@@ -116,6 +116,16 @@ npm install ./biocli-*.tgz
 ./node_modules/.bin/biocli verify --smoke -f json
 ```
 
+### Conda Packaging
+
+If the conda scaffold is being maintained for the release:
+
+- [ ] `npm run verify:conda` passes.
+- [ ] `packaging/conda/recipe/meta.yaml` version matches `package.json`.
+- [ ] `packaging/conda/README.md` still reflects the current preferred install path.
+- [ ] local `npm run build:conda:local` succeeds if `conda-build` is available and the machine has sufficient disk.
+- [ ] local package smoke check passes: `conda install -c local biocli` then `biocli --version`.
+
 ## Release Execution
 
 Recommended order:
@@ -128,6 +138,7 @@ Recommended order:
 6. Push branch and tags
 7. Create GitHub Release
 8. Verify install from registry
+9. Verify conda scaffold remains in sync
 
 ### 1. Version Bump
 
@@ -232,12 +243,24 @@ biocli aggregate gene-dossier TP53 -f json
 biocli gene info 7157 -f json
 ```
 
+### 9. Verify Conda Scaffold
+
+If `conda-build` is installed locally:
+
+```bash
+conda build packaging/conda/recipe
+conda install -c local biocli
+biocli --version
+biocli verify --smoke -f json
+```
+
 ## Post-Release Checks
 
 - [ ] npm package page shows the new version.
 - [ ] GitHub release is visible and linked to the correct tag.
 - [ ] `biocli --version` matches the published version.
 - [ ] install instructions in `README.md` still work.
+- [ ] conda recipe version and install instructions are still aligned.
 - [ ] benchmark links in README resolve correctly.
 - [ ] no obvious install or startup issues are reported.
 

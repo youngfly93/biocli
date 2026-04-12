@@ -51,6 +51,18 @@ cli({
   strategy: Strategy.PUBLIC,
   defaultFormat: 'json',
   timeoutSeconds: 180,
+  readOnly: false,
+  sideEffects: ['writes-filesystem'],
+  artifacts: [
+    { path: '<outdir>/', kind: 'directory', description: 'Profile workspace directory' },
+    { path: '<outdir>/profiles.json', kind: 'file', description: 'Per-gene profile summaries' },
+    { path: '<outdir>/interactions.csv', kind: 'file', description: 'Protein interaction table' },
+    { path: '<outdir>/shared_pathways.csv', kind: 'file', description: 'Shared KEGG pathway table' },
+    { path: '<outdir>/go_summary.csv', kind: 'file', description: 'GO term summary table' },
+    { path: '<outdir>/enrichment.csv', kind: 'file', description: 'Enrichment results table' },
+    { path: '<outdir>/report.md', kind: 'file', description: 'Human-readable workflow report' },
+    { path: '<outdir>/manifest.json', kind: 'file', description: 'Workflow provenance manifest' },
+  ],
   args: [
     { name: 'genes', positional: true, required: true, help: 'Gene symbols: comma-separated (TP53,BRCA1,EGFR,MYC,CDK2)' },
     { name: 'outdir', required: true, help: 'Output directory' },
@@ -58,6 +70,17 @@ cli({
     { name: 'library', default: 'KEGG_2021_Human', help: 'Enrichr library' },
     { name: 'plan', type: 'boolean', default: false, help: 'Preview steps without executing' },
   ],
+  examples: [
+    {
+      goal: 'Build a set-level profile workspace for TP53, BRCA1, and EGFR',
+      command: 'biocli aggregate workflow-profile TP53,BRCA1,EGFR --outdir results/profile_panel -f json',
+    },
+    {
+      goal: 'Preview a workflow-profile run without executing it',
+      command: 'biocli aggregate workflow-profile TP53,BRCA1,EGFR --outdir results/profile_plan --plan true -f json',
+    },
+  ],
+  whenToUse: 'Use when you need set-level analysis for multiple genes, especially shared pathways, interaction structure, and aggregate enrichment.',
   columns: ['step', 'status', 'detail'],
   func: async (_ctx, args) => {
     const genes = String(args.genes).split(',').map(s => s.trim()).filter(Boolean);

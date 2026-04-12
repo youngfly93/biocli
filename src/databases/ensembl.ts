@@ -30,6 +30,15 @@ export function buildEnsemblUrl(path: string, params?: Record<string, string>): 
   return url.toString();
 }
 
+/**
+ * Detect whether a string is an Ensembl stable ID.
+ * Ensembl IDs: ENSG (gene), ENST (transcript), ENSP (protein), ENSE (exon),
+ * ENSR (regulatory), plus species-specific prefixes (e.g. ENSMUSG for mouse).
+ */
+export function isEnsemblId(value: string): boolean {
+  return /^ENS[A-Z]*[GTSEPRF]\d{11}(\.\d+)?$/.test(value);
+}
+
 /** Low-level Ensembl fetch with rate limiting and retry. */
 async function ensemblFetch(url: string, opts?: FetchOptions): Promise<Response> {
   if (!opts?.skipRateLimit) {
@@ -59,16 +68,16 @@ async function ensemblFetch(url: string, opts?: FetchOptions): Promise<Response>
           await sleep(delayMs);
           continue;
         }
-        throw new ApiError('Ensembl API rate limit exceeded. Try again later.');
+        throw new ApiError('Ensembl API rate limit exceeded. Try again later.', 'Check Ensembl REST API at https://rest.ensembl.org');
       }
 
       if (response.status === 400) {
         const body = await response.text();
-        throw new ApiError(`Ensembl API error: ${body}`);
+        throw new ApiError(`Ensembl API error: ${body}`, 'Check Ensembl REST API at https://rest.ensembl.org');
       }
 
       if (!response.ok) {
-        throw new ApiError(`Ensembl API returned HTTP ${response.status}: ${response.statusText}`);
+        throw new ApiError(`Ensembl API returned HTTP ${response.status}: ${response.statusText}`, 'Check Ensembl REST API at https://rest.ensembl.org');
       }
 
       return response;
@@ -84,6 +93,7 @@ async function ensemblFetch(url: string, opts?: FetchOptions): Promise<Response>
 
   throw new ApiError(
     `Ensembl request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    'Check Ensembl REST API at https://rest.ensembl.org',
   );
 }
 

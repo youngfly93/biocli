@@ -143,6 +143,7 @@ export function validateAll(cliDir: string): ValidationError[] {
     const files = fs.readdirSync(sitePath);
 
     for (const file of files) {
+      if (file.startsWith('.')) continue; // skip hidden/AppleDouble files
       if (!file.endsWith('.yaml') && !file.endsWith('.yml')) continue;
       const filePath = path.join(sitePath, file);
       const errors = validateYamlCli(filePath);

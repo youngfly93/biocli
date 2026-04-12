@@ -65,6 +65,20 @@ export function buildPrideUrl(path: string, params?: Record<string, string | und
   return url.toString();
 }
 
+function buildPrideHint(finalUrl: string): string {
+  const path = decodeURIComponent(new URL(finalUrl).pathname);
+  if (/\/projects\/[^/]+\/files$/.test(path)) {
+    return 'Run biocli px dataset <PXD> -f json to confirm the accession is public and PRIDE-hosted, then retry with biocli px files <PXD> -f json.';
+  }
+  if (/\/projects\/[^/]+$/.test(path)) {
+    return 'Run biocli px search <query> -f json to find a valid PXD accession, then retry with biocli px dataset <PXD> -f json.';
+  }
+  if (path.endsWith('/search/projects')) {
+    return 'Refine the search terms and retry with biocli px search <query> -f json.';
+  }
+  return 'Retry with a valid PRIDE accession or search query, or check PRIDE Archive status and try again later.';
+}
+
 // ── Low-level fetch with 5xx retry ───────────────────────────────────────────
 
 /**
@@ -111,14 +125,14 @@ async function prideFetch(url: string, opts?: FetchOptions): Promise<Response> {
         }
         throw new ApiError(
           `PRIDE returned HTTP ${response.status} after ${MAX_RETRIES + 1} attempts`,
-          `PRIDE Archive may be temporarily unavailable. URL: ${finalUrl}`,
+          'PRIDE Archive may be temporarily unavailable. Retry biocli px dataset/files/search in a minute, or check PRIDE status.',
         );
       }
 
       if (!response.ok) {
         throw new ApiError(
           `PRIDE returned HTTP ${response.status}: ${response.statusText}`,
-          `Request URL: ${finalUrl}`,
+          buildPrideHint(finalUrl),
         );
       }
 
@@ -136,7 +150,7 @@ async function prideFetch(url: string, opts?: FetchOptions): Promise<Response> {
 
   throw new ApiError(
     `PRIDE request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? `HTTP ${lastResponse?.status ?? 'unknown'}`}`,
-    `URL: ${finalUrl}`,
+    'Retry biocli px dataset/files/search in a minute, or check PRIDE status.',
   );
 }
 

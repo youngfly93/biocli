@@ -46,6 +46,41 @@ export function buildEutilsUrl(tool: string, params: Record<string, string>): st
   return url.toString();
 }
 
+function buildNcbiHint(finalUrl: string): string {
+  const url = new URL(finalUrl);
+  const tool = url.pathname.split('/').pop()?.toLowerCase() ?? '';
+  const db = url.searchParams.get('db')?.toLowerCase() ?? '';
+
+  if (db === 'pubmed') {
+    if (tool === 'esearch.fcgi') return 'Retry with biocli pubmed search <query> -f json after simplifying the PubMed query.';
+    return 'Run biocli pubmed search <query> -f json to find valid PMIDs, then retry with biocli pubmed fetch <pmid> or another PubMed command.';
+  }
+  if (db === 'gene') {
+    if (tool === 'esearch.fcgi') return 'Retry with biocli gene search <symbol> -f json using a canonical gene symbol like TP53.';
+    if (tool === 'esummary.fcgi') return 'Run biocli gene search <symbol> -f json to find a valid Gene ID, then retry with biocli gene info <geneId>.';
+    return 'Run biocli gene search <symbol> -f json to find a valid Gene ID before fetching linked records.';
+  }
+  if (db === 'gds') {
+    if (tool === 'esearch.fcgi') return 'Retry with biocli geo search <query> -f json to find a valid GEO series or dataset.';
+    return 'Run biocli geo search <query> -f json to find a valid GEO accession, then retry with biocli geo dataset <gse> or biocli geo samples <gse>.';
+  }
+  if (db === 'sra') {
+    if (tool === 'esearch.fcgi') return 'Retry with biocli sra search <query> -f json to find a valid study or run accession.';
+    return 'Run biocli sra search <query> -f json to find a valid accession, then retry with biocli sra run <run> or related SRA commands.';
+  }
+  if (db === 'taxonomy') {
+    return 'Retry with biocli taxonomy lookup <name-or-taxid> -f json using a canonical taxon name or numeric taxid.';
+  }
+  if (db === 'clinvar') {
+    if (tool === 'esearch.fcgi') return 'Retry with biocli clinvar search <query> -f json to find a valid ClinVar record.';
+    return 'Run biocli clinvar search <query> -f json to find a valid ClinVar ID, then retry with biocli clinvar variant <id>.';
+  }
+  if (db === 'snp') {
+    return 'Retry with biocli snp lookup rs123 -f json using a valid rsID.';
+  }
+  return 'Check the identifier or search query, then retry the matching biocli command with -f json.';
+}
+
 // ── Core fetch ───────────────────────────────────────────────────────────────
 
 /**
@@ -102,13 +137,14 @@ export async function ncbiFetch(
         }
         throw new RateLimitError(
           `NCBI returned 429 after ${MAX_RETRIES + 1} attempts`,
+          'Add an NCBI API key (biocli config set api_key YOUR_KEY) to increase the rate limit from 3 to 10 req/s',
         );
       }
 
       if (!response.ok) {
         throw new ApiError(
           `NCBI API returned HTTP ${response.status}: ${response.statusText}`,
-          `Request URL: ${finalUrl.replace(/api_key=[^&]+/, 'api_key=***')}`,
+          buildNcbiHint(finalUrl),
         );
       }
 
@@ -127,6 +163,7 @@ export async function ncbiFetch(
 
   throw new ApiError(
     `NCBI request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    'Check NCBI API status at https://www.ncbi.nlm.nih.gov/home/develop/',
   );
 }
 

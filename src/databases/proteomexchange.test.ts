@@ -95,7 +95,19 @@ describe('proteomexchange 5xx retry (F5-scale regression surface)', () => {
     fetchMock.mockResolvedValueOnce(mockResponse(400));
 
     const ctx = proteomexchangeBackend.createContext();
-    await expect(ctx.fetchJson(buildProxiUrl('/datasets'), { skipRateLimit: true })).rejects.toBeInstanceOf(ApiError);
+    await expect(ctx.fetchJson(buildProxiUrl('/datasets'), { skipRateLimit: true })).rejects.toMatchObject({
+      hint: expect.stringContaining('biocli px search <query> -f json'),
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('dataset lookup failures point agents back to px search', async () => {
+    fetchMock.mockResolvedValueOnce(mockResponse(404));
+
+    const ctx = proteomexchangeBackend.createContext();
+    await expect(ctx.fetchJson(buildProxiUrl('/datasets/PXD999999'), { skipRateLimit: true })).rejects.toMatchObject({
+      hint: expect.stringContaining('biocli px search <query> -f json'),
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

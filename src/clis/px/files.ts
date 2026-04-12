@@ -67,8 +67,15 @@ cli({
   strategy: Strategy.PUBLIC,
   defaultFormat: 'json',
   args: [
-    { name: 'accession', positional: true, required: true, help: 'PXD accession (PRIDE-hosted)' },
+    { name: 'accession', positional: true, required: true, help: 'PXD accession (PRIDE-hosted)', producedBy: ['px/search'] },
   ],
+  examples: [
+    {
+      goal: 'List downloadable files for a PRIDE-hosted dataset',
+      command: 'biocli px files PXD000001 -f json',
+    },
+  ],
+  whenToUse: 'Use when you already have a PRIDE-hosted PXD accession and need the downloadable file inventory.',
   func: async (_ctx, args) => {
     const accession = validatePxd(String(args.accession));
 

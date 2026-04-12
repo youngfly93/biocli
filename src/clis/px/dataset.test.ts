@@ -114,6 +114,7 @@ describe('px/dataset adapter', () => {
     expect((result.data as Record<string, unknown>).repositoryStatus).toBe('degraded');
     expect(result.sources).toContain('ProteomeXchange');
     expect(result.sources).not.toContain('PRIDE');
+    expect(result.completeness).toBe('degraded');
     expect(result.warnings.length).toBe(1);
     expect(result.warnings[0]).toContain('503');
     expect(result.warnings[0]).toContain('PXD000001');

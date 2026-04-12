@@ -82,16 +82,17 @@ async function keggFetch(url: string, opts?: FetchOptions): Promise<Response> {
           await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
           continue;
         }
-        throw new ApiError('KEGG API rate limit exceeded. Try again shortly.');
+        throw new ApiError('KEGG API rate limit exceeded. Try again shortly.', 'Check KEGG API at https://rest.kegg.jp');
       }
 
       if (response.status === 404) {
-        throw new ApiError('KEGG entry not found');
+        throw new ApiError('KEGG entry not found', 'Check the KEGG ID is valid at https://www.kegg.jp');
       }
 
       if (!response.ok) {
         throw new ApiError(
           `KEGG API returned HTTP ${response.status}: ${response.statusText}`,
+          'Check KEGG API at https://rest.kegg.jp',
         );
       }
 
@@ -108,6 +109,7 @@ async function keggFetch(url: string, opts?: FetchOptions): Promise<Response> {
 
   throw new ApiError(
     `KEGG request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    'Check KEGG API at https://rest.kegg.jp',
   );
 }
 

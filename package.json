@@ -15,6 +15,8 @@
   },
   "exports": {
     ".": "./dist/main.js",
+    "./bootstrap": "./dist/bootstrap.js",
+    "./mcp-core": "./dist/mcp-core.js",
     "./registry": "./dist/registry-api.js"
   },
   "engines": {
@@ -22,13 +24,16 @@
   },
   "scripts": {
     "dev": "tsx src/main.ts",
-    "build": "npm run clean-dist && tsc -p tsconfig.build.json && npm run clean-yaml && npm run copy-yaml && npm run build-manifest",
+    "build": "npm run clean-dist && tsc -p tsconfig.build.json && npm run clean-yaml && npm run copy-yaml && npm run build-manifest && npm run clean-apple-double",
+    "build:conda:local": "bash scripts/build-conda-local.sh",
+    "clean-apple-double": "node scripts/clean-apple-double.cjs",
     "build-manifest": "node dist/build-manifest.js",
     "clean-dist": "node scripts/clean-dist.cjs",
     "clean-yaml": "node scripts/clean-yaml.cjs",
     "copy-yaml": "node scripts/copy-yaml.cjs",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
+    "verify:conda": "node scripts/verify-conda-scaffold.cjs",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build",
     "test": "vitest run --project unit --passWithNoTests",
@@ -64,13 +69,16 @@
     "commander": "^14.0.3",
     "fast-xml-parser": "^4.5.0",
     "js-yaml": "^4.1.0",
-    "undici": "^8.0.2"
+    "undici": "^8.0.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.13.10",
     "tsx": "^4.19.3",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.0",
+    "zod": "^4.3.6"
   }
 }

@@ -49,11 +49,11 @@ async function enrichrFetch(url: string, opts?: EnrichrFetchOptions): Promise<Re
           await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
           continue;
         }
-        throw new ApiError('Enrichr API rate limit exceeded');
+        throw new ApiError('Enrichr API rate limit exceeded', 'Check Enrichr at https://maayanlab.cloud/Enrichr');
       }
 
       if (!response.ok) {
-        throw new ApiError(`Enrichr API returned HTTP ${response.status}: ${response.statusText}`);
+        throw new ApiError(`Enrichr API returned HTTP ${response.status}: ${response.statusText}`, 'Check Enrichr at https://maayanlab.cloud/Enrichr');
       }
 
       return response;
@@ -69,6 +69,7 @@ async function enrichrFetch(url: string, opts?: EnrichrFetchOptions): Promise<Re
 
   throw new ApiError(
     `Enrichr request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
+    'Check Enrichr at https://maayanlab.cloud/Enrichr',
   );
 }
 
@@ -92,7 +93,7 @@ export async function submitGeneList(genes: string[], description?: string): Pro
   const data = await response.json() as Record<string, unknown>;
   const userListId = data.userListId;
   if (typeof userListId !== 'number') {
-    throw new ApiError('Enrichr did not return a valid userListId');
+    throw new ApiError('Enrichr did not return a valid userListId', 'Check Enrichr at https://maayanlab.cloud/Enrichr');
   }
   return userListId;
 }

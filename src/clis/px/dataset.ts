@@ -39,7 +39,7 @@ cli({
   strategy: Strategy.PUBLIC,
   defaultFormat: 'json',
   args: [
-    { name: 'accession', positional: true, required: true, help: 'PXD accession (e.g. PXD000001)' },
+    { name: 'accession', positional: true, required: true, help: 'PXD accession (e.g. PXD000001)', producedBy: ['px/search'] },
     {
       name: 'detailed',
       type: 'boolean',
@@ -47,6 +47,17 @@ cli({
       help: 'Upgrade with PRIDE detail when available. Use --detailed false to skip and return hub-only metadata.',
     },
   ],
+  examples: [
+    {
+      goal: 'Fetch full metadata for one ProteomeXchange dataset',
+      command: 'biocli px dataset PXD000001 -f json',
+    },
+    {
+      goal: 'Inspect only hub-level metadata without the PRIDE detail upgrade',
+      command: 'biocli px dataset PXD000001 --detailed false -f json',
+    },
+  ],
+  whenToUse: 'Use when you already have a PXD accession and need full dataset metadata, provenance, and repository-specific detail.',
   func: async (_ctx, args) => {
     const accession = validatePxd(String(args.accession));
     const detailed = args.detailed !== false;
@@ -106,6 +117,7 @@ cli({
         warnings,
         query: accession,
         ids: { pxd: accession, hostingRepository },
+        completeness: repositoryStatus === 'degraded' ? 'degraded' : undefined,
       },
     );
   },

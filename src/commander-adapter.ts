@@ -16,6 +16,7 @@ import { parseBatchInput, mergeBatchResults } from './batch.js';
 import { type CliCommand, fullName, getRegistry, strategyLabel } from './registry.js';
 import { render as renderOutput } from './output.js';
 import { executeCommand } from './execution.js';
+import { runWithProgressReporter } from './progress.js';
 import { startSpinner } from './spinner.js';
 import { hasResultMeta } from './types.js';
 import {
@@ -143,7 +144,7 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       // ── Batch mode: --input or comma-separated positional ────────────
       // Skip batch for aggregate commands — they handle their own multi-input parsing
       const primaryArg = positionalArgs[0]; // first positional = primary ID/query
-      const skipBatch = cmd.database === 'aggregate';
+      const skipBatch = cmd.database === 'aggregate' || cmd.noBatch === true;
       const batchItems = (primaryArg && !skipBatch)
         ? parseBatchInput(kwargs[primaryArg.name] as string | undefined, inputFile)
         : null;
@@ -161,7 +162,10 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
           for (const item of batchItems) {
             try {
               const batchKwargs = { ...kwargs, [primaryArg.name]: item };
-              const r = await executeCommand(cmd, batchKwargs, verbose, { noCache });
+              const r = await runWithProgressReporter(
+                (message) => spinner.update(message),
+                () => executeCommand(cmd, batchKwargs, verbose, { noCache }),
+              );
               if (r !== null && r !== undefined) batchResults.push(r);
             } catch (err) {
               failedItems.push(item);
@@ -176,7 +180,10 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
             for (const item of failedItems) {
               try {
                 const batchKwargs = { ...kwargs, [primaryArg.name]: item };
-                const r = await executeCommand(cmd, batchKwargs, verbose, { noCache: true });
+                const r = await runWithProgressReporter(
+                  (message) => spinner.update(message),
+                  () => executeCommand(cmd, batchKwargs, verbose, { noCache: true }),
+                );
                 if (r !== null && r !== undefined) batchResults.push(r);
               } catch {
                 stillFailed.push(item);
@@ -202,7 +209,10 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
           : `Running ${fullName(cmd)}…`;
         const spinner = startSpinner(spinnerLabel);
         try {
-          result = await executeCommand(cmd, kwargs, verbose, { noCache });
+          result = await runWithProgressReporter(
+            (message) => spinner.update(message),
+            () => executeCommand(cmd, kwargs, verbose, { noCache }),
+          );
         } finally {
           spinner.stop();
         }

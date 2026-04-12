@@ -99,8 +99,15 @@ cli({
   database: 'sra',
   strategy: Strategy.PUBLIC,
   timeoutSeconds: 600,
+  readOnly: false,
+  sideEffects: ['writes-filesystem', 'downloads-remote-files', 'runs-external-tools'],
+  artifacts: [
+    { path: '<outdir>/', kind: 'directory', description: 'Destination directory for downloaded FASTQ or SRA files' },
+    { path: '<outdir>/*.fastq.gz', kind: 'file', description: 'Compressed FASTQ files when ENA downloads succeed' },
+    { path: '<outdir>/<accession>/', kind: 'directory', description: 'sra-tools prefetch directory when using --method sra-tools' },
+  ],
   args: [
-    { name: 'accession', positional: true, required: true, help: 'SRA run accession (e.g. SRR1234567)' },
+    { name: 'accession', positional: true, required: true, help: 'SRA run accession (e.g. SRR1234567)', producedBy: ['sra/search', 'aggregate/workflow-scout'] },
     { name: 'outdir', default: '.', help: 'Output directory (default: current directory)' },
     { name: 'method', default: 'ena', choices: ['ena', 'sra-tools'], help: 'Download method' },
     { name: 'dry-run', type: 'boolean', default: false, help: 'Show download URLs without downloading' },
