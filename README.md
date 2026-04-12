@@ -17,7 +17,7 @@ biocli is the agent-first CLI for biological databases — 65 commands across 11
 </p>
 
 ```
-biocli v0.4.1
+biocli v0.5.0
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · cBioPortal · Open Targets · GDSC · Unimod (local)
 65 commands · 11 database backends · 2 reference datasets · 14 workflow commands · 4 download commands
 ```
@@ -69,7 +69,7 @@ If you want the conda route instead, see [`packaging/conda/README.md`](packaging
 Three commands that confirm biocli is wired up end-to-end. Expected runtime: under 15 seconds.
 
 ```bash
-biocli --version                              # should print 0.4.1
+biocli --version                              # should print 0.5.0
 biocli verify --smoke -f json                 # config + doctor + 6 core smoke tests
 biocli aggregate gene-dossier TP53 -f json    # real query across NCBI / UniProt / KEGG / STRING / PubMed / ClinVar
 biocli aggregate tumor-gene-dossier TP53 --study acc_tcga_pan_can_atlas_2018 -f json
