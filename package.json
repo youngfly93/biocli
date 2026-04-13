@@ -1,6 +1,6 @@
 {
   "name": "@yangfei_93sky/biocli",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Query biological databases from the terminal — agent-first bioinformatics CLI",
   "type": "module",
   "main": "dist/main.js",
