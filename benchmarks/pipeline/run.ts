@@ -1,22 +1,14 @@
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
-
-type CacheMode = 'cold' | 'warm';
-type CliMode = 'src' | 'dist';
-
-interface TaskSpec {
-  id: string;
-  title: string;
-  outdirName: string;
-  baseArgs: string[];
-}
-
-interface Args {
-  date: string;
-  cacheMode: CacheMode;
-  cliMode: CliMode;
-}
+import {
+  PIPELINE_TASKS,
+  cliCommand,
+  parseRunArgs,
+  readManifestSummary,
+  type TaskSpec,
+  type RunArgs,
+} from './lib.js';
 
 interface TaskRunSummary {
   taskId: string;
@@ -36,119 +28,14 @@ interface TaskRunSummary {
   };
 }
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function parseArgs(argv: string[]): Args {
-  let date = todayIso();
-  let cacheMode: CacheMode = 'cold';
-  let cliMode: CliMode = 'src';
-
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
-    if (arg === '--date') {
-      date = argv[i + 1] ?? date;
-      i += 1;
-    } else if (arg === '--cache-mode') {
-      const value = argv[i + 1] as CacheMode | undefined;
-      if (value === 'cold' || value === 'warm') cacheMode = value;
-      i += 1;
-    } else if (arg === '--cli') {
-      const value = argv[i + 1] as CliMode | undefined;
-      if (value === 'src' || value === 'dist') cliMode = value;
-      i += 1;
-    }
-  }
-
-  return { date, cacheMode, cliMode };
-}
-
-function cliCommand(mode: CliMode): string[] {
-  if (mode === 'dist') {
-    const distEntry = join(process.cwd(), 'dist', 'main.js');
-    if (!existsSync(distEntry)) {
-      throw new Error('dist/main.js is missing. Run "npm run build" or use --cli src.');
-    }
-    return ['node', distEntry];
-  }
-  return ['npx', 'tsx', 'src/main.ts'];
-}
-
-function readManifestSummary(path: string): TaskRunSummary['summary'] | undefined {
-  if (!existsSync(path)) return undefined;
-  const manifest = JSON.parse(readFileSync(path, 'utf-8')) as {
-    succeeded?: number;
-    failed?: number;
-    durationSeconds?: number;
-    cache?: unknown;
-    snapshots?: unknown;
-  };
-  return {
-    succeeded: manifest.succeeded,
-    failed: manifest.failed,
-    durationSeconds: manifest.durationSeconds,
-    cache: manifest.cache,
-    snapshots: manifest.snapshots,
-  };
-}
-
-const TASKS: TaskSpec[] = [
-  {
-    id: 'gene-profile-batch',
-    title: 'Batch gene-profile over a representative cancer gene list',
-    outdirName: 'gene-profile-run',
-    baseArgs: [
-      'aggregate', 'gene-profile',
-      '--input-file', 'benchmarks/pipeline/fixtures/gene-profile.genes.txt',
-      '--organism', 'human',
-      '--concurrency', '4',
-      '-f', 'json',
-    ],
-  },
-  {
-    id: 'drug-target-batch',
-    title: 'Batch drug-target scan over actionable lung cancer genes',
-    outdirName: 'drug-target-run',
-    baseArgs: [
-      'aggregate', 'drug-target',
-      '--input-file', 'benchmarks/pipeline/fixtures/drug-target.genes.txt',
-      '--disease', 'lung',
-      '--concurrency', '2',
-      '--limit', '5',
-      '--diseaseLimit', '5',
-      '--reportLimit', '2',
-      '-f', 'json',
-    ],
-  },
-  {
-    id: 'tumor-gene-dossier-batch',
-    title: 'Batch tumor-gene-dossier over a LUAD cohort gene list',
-    outdirName: 'tumor-gene-dossier-run',
-    baseArgs: [
-      'aggregate', 'tumor-gene-dossier',
-      '--input-file', 'benchmarks/pipeline/fixtures/tumor-gene-dossier.genes.txt',
-      '--study', 'luad_tcga_pan_can_atlas_2018',
-      '--organism', 'human',
-      '--papers', '3',
-      '--co-mutations', '5',
-      '--variants', '3',
-      '--min-co-samples', '1',
-      '--page-size', '500',
-      '--concurrency', '2',
-      '-f', 'json',
-    ],
-  },
-];
-
-const args = parseArgs(process.argv.slice(2));
+const args: RunArgs = parseRunArgs(process.argv.slice(2));
 const cli = cliCommand(args.cliMode);
 const resultRoot = join('benchmarks', 'pipeline', 'results', args.date, args.cacheMode);
 mkdirSync(resultRoot, { recursive: true });
 
 const summaries: TaskRunSummary[] = [];
 
-for (const task of TASKS) {
+for (const task of PIPELINE_TASKS) {
   const taskRoot = join(resultRoot, task.id);
   const outdir = join(taskRoot, task.outdirName);
   const logDir = join(taskRoot, 'logs');

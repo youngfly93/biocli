@@ -43,6 +43,7 @@
     "test:adapter": "vitest run --project adapter --passWithNoTests",
     "test:e2e": "vitest run --project e2e --passWithNoTests",
     "test:smoke": "vitest run --project smoke --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
     "test:all": "vitest run --passWithNoTests",
     "smoke:core": "bash scripts/smoke-core.sh",
     "smoke:live": "bash scripts/smoke-live.sh"
@@ -79,6 +80,7 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.13.10",
+    "@vitest/coverage-v8": "^4.1.4",
     "tsx": "^4.19.3",
     "typescript": "^6.0.2",
     "vitest": "^4.1.0",

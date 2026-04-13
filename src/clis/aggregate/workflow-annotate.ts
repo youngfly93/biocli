@@ -248,7 +248,7 @@ cli({
       try {
         const listText = await keggCtx.fetchText(buildKeggUrl(`/list/pathway/${org.keggOrg}`));
         const allPaths = parseKeggTsv(listText);
-        const nameMap = new Map(allPaths.map(p => [p.key, p.value.replace(/ - .*$/, '')]));
+        const nameMap = new Map(allPaths.map(p => [p.key.replace(/^path:/, ''), p.value.replace(/ - .*$/, '')]));
         for (const link of pathwayLinks) {
           link.pathwayName = nameMap.get(link.pathwayId) ?? link.pathwayId;
         }

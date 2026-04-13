@@ -1,17 +1,16 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
-
-type CliMode = 'src' | 'dist';
-
-interface Args {
-  date: string;
-  cliMode: CliMode;
-}
+import {
+  cliCommand,
+  countJsonlRows,
+  parseResumeArgs,
+  type ResumeArgs,
+} from './lib.js';
 
 interface ResumeBenchmarkSummary {
   date: string;
-  cliMode: CliMode;
+  cliMode: 'src' | 'dist';
   taskId: string;
   generatedAt: string;
   interruption: {
@@ -38,47 +37,6 @@ interface ResumeBenchmarkSummary {
   };
 }
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function parseArgs(argv: string[]): Args {
-  let date = todayIso();
-  let cliMode: CliMode = 'dist';
-
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
-    if (arg === '--date') {
-      date = argv[i + 1] ?? date;
-      i += 1;
-    } else if (arg === '--cli') {
-      const value = argv[i + 1] as CliMode | undefined;
-      if (value === 'src' || value === 'dist') cliMode = value;
-      i += 1;
-    }
-  }
-
-  return { date, cliMode };
-}
-
-function cliCommand(mode: CliMode): string[] {
-  if (mode === 'dist') {
-    const distEntry = join(process.cwd(), 'dist', 'main.js');
-    if (!existsSync(distEntry)) {
-      throw new Error('dist/main.js is missing. Run "npm run build" or use --cli src.');
-    }
-    return ['node', distEntry];
-  }
-  return ['npx', 'tsx', 'src/main.ts'];
-}
-
-function countJsonlRows(path: string): number {
-  if (!existsSync(path)) return 0;
-  const raw = readFileSync(path, 'utf-8').trim();
-  if (!raw) return 0;
-  return raw.split('\n').filter(Boolean).length;
-}
-
 function sleep(ms: number): Promise<void> {
   return new Promise(resolvePromise => setTimeout(resolvePromise, ms));
 }
@@ -94,7 +52,7 @@ async function waitForSucceededRows(path: string, minRows: number, timeoutMs: nu
   return count;
 }
 
-const args = parseArgs(process.argv.slice(2));
+const args: ResumeArgs = parseResumeArgs(process.argv.slice(2));
 const cli = cliCommand(args.cliMode);
 
 const resultRoot = join('benchmarks', 'pipeline', 'results', args.date, 'resume');

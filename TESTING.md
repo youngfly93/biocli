@@ -34,6 +34,14 @@ Spawn the real CLI as a subprocess with injected global `fetch` mocks.
 npm run test:all    # Runs unit → adapter → e2e in sequence
 ```
 
+### Coverage
+
+```bash
+npm run test:coverage
+```
+
+Runs the full Vitest suite with V8 coverage enabled and writes reports under `coverage/`.
+
 ## Writing a New Adapter Test
 
 1. Create `src/clis/<database>/<command>.test.ts`

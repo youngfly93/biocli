@@ -227,7 +227,7 @@ cli({
     let pathNameMap = new Map<string, string>();
     try {
       const listText = await keggCtx.fetchText(buildKeggUrl(`/list/pathway/${org.keggOrg}`));
-      pathNameMap = new Map(parseKeggTsv(listText).map(p => [p.key, p.value.replace(/ - .*$/, '')]));
+      pathNameMap = new Map(parseKeggTsv(listText).map(p => [p.key.replace(/^path:/, ''), p.value.replace(/ - .*$/, '')]));
       if (Object.keys(pathwayGenes).length > 0) sources.push('KEGG');
     } catch { /* non-fatal */ }
 
