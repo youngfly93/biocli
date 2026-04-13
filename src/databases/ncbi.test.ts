@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError } from '../errors.js';
+import { EXIT_CODES } from '../errors.js';
 
 const { fetchMock } = vi.hoisted(() => ({ fetchMock: vi.fn() }));
 vi.mock('../http-dispatcher.js', async (importOriginal) => {
@@ -55,5 +55,27 @@ describe('ncbi backend', () => {
     ).rejects.toMatchObject({
       hint: expect.stringContaining('biocli gene search <symbol> -f json'),
     });
+  });
+
+  it('repeated 429 responses exhaust retries as a temporary failure', async () => {
+    vi.useFakeTimers();
+    fetchMock
+      .mockResolvedValueOnce(mockResponse(429))
+      .mockResolvedValueOnce(mockResponse(429))
+      .mockResolvedValueOnce(mockResponse(429))
+      .mockResolvedValueOnce(mockResponse(429));
+
+    const promise = ncbiFetch(buildEutilsUrl('esearch.fcgi', {
+      db: 'gene',
+      term: 'TP53[Gene Name]',
+      retmode: 'json',
+    }), { skipRateLimit: true });
+    const rejection = expect(promise).rejects.toMatchObject({
+      code: 'RATE_LIMITED',
+      exitCode: EXIT_CODES.TEMPFAIL,
+    });
+    await vi.runAllTimersAsync();
+    await rejection;
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 });

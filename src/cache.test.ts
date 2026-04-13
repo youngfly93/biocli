@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterAll } from 'vitest';
-import { buildCacheKey, getCached, setCached, getStats, clearCache } from './cache.js';
+import { buildCacheKey, getCached, getCachedEntry, setCached, getStats, clearCache } from './cache.js';
 import { rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
@@ -42,6 +42,14 @@ describe('cache', () => {
       const data = [{ gene: 'TP53', id: '7157' }];
       setCached(TEST_DB, TEST_CMD, 'key1', data);
       expect(getCached(TEST_DB, TEST_CMD, 'key1')).toEqual(data);
+    });
+
+    it('returns cached metadata when requested', () => {
+      setCached(TEST_DB, TEST_CMD, 'meta', { gene: 'TP53' });
+      const cached = getCachedEntry(TEST_DB, TEST_CMD, 'meta');
+      expect(cached?.data).toEqual({ gene: 'TP53' });
+      expect(typeof cached?.cachedAt).toBe('number');
+      expect(cached?.ttlMs).toBeGreaterThan(0);
     });
 
     it('returns null for expired entry', () => {

@@ -1,0 +1,30 @@
+{
+  "command": "aggregate/tumor-gene-dossier",
+  "totalItems": 6,
+  "succeeded": 6,
+  "failed": 0,
+  "startedAt": "2026-04-13T13:40:02.405Z",
+  "finishedAt": "2026-04-13T13:40:02.415Z",
+  "durationSeconds": 0.01,
+  "biocliVersion": "0.5.0",
+  "outdir": "benchmarks/pipeline/results/2026-04-13/warm/tumor-gene-dossier-batch/tumor-gene-dossier-run",
+  "inputSource": "benchmarks/pipeline/fixtures/tumor-gene-dossier.genes.txt",
+  "inputFormat": "auto",
+  "concurrency": 2,
+  "retries": 0,
+  "failFast": false,
+  "cache": {
+    "policy": "skip-cached",
+    "hits": 6,
+    "misses": 0,
+    "writes": 0
+  },
+  "files": {
+    "resultsJsonl": "results.jsonl",
+    "failuresJsonl": "failures.jsonl",
+    "summaryJson": "summary.json",
+    "manifestJson": "manifest.json",
+    "summaryCsv": "summary.csv",
+    "methodsMd": "methods.md"
+  }
+}

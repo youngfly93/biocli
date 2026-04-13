@@ -1,0 +1,9 @@
+{
+  "command": "aggregate/tumor-gene-dossier",
+  "totalItems": 6,
+  "succeeded": 6,
+  "failed": 0,
+  "startedAt": "2026-04-13T13:39:31.827Z",
+  "finishedAt": "2026-04-13T13:39:53.825Z",
+  "durationSeconds": 21.998
+}

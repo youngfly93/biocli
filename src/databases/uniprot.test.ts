@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError } from '../errors.js';
+import { EXIT_CODES } from '../errors.js';
 
 const fetchMock = vi.fn();
 
@@ -47,5 +47,26 @@ describe('uniprot backend', () => {
     ).rejects.toMatchObject({
       hint: expect.stringContaining('biocli uniprot search <query> -f json'),
     });
+  });
+
+  it('repeated 429 responses exhaust retries as a temporary failure', async () => {
+    vi.useFakeTimers();
+    fetchMock
+      .mockResolvedValueOnce(mockResponse(429))
+      .mockResolvedValueOnce(mockResponse(429))
+      .mockResolvedValueOnce(mockResponse(429));
+
+    const ctx = uniprotBackend.createContext();
+    const promise = ctx.fetchJson(
+      buildUniprotUrl('/uniprotkb/search', { query: 'TP53', format: 'json' }),
+      { skipRateLimit: true },
+    );
+    const rejection = expect(promise).rejects.toMatchObject({
+      code: 'RATE_LIMITED',
+      exitCode: EXIT_CODES.TEMPFAIL,
+    });
+    await vi.runAllTimersAsync();
+    await rejection;
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });

@@ -13,12 +13,19 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { parseBatchInput, mergeBatchResults } from './batch.js';
+import { runBatch } from './batch-runner.js';
+import { toBatchFailureRecord } from './batch-failures.js';
+import { toBatchSuccessRecord } from './batch-output.js';
+import { createBatchArtifactSession } from './batch-resume.js';
+import { buildCacheKey, getCachedEntry, setCached } from './cache.js';
+import { loadConfig } from './config.js';
 import { type CliCommand, fullName, getRegistry, strategyLabel } from './registry.js';
 import { render as renderOutput } from './output.js';
 import { executeCommand } from './execution.js';
 import { runWithProgressReporter } from './progress.js';
 import { startSpinner } from './spinner.js';
 import { hasResultMeta } from './types.js';
+import type { BatchCacheSummary, BatchSuccessRecord } from './batch-types.js';
 import {
   CliError,
   EXIT_CODES,
@@ -74,14 +81,29 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       else subCmd.option(flag, arg.help ?? '');
     }
   }
+  const hasNamedArg = (name: string) => cmd.args.some(arg => !arg.positional && arg.name === name);
   subCmd
-    .option('-f, --format <fmt>', 'Output format: table, plain, json, yaml, md, csv', 'table')
+    .option('-f, --format <fmt>', 'Output format: table, plain, json, jsonl, yaml, md, csv', 'table')
     .option('-c, --columns <cols>', 'Columns to display (comma-separated, e.g. pmid,title,abstract)')
     .option('-A, --all-columns', 'Show all available columns', false)
     .option('-v, --verbose', 'Debug output', false)
     .option('--input <file>', 'Batch input: file with one ID per line, or - for stdin')
+    .option('--input-file <file>', 'Batch input alias for --input')
+    .option('--input-format <fmt>', 'Batch input format: text, csv, tsv, jsonl', 'auto')
+    .option('--key <field>', 'Column or JSONL field to read in batch mode')
+    .option('--concurrency <n>', 'Max in-flight batch items (default: 4)', '4')
+    .option('--jsonl', 'Render batch results as JSONL on stdout', false)
+    .option('--resume', 'Resume a batch run from an existing outdir checkpoint', false)
+    .option('--resume-from <path>', 'Resume a batch run from a prior manifest.json or run directory')
+    .option('--fail-fast', 'Stop scheduling new batch items after the first terminal failure', false)
+    .option('--max-errors <n>', 'Stop scheduling new batch items after N terminal failures')
+    .option('--skip-cached', 'Reuse cached per-item results in aggregate batch runs when available', false)
+    .option('--force-refresh', 'Bypass cached per-item results and refresh local datasets when supported', false)
     .option('--no-cache', 'Skip cache and fetch fresh data')
     .option('--retry <n>', 'Retry failed batch items N times (default: 0)', '0');
+  if (!hasNamedArg('outdir')) {
+    subCmd.option('--outdir <dir>', 'Write batch artifacts to a run directory');
+  }
 
   subCmd.action(async (...actionArgs: unknown[]) => {
     const actionOpts = actionArgs[positionalArgs.length] ?? {};
@@ -104,16 +126,28 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       }
 
       const verbose = optionsRecord.verbose === true;
-      const inputFile = typeof optionsRecord.input === 'string' ? optionsRecord.input : undefined;
+      const inputFile = typeof optionsRecord.inputFile === 'string'
+        ? optionsRecord.inputFile
+        : typeof optionsRecord.input === 'string'
+          ? optionsRecord.input
+          : undefined;
 
-      // If --input is provided, read file and inject into positional arg.
-      // Only for commands whose positional arg is named "genes" (multi-entity pattern).
-      // Single-entity commands (gene-dossier, variant-dossier, etc.) use batch mode instead.
+      // If --input is provided, read file and inject into the primary positional arg.
+      // This is required for:
+      //   1. multi-entity commands like aggregate/gene-profile (primary arg = genes)
+      //   2. aggregate hero workflows like aggregate/drug-target that validate the
+      //      primary positional arg before their internal batch parser runs.
       const primaryArgName = positionalArgs[0]?.name;
-      const supportsInputInject = primaryArgName === 'genes';
+      const supportsInputInject = Boolean(primaryArgName) && (
+        primaryArgName === 'genes' || cmd.database === 'aggregate'
+      );
       if (inputFile && supportsInputInject && !kwargs[primaryArgName]) {
         const { parseBatchInput: parseInput } = await import('./batch.js');
-        const items = parseInput(undefined, inputFile);
+        const items = parseInput({
+          inputFile,
+          inputFormat: typeof optionsRecord.inputFormat === 'string' ? optionsRecord.inputFormat : undefined,
+          key: typeof optionsRecord.key === 'string' ? optionsRecord.key : undefined,
+        });
         if (items && items.length > 0) {
           kwargs[primaryArgName] = items.join(',');
         }
@@ -146,63 +180,235 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       const primaryArg = positionalArgs[0]; // first positional = primary ID/query
       const skipBatch = cmd.database === 'aggregate' || cmd.noBatch === true;
       const batchItems = (primaryArg && !skipBatch)
-        ? parseBatchInput(kwargs[primaryArg.name] as string | undefined, inputFile)
+        ? parseBatchInput({
+          positionalValue: kwargs[primaryArg.name] as string | undefined,
+          inputFile,
+          inputFormat: typeof optionsRecord.inputFormat === 'string' ? optionsRecord.inputFormat : undefined,
+          key: typeof optionsRecord.key === 'string' ? optionsRecord.key : undefined,
+        })
         : null;
 
       const retryCount = Math.max(0, parseInt(String(optionsRecord.retry ?? '0'), 10) || 0);
+      const concurrency = Math.max(1, parseInt(String(optionsRecord.concurrency ?? '4'), 10) || 4);
+      const failFast = optionsRecord.failFast === true;
+      const maxErrorsRaw = optionsRecord.maxErrors;
+      const maxErrors = maxErrorsRaw == null ? undefined : Math.max(1, parseInt(String(maxErrorsRaw), 10) || 1);
+      const outdir = typeof optionsRecord.outdir === 'string' ? optionsRecord.outdir : undefined;
+      const wantsJsonl = optionsRecord.jsonl === true;
+      const resumeFrom = typeof optionsRecord.resumeFrom === 'string' ? optionsRecord.resumeFrom : undefined;
+      const resume = optionsRecord.resume === true || Boolean(resumeFrom);
+      kwargs.__batch = {
+        inputFile,
+        inputFormat: typeof optionsRecord.inputFormat === 'string' ? optionsRecord.inputFormat : 'auto',
+        key: typeof optionsRecord.key === 'string' ? optionsRecord.key : undefined,
+        concurrency,
+        outdir,
+        jsonl: wantsJsonl,
+        resume,
+        resumeFrom,
+        failFast,
+        maxErrors,
+        retries: retryCount,
+        skipCached: optionsRecord.skipCached === true,
+        forceRefresh: optionsRecord.forceRefresh === true,
+        noCache,
+      };
 
       let result: unknown;
       if (batchItems && primaryArg) {
+        if (resume && !outdir && !resumeFrom) {
+          throw new ArgumentError('--resume requires --outdir or --resume-from so completed items can be restored.');
+        }
+        const databaseId = cmd.database ?? 'ncbi';
+        const needsNoContext = databaseId === 'aggregate' || cmd.noContext === true;
+        const cacheConfig = loadConfig().cache;
+        const cacheEnabled = (cacheConfig?.enabled ?? true) && !noCache && !needsNoContext;
+        const cacheTtlMs = (cacheConfig?.ttl ?? 24) * 60 * 60 * 1000;
+        const cache: BatchCacheSummary = {
+          policy: !cacheEnabled
+            ? 'disabled'
+            : optionsRecord.forceRefresh === true
+              ? 'force-refresh'
+              : optionsRecord.skipCached === true
+                ? 'skip-cached'
+                : 'default',
+          hits: 0,
+          misses: 0,
+          writes: 0,
+        };
+        const batchStartedAt = new Date().toISOString();
         const spinnerLabel = `Batch ${fullName(cmd)} (${batchItems.length} items)…`;
         const spinner = startSpinner(spinnerLabel);
-        const batchResults: unknown[] = [];
-        let failedItems: string[] = [];
         try {
-          // First pass
-          for (const item of batchItems) {
-            try {
-              const batchKwargs = { ...kwargs, [primaryArg.name]: item };
-              const r = await runWithProgressReporter(
-                (message) => spinner.update(message),
-                () => executeCommand(cmd, batchKwargs, verbose, { noCache }),
-              );
-              if (r !== null && r !== undefined) batchResults.push(r);
-            } catch (err) {
-              failedItems.push(item);
-              if (verbose) console.error(chalk.yellow(`[Batch] ${item} failed: ${err instanceof Error ? err.message : String(err)}`));
-            }
-          }
-
-          // Retry failed items
-          for (let attempt = 1; attempt <= retryCount && failedItems.length > 0; attempt++) {
-            if (verbose) console.error(chalk.dim(`[Batch] Retry ${attempt}/${retryCount}: ${failedItems.length} item(s)…`));
-            const stillFailed: string[] = [];
-            for (const item of failedItems) {
-              try {
-                const batchKwargs = { ...kwargs, [primaryArg.name]: item };
-                const r = await runWithProgressReporter(
-                  (message) => spinner.update(message),
-                  () => executeCommand(cmd, batchKwargs, verbose, { noCache: true }),
-                );
-                if (r !== null && r !== undefined) batchResults.push(r);
-              } catch {
-                stillFailed.push(item);
+          const cacheArgsForInput = (input: string): Record<string, unknown> => {
+            const cacheArgs: Record<string, unknown> = {};
+            for (const arg of cmd.args) {
+              if (arg.positional) {
+                if (arg.name === primaryArg.name) {
+                  cacheArgs[arg.name] = input;
+                }
+              } else if (kwargs[arg.name] !== undefined) {
+                cacheArgs[arg.name] = kwargs[arg.name];
               }
             }
-            failedItems = stillFailed;
+            return cacheArgs;
+          };
+          const session = (outdir || resume)
+            ? createBatchArtifactSession({
+                outdir,
+                resume,
+                resumeFrom,
+                command: fullName(cmd),
+              })
+            : null;
+          const pendingItems = session
+            ? session.pendingEntries(batchItems.map((input, index) => ({ input, index })))
+            : batchItems.map((input, index) => ({ input, index }));
+          if (session && session.skippedCompletedCount > 0) {
+            spinner.update(`Resume checkpoint: skipping ${session.skippedCompletedCount} completed item(s)…`);
           }
+
+          const cachedSuccesses: BatchSuccessRecord[] = [];
+          const executionItems: Array<{ input: string; index: number }> = [];
+          if (cacheEnabled && optionsRecord.forceRefresh !== true) {
+            for (const entry of pendingItems) {
+              const cacheKey = buildCacheKey(databaseId, fullName(cmd), cacheArgsForInput(entry.input));
+              const cached = getCachedEntry(databaseId, fullName(cmd), cacheKey, cacheTtlMs);
+              if (cached) {
+                const record: BatchSuccessRecord = {
+                  input: entry.input,
+                  index: entry.index,
+                  attempts: 0,
+                  succeededAt: new Date().toISOString(),
+                  cache: {
+                    hit: true,
+                    source: 'result-cache',
+                    cachedAt: new Date(cached.cachedAt).toISOString(),
+                  },
+                  result: cached.data,
+                };
+                cachedSuccesses.push(record);
+                session?.recordSuccess(record);
+                cache.hits += 1;
+              } else {
+                executionItems.push(entry);
+                cache.misses += 1;
+              }
+            }
+          } else {
+            executionItems.push(...pendingItems);
+            if (cacheEnabled) cache.misses = executionItems.length;
+          }
+
+          if (cachedSuccesses.length > 0) {
+            spinner.update(`Batch cache: reusing ${cachedSuccesses.length} cached item(s)…`);
+          }
+
+          const batchRun = await runBatch({
+            items: executionItems,
+            concurrency,
+            retries: retryCount,
+            failFast,
+            maxErrors,
+            itemLabel: (entry) => entry.input,
+            onProgress: ({ completed, failed, inFlight, total, lastItem }) => {
+              const suffix = lastItem ? ` ${lastItem}` : '';
+              spinner.update(`Batch ${fullName(cmd)} ${completed + cache.hits}/${batchItems.length} done, ${failed} failed, ${inFlight} running…${suffix}`);
+            },
+            onSuccess: async (entry) => {
+              const cacheKey = cacheEnabled
+                ? buildCacheKey(databaseId, fullName(cmd), cacheArgsForInput(entry.item.input))
+                : null;
+              if (cacheEnabled && cacheKey) {
+                try {
+                  setCached(databaseId, fullName(cmd), cacheKey, entry.result, cacheTtlMs);
+                  cache.writes += 1;
+                } catch {
+                  // Non-fatal: batch output should still complete even if the shared cache directory is unavailable.
+                }
+              }
+              const record = toBatchSuccessRecord({
+                ...entry,
+                item: entry.item.input,
+                index: entry.item.index,
+              });
+              if (!session) return;
+              session.recordSuccess(record);
+            },
+            onFailure: async (entry) => {
+              if (!session) return;
+              session.recordFailure({
+                ...toBatchFailureRecord(fullName(cmd), entry, item => (item as { input: string }).input),
+                index: entry.item.index,
+              });
+            },
+            executor: async (entry) => {
+              const batchKwargs = { ...kwargs, [primaryArg.name]: entry.input };
+              return runWithProgressReporter(
+                (message) => spinner.update(message),
+                () => executeCommand(cmd, batchKwargs, verbose, { noCache: true }),
+              );
+            },
+          });
+
+          const batchFinishedAt = new Date().toISOString();
+          const directSuccesses = [
+            ...cachedSuccesses,
+            ...batchRun.successes.map((entry) => toBatchSuccessRecord({
+              ...entry,
+              item: entry.item.input,
+              index: entry.item.index,
+            })),
+          ].sort((a, b) => a.index - b.index || a.input.localeCompare(b.input));
+          const directFailures = batchRun.failures
+            .map((entry) => ({
+              ...toBatchFailureRecord(fullName(cmd), entry, item => (item as { input: string }).input),
+              index: entry.item.index,
+            }))
+            .sort((a, b) => a.index - b.index || a.input.localeCompare(b.input));
+          const finalized = session
+            ? session.finalize({
+                command: fullName(cmd),
+                totalItems: batchItems.length,
+                startedAt: batchStartedAt,
+                finishedAt: batchFinishedAt,
+                inputSource: inputFile ?? session.previousManifest?.inputSource ?? primaryArg.name,
+                inputFormat: typeof optionsRecord.inputFormat === 'string'
+                  ? optionsRecord.inputFormat
+                  : session.previousManifest?.inputFormat ?? 'auto',
+                key: typeof optionsRecord.key === 'string'
+                  ? optionsRecord.key
+                  : session.previousManifest?.key,
+                concurrency,
+                retries: retryCount,
+                failFast,
+                maxErrors,
+                cache: cacheEnabled ? cache : undefined,
+              })
+            : {
+                manifest: undefined,
+                successes: directSuccesses,
+                failures: directFailures,
+              };
+
+          const batchResults = finalized.successes
+            .map((entry) => entry.result)
+            .filter((value) => value !== null && value !== undefined);
+          const failedItems = finalized.failures.map((entry) => entry.input);
+
+          if (failedItems.length > 0) {
+            console.error(chalk.yellow(`[Batch] ${failedItems.length}/${batchItems.length} failed${retryCount > 0 ? ` (after ${retryCount} retries)` : ''}: ${failedItems.join(', ')}`));
+          }
+          if (!batchResults.length) {
+            console.error(chalk.red(`All ${batchItems.length} batch items failed.`));
+            process.exitCode = 1;
+            return;
+          }
+          if (wantsJsonl) format = 'jsonl';
+          result = mergeBatchResults(batchResults);
         } finally {
           spinner.stop();
         }
-        if (failedItems.length > 0) {
-          console.error(chalk.yellow(`[Batch] ${failedItems.length}/${batchItems.length} failed${retryCount > 0 ? ` (after ${retryCount} retries)` : ''}: ${failedItems.join(', ')}`));
-        }
-        if (!batchResults.length) {
-          console.error(chalk.red(`All ${batchItems.length} batch items failed.`));
-          process.exitCode = 1;
-          return;
-        }
-        result = mergeBatchResults(batchResults);
       } else {
         const spinnerLabel = cmd.database
           ? `Querying ${cmd.database}…`
@@ -217,6 +423,7 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
           spinner.stop();
         }
       }
+      if (wantsJsonl) format = 'jsonl';
       if (result === null || result === undefined) {
         return;
       }

@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import type { FetchOptions, HttpContext } from '../../types.js';
 import { getRegistry } from '../../registry.js';
 import { parseXml } from '../../xml-parser.js';
@@ -266,51 +269,46 @@ function buildCbioPortalContext(): HttpContext {
         if (body.entrezGeneIds?.[0] === 7157 && url.includes('pageNumber=2')) {
           return [];
         }
-        if (body.sampleIds?.length === 3 && url.includes('pageNumber=0')) {
-          return [
-            {
-              sampleId: 'S1',
-              patientId: 'P1',
-              gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' },
-              mutationType: 'Missense_Mutation',
-              proteinChange: 'L858R',
-            },
-            {
-              sampleId: 'S2',
-              patientId: 'P2',
-              gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' },
-              mutationType: 'Missense_Mutation',
-              proteinChange: 'E746_A750del',
-            },
-            {
-              sampleId: 'S2',
-              patientId: 'P2',
-              gene: { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1' },
-              mutationType: 'Nonsense_Mutation',
-              proteinChange: 'Q1756*',
-            },
+        // Co-mutation batched fetch (sampleIds + entrezGeneIds)
+        if (body.sampleIds?.length === 3 && body.entrezGeneIds) {
+          if (!url.includes('pageNumber=0')) return [];
+          const mockPartners = [
+            { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR', mutations: [
+              { sampleId: 'S1', patientId: 'P1', mutationType: 'Missense_Mutation', proteinChange: 'L858R' },
+              { sampleId: 'S2', patientId: 'P2', mutationType: 'Missense_Mutation', proteinChange: 'E746_A750del' },
+              { sampleId: 'S3', patientId: 'P3', mutationType: 'Amplification', proteinChange: '' },
+            ]},
+            { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1', mutations: [
+              { sampleId: 'S2', patientId: 'P2', mutationType: 'Nonsense_Mutation', proteinChange: 'Q1756*' },
+              { sampleId: 'S3', patientId: 'P3', mutationType: 'Frame_Shift_Del', proteinChange: 'S1140fs' },
+            ]},
           ];
+          const results = [];
+          for (const partner of mockPartners) {
+            if (body.entrezGeneIds.includes(partner.entrezGeneId)) {
+              for (const m of partner.mutations) {
+                results.push({ ...m, gene: { entrezGeneId: partner.entrezGeneId, hugoGeneSymbol: partner.hugoGeneSymbol } });
+              }
+            }
+          }
+          return results;
         }
-        if (body.sampleIds?.length === 3 && url.includes('pageNumber=1')) {
-          return [
-            {
-              sampleId: 'S3',
-              patientId: 'P3',
-              gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' },
-              mutationType: 'Amplification',
-              proteinChange: '',
-            },
-            {
-              sampleId: 'S3',
-              patientId: 'P3',
-              gene: { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1' },
-              mutationType: 'Frame_Shift_Del',
-              proteinChange: 'S1140fs',
-            },
-          ];
-        }
-        if (body.sampleIds?.length === 3 && url.includes('pageNumber=2')) {
-          return [];
+        // Legacy fallback (sampleIds without entrezGeneIds)
+        if (body.sampleIds?.length === 3 && !body.entrezGeneIds) {
+          if (url.includes('pageNumber=0')) {
+            return [
+              { sampleId: 'S1', patientId: 'P1', gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' }, mutationType: 'Missense_Mutation', proteinChange: 'L858R' },
+              { sampleId: 'S2', patientId: 'P2', gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' }, mutationType: 'Missense_Mutation', proteinChange: 'E746_A750del' },
+              { sampleId: 'S2', patientId: 'P2', gene: { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1' }, mutationType: 'Nonsense_Mutation', proteinChange: 'Q1756*' },
+            ];
+          }
+          if (url.includes('pageNumber=1')) {
+            return [
+              { sampleId: 'S3', patientId: 'P3', gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' }, mutationType: 'Amplification', proteinChange: '' },
+              { sampleId: 'S3', patientId: 'P3', gene: { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1' }, mutationType: 'Frame_Shift_Del', proteinChange: 'S1140fs' },
+            ];
+          }
+          if (url.includes('pageNumber=2')) return [];
         }
       }
       throw new Error(`Unhandled cBioPortal URL in test: ${url}`);
@@ -422,5 +420,143 @@ describe('aggregate/tumor-gene-dossier adapter', () => {
         }),
       }),
     }));
+  });
+
+  it('supports batch execution through the shared aggregate batch runtime', async () => {
+    const cmd = getRegistry().get('aggregate/tumor-gene-dossier');
+    const result = await cmd!.func!({} as HttpContext, {
+      gene: 'TP53,TP53',
+      study: 'study',
+      organism: 'human',
+      papers: 1,
+      'co-mutations': 5,
+      variants: 3,
+      'min-co-samples': 2,
+      'page-size': 2,
+      __batch: { concurrency: 2, retries: 0 },
+    }) as Array<Record<string, unknown>>;
+
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toHaveLength(2);
+    expect(result[0]?.query).toBe('TP53 @ study');
+    expect(result[1]?.query).toBe('TP53 @ study');
+  });
+
+  it('writes batch artifacts when outdir is provided', async () => {
+    const cmd = getRegistry().get('aggregate/tumor-gene-dossier');
+    const outdir = mkdtempSync(join(tmpdir(), 'biocli-tumor-gene-dossier-batch-'));
+    try {
+      await cmd!.func!({} as HttpContext, {
+        gene: 'TP53,TP53',
+        study: 'study',
+        organism: 'human',
+        papers: 1,
+        'co-mutations': 5,
+        variants: 3,
+        'min-co-samples': 2,
+        'page-size': 2,
+        __batch: { concurrency: 2, retries: 0, outdir },
+      });
+
+      expect(existsSync(join(outdir, 'results.jsonl'))).toBe(true);
+      expect(existsSync(join(outdir, 'failures.jsonl'))).toBe(true);
+      expect(existsSync(join(outdir, 'summary.json'))).toBe(true);
+      expect(existsSync(join(outdir, 'summary.csv'))).toBe(true);
+      expect(existsSync(join(outdir, 'manifest.json'))).toBe(true);
+      expect(existsSync(join(outdir, 'methods.md'))).toBe(true);
+
+      const manifest = JSON.parse(readFileSync(join(outdir, 'manifest.json'), 'utf-8'));
+      const summaryCsv = readFileSync(join(outdir, 'summary.csv'), 'utf-8');
+      const methodsMd = readFileSync(join(outdir, 'methods.md'), 'utf-8');
+
+      expect(manifest.command).toBe('aggregate/tumor-gene-dossier');
+      expect(manifest.inputSource).toBe('inline');
+      expect(summaryCsv).toContain('studyId');
+      expect(summaryCsv).toContain('TP53');
+      expect(methodsMd).toContain('aggregate/tumor-gene-dossier batch (2 items)');
+    } finally {
+      rmSync(outdir, { recursive: true, force: true });
+    }
+  });
+
+  it('can resume from an existing batch checkpoint without re-querying upstreams', async () => {
+    const cmd = getRegistry().get('aggregate/tumor-gene-dossier');
+    const outdir = mkdtempSync(join(tmpdir(), 'biocli-tumor-gene-dossier-resume-'));
+    try {
+      const cachedResult = {
+        input: 'TP53',
+        index: 0,
+        attempts: 1,
+        succeededAt: '2026-04-13T00:00:01.000Z',
+        result: {
+          biocliVersion: '0.5.0',
+          query: 'TP53 @ study',
+          organism: 'human',
+          completeness: 'complete',
+          queriedAt: '2026-04-13T00:00:01.000Z',
+          sources: ['NCBI Gene', 'cBioPortal'],
+          warnings: [],
+          ids: {
+            ncbiGeneId: '7157',
+            uniprotAccession: 'P04637',
+            cbioportalEntrezGeneId: '7157',
+            cbioportalStudyId: 'study',
+            cbioportalMolecularProfileId: 'study_mutations',
+            cbioportalSampleListId: 'study_sequenced',
+          },
+          provenance: {
+            retrievedAt: '2026-04-13T00:00:01.000Z',
+            sources: [{ source: 'NCBI Gene' }, { source: 'cBioPortal' }],
+          },
+          data: {
+            symbol: 'TP53',
+            name: 'tumor protein p53',
+            function: 'Acts as a tumor suppressor.',
+            tumor: {
+              studyId: 'study',
+              molecularProfileId: 'study_mutations',
+              sampleListId: 'study_sequenced',
+              totalSamples: 10,
+              alterationStatus: 'altered',
+              alteredSamples: 3,
+              uniquePatients: 3,
+              mutationEvents: 4,
+              mutationFrequency: 0.3,
+              mutationFrequencyPct: 30,
+              topMutationTypes: [],
+              topProteinChanges: [],
+              exemplarVariants: [],
+              coMutations: [],
+            },
+          },
+        },
+      };
+      writeFileSync(join(outdir, 'results.jsonl'), `${JSON.stringify(cachedResult)}\n`);
+      writeFileSync(join(outdir, 'failures.jsonl'), '');
+
+      createHttpContextForDatabaseMock.mockImplementation(() => {
+        throw new Error('resume path should not fetch upstream data');
+      });
+
+      const result = await cmd!.func!({} as HttpContext, {
+        gene: 'TP53',
+        study: 'study',
+        organism: 'human',
+        papers: 1,
+        'co-mutations': 5,
+        variants: 3,
+        'min-co-samples': 2,
+        'page-size': 2,
+        __batch: { outdir, resume: true, concurrency: 2, retries: 0 },
+      }) as Array<Record<string, unknown>>;
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.query).toBe('TP53 @ study');
+      const manifest = JSON.parse(readFileSync(join(outdir, 'manifest.json'), 'utf-8'));
+      expect(manifest.succeeded).toBe(1);
+      expect(manifest.failed).toBe(0);
+    } finally {
+      rmSync(outdir, { recursive: true, force: true });
+    }
   });
 });

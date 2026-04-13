@@ -2,6 +2,13 @@
 
 Reproducible evaluation of biocli against comparable bioinformatics CLI tools.
 
+This directory now has two benchmark families:
+
+- `benchmarks/`: tool-vs-tool command benchmark
+- `benchmarks/agent-ab/`: agent-with-biocli vs agent-without-biocli outcome benchmark
+- `benchmarks/pipeline/`: batch/pipeline execution harness for hero workflows
+  Includes cold/warm cache runs, an interruption/resume scenario, and report materialization.
+
 ## Methodology
 
 - **12 tasks** across 4 categories: Gene, Variant, Literature, Data Preparation

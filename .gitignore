@@ -27,3 +27,6 @@ benchmarks/v2/results/
 # regen script so the committed task_breakdown.png stays reproducible.
 benchmarks/v2/scripts/*
 !benchmarks/v2/scripts/plot_task_breakdown.py
+.tmp-home/
+.tmp-tmp/
+benchmarks/agent-comparison/

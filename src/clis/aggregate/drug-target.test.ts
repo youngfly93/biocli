@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
 import type { FetchOptions, HttpContext } from '../../types.js';
 import { getRegistry } from '../../registry.js';
 
@@ -6,10 +9,14 @@ const {
   createHttpContextForDatabaseMock,
   loadGdscSensitivityIndexMock,
   findGdscDrugEntriesByNameMock,
+  refreshGdscDatasetMock,
+  getGdscDownloadMetaMock,
 } = vi.hoisted(() => ({
   createHttpContextForDatabaseMock: vi.fn(),
   loadGdscSensitivityIndexMock: vi.fn(),
   findGdscDrugEntriesByNameMock: vi.fn(),
+  refreshGdscDatasetMock: vi.fn(),
+  getGdscDownloadMetaMock: vi.fn(),
 }));
 
 vi.mock('../../databases/index.js', async (importOriginal) => {
@@ -21,11 +28,21 @@ vi.mock('../../databases/index.js', async (importOriginal) => {
 });
 
 vi.mock('../../datasets/gdsc.js', () => ({
+  gdscPaths: () => ({ dir: '/tmp/gdsc' }),
+  getGdscDownloadMeta: getGdscDownloadMetaMock,
   loadGdscSensitivityIndex: loadGdscSensitivityIndexMock,
   findGdscDrugEntriesByName: findGdscDrugEntriesByNameMock,
+  refreshGdscDataset: refreshGdscDatasetMock,
 }));
 
 import '../../clis/aggregate/drug-target.js';
+
+function cleanupDrugTargetCache(): void {
+  rmSync(join(homedir(), '.biocli', 'cache', 'aggregate', 'aggregate', 'drug-target'), {
+    recursive: true,
+    force: true,
+  });
+}
 
 function unexpected(name: string) {
   return async () => {
@@ -532,10 +549,17 @@ function buildGdscIndexWithLateStrongHit() {
 }
 
 describe('aggregate/drug-target', () => {
+  afterAll(() => {
+    cleanupDrugTargetCache();
+  });
+
   beforeEach(() => {
+    cleanupDrugTargetCache();
     createHttpContextForDatabaseMock.mockReset();
     loadGdscSensitivityIndexMock.mockReset();
     findGdscDrugEntriesByNameMock.mockReset();
+    refreshGdscDatasetMock.mockReset();
+    getGdscDownloadMetaMock.mockReset();
     createHttpContextForDatabaseMock.mockImplementation((databaseId: string) => {
       if (databaseId === 'opentargets') return buildOpenTargetsContext();
       if (databaseId === 'cbioportal') return buildCbioPortalContext();
@@ -551,6 +575,18 @@ describe('aggregate/drug-target', () => {
       throw new Error(`Unexpected database context request: ${databaseId}`);
     });
     loadGdscSensitivityIndexMock.mockResolvedValue(buildGdscIndex());
+    refreshGdscDatasetMock.mockResolvedValue({
+      release: '8.5',
+      fetchedAt: '2026-04-13T00:00:00.000Z',
+    });
+    getGdscDownloadMetaMock.mockReturnValue({
+      source: 'GDSC bulk downloads',
+      release: '8.5',
+      fetchedAt: '2026-04-13T00:00:00.000Z',
+      staleAfterDays: 90,
+      indexVersion: 1,
+      files: [],
+    });
     findGdscDrugEntriesByNameMock.mockImplementation((index: { drugs: Record<string, { compound: { drugName: string; synonyms: string[] } }> }, name: string) => {
       const normalized = name.toLowerCase();
       return Object.values(index.drugs).filter(entry =>
@@ -749,5 +785,249 @@ describe('aggregate/drug-target', () => {
     const tumorStudy = data.tumorStudy as Record<string, unknown>;
     expect(tumorStudy.exemplarVariants).toHaveLength(2);
     expect(tumorStudy.coMutations).toHaveLength(2);
+  });
+
+  it('supports batch execution through the shared aggregate batch runtime', async () => {
+    const command = getRegistry().get('aggregate/drug-target');
+    const result = await command!.func!(
+      {} as HttpContext,
+      {
+        gene: 'EGFR,EGFR',
+        disease: 'lung',
+        limit: 5,
+        diseaseLimit: 5,
+        reportLimit: 2,
+        __batch: { concurrency: 2, retries: 0 },
+      },
+    ) as Array<Record<string, unknown>>;
+
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toHaveLength(2);
+    expect(result[0]?.query).toBe('EGFR [disease=lung]');
+    expect(result[1]?.query).toBe('EGFR [disease=lung]');
+  });
+
+  it('writes batch artifacts when outdir is provided', async () => {
+    const command = getRegistry().get('aggregate/drug-target');
+    const outdir = mkdtempSync(join(tmpdir(), 'biocli-drug-target-batch-'));
+    try {
+      await command!.func!(
+        {} as HttpContext,
+        {
+          gene: 'EGFR,EGFR',
+          disease: 'lung',
+          limit: 5,
+          diseaseLimit: 5,
+          reportLimit: 2,
+          __batch: { concurrency: 2, retries: 0, outdir },
+        },
+      );
+
+      expect(existsSync(join(outdir, 'results.jsonl'))).toBe(true);
+      expect(existsSync(join(outdir, 'failures.jsonl'))).toBe(true);
+      expect(existsSync(join(outdir, 'summary.json'))).toBe(true);
+      expect(existsSync(join(outdir, 'summary.csv'))).toBe(true);
+      expect(existsSync(join(outdir, 'manifest.json'))).toBe(true);
+      expect(existsSync(join(outdir, 'methods.md'))).toBe(true);
+
+      const manifest = JSON.parse(readFileSync(join(outdir, 'manifest.json'), 'utf-8'));
+      const summaryCsv = readFileSync(join(outdir, 'summary.csv'), 'utf-8');
+      const methodsMd = readFileSync(join(outdir, 'methods.md'), 'utf-8');
+
+      expect(manifest.command).toBe('aggregate/drug-target');
+      expect(manifest.inputSource).toBe('inline');
+      expect(manifest.cache).toMatchObject({
+        policy: 'default',
+        hits: 0,
+        misses: 2,
+        writes: 2,
+      });
+      expect(manifest.snapshots).toEqual([expect.objectContaining({
+        dataset: 'GDSC',
+        source: 'local-dataset',
+        release: '8.5',
+      })]);
+      expect(summaryCsv).toContain('targetSymbol');
+      expect(summaryCsv).toContain('EGFR');
+      expect(methodsMd).toContain('aggregate/drug-target batch (2 items)');
+    } finally {
+      rmSync(outdir, { recursive: true, force: true });
+    }
+  });
+
+  it('can resume from an existing batch checkpoint without re-querying upstreams', async () => {
+    const command = getRegistry().get('aggregate/drug-target');
+    const outdir = mkdtempSync(join(tmpdir(), 'biocli-drug-target-resume-'));
+    try {
+      const cachedResult = {
+        input: 'EGFR',
+        index: 0,
+        attempts: 1,
+        succeededAt: '2026-04-13T00:00:01.000Z',
+        result: {
+          biocliVersion: '0.5.0',
+          query: 'EGFR [disease=lung]',
+          organism: undefined,
+          completeness: 'complete',
+          queriedAt: '2026-04-13T00:00:01.000Z',
+          sources: ['Open Targets', 'GDSC'],
+          warnings: [],
+          ids: { ensemblGeneId: 'ENSG00000146648' },
+          provenance: {
+            retrievedAt: '2026-04-13T00:00:01.000Z',
+            sources: [{ source: 'Open Targets' }, { source: 'GDSC' }],
+          },
+          data: {
+            target: {
+              input: 'EGFR',
+              symbol: 'EGFR',
+              name: 'epidermal growth factor receptor',
+              ensemblId: 'ENSG00000146648',
+            },
+            summary: {
+              rankingMode: 'disease-aware',
+              diseaseFilter: 'lung',
+              totalCandidates: 3,
+              matchedCandidates: 2,
+              returnedCandidates: 2,
+              approvedDrugs: 2,
+              clinicalCandidates: 2,
+              sensitivitySupportedCandidates: 2,
+            },
+            tractability: { positiveFeatureCount: 3, enabledModalities: [] },
+            associatedDiseases: [],
+            candidates: [{
+              chemblId: 'CHEMBL1173655',
+              drugName: 'AFATINIB',
+              maxClinicalStage: 'APPROVAL',
+              maxClinicalStageLabel: 'Approval',
+              drugType: 'Small molecule',
+              actionTypes: ['INHIBITOR'],
+              description: '',
+              approvedIndications: [],
+              diseaseContexts: [],
+              evidenceSourceCounts: [],
+              clinicalReports: [],
+              ranking: { score: 1, matchedDiseaseTerms: [], matchedGeneTerms: [], matchedStudyTerms: [], signals: [] },
+            }],
+          },
+        },
+      };
+      writeFileSync(join(outdir, 'results.jsonl'), `${JSON.stringify(cachedResult)}\n`);
+      writeFileSync(join(outdir, 'failures.jsonl'), '');
+      writeFileSync(join(outdir, 'manifest.json'), `${JSON.stringify({
+        command: 'aggregate/drug-target',
+        totalItems: 1,
+        succeeded: 1,
+        failed: 0,
+        startedAt: '2026-04-13T00:00:00.000Z',
+        finishedAt: '2026-04-13T00:00:01.000Z',
+        durationSeconds: 1,
+        biocliVersion: '0.5.0',
+        outdir,
+        inputSource: 'inline',
+        files: {
+          resultsJsonl: 'results.jsonl',
+          failuresJsonl: 'failures.jsonl',
+          summaryJson: 'summary.json',
+          manifestJson: 'manifest.json',
+          methodsMd: 'methods.md',
+        },
+      })}\n`);
+
+      createHttpContextForDatabaseMock.mockImplementation(() => {
+        throw new Error('resume path should not fetch upstream data');
+      });
+
+      const result = await command!.func!(
+        {} as HttpContext,
+        {
+          gene: 'EGFR',
+          disease: 'lung',
+          limit: 5,
+          diseaseLimit: 5,
+          reportLimit: 2,
+          __batch: {
+            resume: true,
+            resumeFrom: join(outdir, 'manifest.json'),
+            concurrency: 2,
+            retries: 0,
+          },
+        },
+      ) as Array<Record<string, unknown>>;
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.query).toBe('EGFR [disease=lung]');
+      const manifest = JSON.parse(readFileSync(join(outdir, 'manifest.json'), 'utf-8'));
+      expect(manifest.succeeded).toBe(1);
+      expect(manifest.failed).toBe(0);
+      expect(manifest.resume).toMatchObject({
+        resumed: true,
+        source: join(outdir, 'manifest.json'),
+        skippedCompleted: 1,
+      });
+    } finally {
+      rmSync(outdir, { recursive: true, force: true });
+    }
+  });
+
+  it('can skip cached batch items without re-querying upstreams', async () => {
+    const command = getRegistry().get('aggregate/drug-target');
+    const warmOutdir = mkdtempSync(join(tmpdir(), 'biocli-drug-target-cache-warm-'));
+    const hitOutdir = mkdtempSync(join(tmpdir(), 'biocli-drug-target-cache-hit-'));
+    try {
+      await command!.func!(
+        {} as HttpContext,
+        {
+          gene: 'EGFR',
+          disease: 'lung',
+          limit: 5,
+          diseaseLimit: 5,
+          reportLimit: 2,
+          __batch: { concurrency: 1, retries: 0, outdir: warmOutdir },
+        },
+      );
+
+      createHttpContextForDatabaseMock.mockImplementation(() => {
+        throw new Error('skip-cached path should not fetch upstream data');
+      });
+      refreshGdscDatasetMock.mockImplementation(() => {
+        throw new Error('skip-cached path should not refresh GDSC');
+      });
+
+      const result = await command!.func!(
+        {} as HttpContext,
+        {
+          gene: 'EGFR',
+          disease: 'lung',
+          limit: 5,
+          diseaseLimit: 5,
+          reportLimit: 2,
+          __batch: { concurrency: 1, retries: 0, outdir: hitOutdir, skipCached: true },
+        },
+      ) as Array<Record<string, unknown>>;
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.query).toBe('EGFR [disease=lung]');
+
+      const manifest = JSON.parse(readFileSync(join(hitOutdir, 'manifest.json'), 'utf-8'));
+      const results = readFileSync(join(hitOutdir, 'results.jsonl'), 'utf-8').trim().split('\n').map(line => JSON.parse(line));
+
+      expect(manifest.cache).toMatchObject({
+        policy: 'skip-cached',
+        hits: 1,
+        misses: 0,
+        writes: 0,
+      });
+      expect(manifest.snapshots).toBeUndefined();
+      expect(results[0]?.cache).toMatchObject({
+        hit: true,
+        source: 'result-cache',
+      });
+      expect(results[0]?.attempts).toBe(0);
+    } finally {
+      rmSync(warmOutdir, { recursive: true, force: true });
+      rmSync(hitOutdir, { recursive: true, force: true });
+    }
   });
 });

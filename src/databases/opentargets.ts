@@ -8,8 +8,8 @@
 
 import { getRateLimiterForDatabase } from '../rate-limiter.js';
 import { ApiError } from '../errors.js';
-import { sleep } from '../utils.js';
 import { fetchWithIPv4Fallback } from '../http-dispatcher.js';
+import { buildRetryableApiError, buildRetryableRateLimitError, executeHttpRequestWithRetry } from '../retry-policy.js';
 import type { FetchOptions, HttpContext } from '../types.js';
 import { isEnsemblId } from './ensembl.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
@@ -18,9 +18,6 @@ export const OPENTARGETS_BASE_URL =
   process.env.BIOCLI_OPENTARGETS_BASE_URL ?? 'https://api.platform.opentargets.org/api/v4/graphql';
 
 const RATE_LIMIT_RPS = 4;
-const MAX_RETRIES = 2;
-const BASE_RETRY_DELAY_MS = 1000;
-const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 
 export interface OpenTargetsSearchHit {
   id: string;
@@ -73,6 +70,10 @@ export interface OpenTargetsDrugSummary {
 export interface OpenTargetsDrugDetail extends OpenTargetsDrugSummary {
   mechanismsOfAction?: {
     uniqueActionTypes: string[];
+  } | null;
+  description?: string | null;
+  indications?: {
+    rows?: Array<{ disease: { id: string; name: string } }> | null;
   } | null;
 }
 
@@ -148,52 +149,34 @@ async function openTargetsFetch(url: string, opts?: FetchOptions): Promise<Respo
     await limiter.acquire();
   }
 
-  let lastError: Error | undefined;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetchWithIPv4Fallback(finalUrl, {
+  return executeHttpRequestWithRetry({
+    backendId: 'opentargets',
+    execute: () => fetchWithIPv4Fallback(finalUrl, {
         method: opts?.method ?? 'POST',
         headers: {
           'Accept': 'application/json',
           ...opts?.headers,
         },
         body: opts?.body,
-      });
-
-      if (RETRYABLE_STATUS_CODES.has(response.status)) {
-        if (attempt < MAX_RETRIES) {
-          try { await response.text(); } catch { /* ignore */ }
-          await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-          continue;
-        }
-        throw buildOpenTargetsError(
-          `Open Targets returned HTTP ${response.status} after ${MAX_RETRIES + 1} attempts`,
+      }),
+    onRetryableStatusExhausted: (status, attempts) => status === 429
+      ? buildRetryableRateLimitError(
+          `Open Targets returned 429 after ${attempts} attempts`,
           buildOpenTargetsHint(opts?.body),
-        );
-      }
-
-      if (!response.ok) {
-        throw buildOpenTargetsError(
-          `Open Targets returned HTTP ${response.status}: ${response.statusText}`,
+        )
+      : buildRetryableApiError(
+          `Open Targets returned HTTP ${status} after ${attempts} attempts`,
           buildOpenTargetsHint(opts?.body),
-        );
-      }
-
-      return response;
-    } catch (error) {
-      if (error instanceof ApiError) throw error;
-      lastError = error instanceof Error ? error : new Error(String(error));
-      if (attempt < MAX_RETRIES) {
-        await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-        continue;
-      }
-    }
-  }
-
-  throw buildOpenTargetsError(
-    `Open Targets request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
-    buildOpenTargetsHint(opts?.body),
-  );
+        ),
+    onNonRetryableStatus: (response) => buildOpenTargetsError(
+      `Open Targets returned HTTP ${response.status}: ${response.statusText}`,
+      buildOpenTargetsHint(opts?.body),
+    ),
+    onNetworkErrorExhausted: (error, attempts) => buildRetryableApiError(
+      `Open Targets request failed after ${attempts} attempts: ${error.message}`,
+      buildOpenTargetsHint(opts?.body),
+    ),
+  });
 }
 
 function createContext(): HttpContext {
@@ -328,8 +311,17 @@ const DRUGS_BY_IDS_QUERY = `
       name
       maximumClinicalStage
       drugType
+      description
       mechanismsOfAction {
         uniqueActionTypes
+      }
+      indications {
+        rows {
+          disease {
+            id
+            name
+          }
+        }
       }
     }
   }

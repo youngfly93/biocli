@@ -17,6 +17,7 @@
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
 import { wrapResult } from '../../types.js';
+import { parseBatchInput } from '../../batch.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { buildEutilsUrl } from '../../databases/ncbi.js';
 import { buildUniprotUrl } from '../../databases/uniprot.js';
@@ -26,6 +27,7 @@ import { allSettledWithProgress, reportProgress } from '../../progress.js';
 import { parseGeneSummaries } from '../_shared/xml-helpers.js';
 import { resolveOrganism } from '../_shared/organism-db.js';
 import type { HttpContext } from '../../types.js';
+import { runAggregateBatch, type AggregateBatchOptions } from './batch-runtime.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -41,6 +43,13 @@ interface GeneProfileData {
   goTerms: Array<{ id: string; name: string; aspect: string }>;
   interactions: Array<{ partner: string; score: number }>;
   diseases: Array<{ id: string; name: string; source: string }>;
+}
+
+function buildGeneProfileBatchCacheArgs(symbol: string, organism: unknown): Record<string, unknown> {
+  return {
+    gene: symbol,
+    organism: String(organism ?? 'human'),
+  };
 }
 
 // ── NCBI Gene fetch ───────────────────────────────────────────────────────────
@@ -368,22 +377,42 @@ cli({
   whenToUse: 'Use when you need a biology-first summary of one or a few genes across core public databases without literature or clinical interpretation.',
   columns: ['symbol', 'name', 'organism', 'pathways', 'goTerms', 'interactions'],
   func: async (_ctx, args) => {
-    const genes = String(args.genes).split(',').map(s => s.trim()).filter(Boolean);
+    const batch = (args.__batch ?? {}) as AggregateBatchOptions;
+    const parsedBatch = parseBatchInput({
+      positionalValue: typeof args.genes === 'string' ? args.genes : undefined,
+      inputFile: batch.inputFile,
+      inputFormat: batch.inputFormat,
+      key: batch.key,
+    });
+    const genes = parsedBatch ?? String(args.genes).split(',').map(s => s.trim()).filter(Boolean);
     if (!genes.length) {
       throw new CliError('ARGUMENT', 'At least one gene symbol is required');
     }
 
     const org = resolveOrganism(String(args.organism));
 
-    if (genes.length === 1) {
+    const explicitBatch = Boolean(
+      parsedBatch
+      || batch.inputFile
+      || batch.outdir
+      || batch.resume
+      || batch.resumeFrom
+      || batch.skipCached
+      || batch.forceRefresh,
+    );
+    if (!explicitBatch && genes.length === 1) {
       return await buildGeneProfile(genes[0], org.name, org.taxId, org.keggOrg);
     }
 
-    // Batch: process genes sequentially to respect rate limits
-    const profiles = [];
-    for (const gene of genes) {
-      profiles.push(await buildGeneProfile(gene, org.name, org.taxId, org.keggOrg));
-    }
-    return profiles;
+    const batchResult = await runAggregateBatch({
+      command: 'aggregate/gene-profile',
+      items: genes,
+      batch,
+      progressLabel: 'Batch gene-profile',
+      cacheArgs: (gene) => buildGeneProfileBatchCacheArgs(gene, args.organism),
+      executor: async (gene) => buildGeneProfile(gene, org.name, org.taxId, org.keggOrg),
+    });
+
+    return batchResult.results;
   },
 });

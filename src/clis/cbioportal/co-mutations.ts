@@ -11,7 +11,7 @@ import {
   selectMutationProfile,
   selectMutationSampleList,
 } from '../../databases/cbioportal.js';
-import { clampLimit, fetchAllMutationPages, summarizeCounts } from './common.js';
+import { annotatePartnerContext, CANCER_DRIVER_GENE_IDS, clampLimit, fetchAllMutationPages, fetchCoMutationsByGeneBatches, summarizeCounts } from './common.js';
 
 interface PartnerAccumulator {
   anchorGene: string;
@@ -124,11 +124,18 @@ cli({
       );
     }
 
-    const cohortMutations = await fetchAllMutationPages(ctx, {
+    // Use batched gene-level queries instead of full-cohort scan.
+    // For a 295-sample LUAD cohort this reduces from ~60,000 rows (120 pages)
+    // to ~4,000 rows (4 batch calls of 50 genes each).
+    const candidateGeneIds = [...new Set(
+      CANCER_DRIVER_GENE_IDS.filter(id => id !== gene.entrezGeneId),
+    )];
+
+    const cohortMutations = await fetchCoMutationsByGeneBatches(ctx, {
       molecularProfileId: profile.molecularProfileId,
       sampleIds: anchorSampleIds,
+      candidateGeneIds,
       pageSize,
-      projection: 'DETAILED',
     });
 
     const partners = new Map<string, PartnerAccumulator>();
@@ -190,6 +197,7 @@ cli({
           coMutationFrequencyInStudyPct: Number((coMutationFrequencyInStudy * 100).toFixed(2)),
           topMutationTypes: summarizeCounts(partner.mutationTypes, 'mutationType'),
           topProteinChanges: summarizeCounts(partner.proteinChanges, 'proteinChange'),
+          context: annotatePartnerContext(partner.partnerGene, partner.partnerEntrezGeneId),
         };
       });
 

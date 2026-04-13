@@ -1,0 +1,30 @@
+{
+  "source": "GDSC bulk downloads",
+  "release": "8.5",
+  "fetchedAt": "2026-04-13T13:37:14.163Z",
+  "staleAfterDays": 90,
+  "indexVersion": 1,
+  "files": [
+    {
+      "key": "compoundsCsv",
+      "filename": "screened_compounds_rel_8.5.csv",
+      "url": "https://cog.sanger.ac.uk/cancerrxgene/GDSC_release8.5/screened_compounds_rel_8.5.csv",
+      "sizeBytes": 46414,
+      "sha256": "d3cbb8b595980b36bf92d54af1da1dd995d2e2ce624c7cc70aacf2a754dce782"
+    },
+    {
+      "key": "gdsc1Xlsx",
+      "filename": "GDSC1_fitted_dose_response_27Oct23.xlsx",
+      "url": "https://cog.sanger.ac.uk/cancerrxgene/GDSC_release8.5/GDSC1_fitted_dose_response_27Oct23.xlsx",
+      "sizeBytes": 29353210,
+      "sha256": "837b0686500fde75179e490de08f034abd9f882d8b0253d637bafe83e156dafd"
+    },
+    {
+      "key": "gdsc2Xlsx",
+      "filename": "GDSC2_fitted_dose_response_27Oct23.xlsx",
+      "url": "https://cog.sanger.ac.uk/cancerrxgene/GDSC_release8.5/GDSC2_fitted_dose_response_27Oct23.xlsx",
+      "sizeBytes": 21330376,
+      "sha256": "f950a7027be265f8a7a74220a27fd18cbd368485349bd8c2048e88bb1cd07560"
+    }
+  ]
+}

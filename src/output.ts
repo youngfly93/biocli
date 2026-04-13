@@ -1,5 +1,5 @@
 /**
- * Output formatting: table, card, JSON, Markdown, CSV, YAML, plain.
+ * Output formatting: table, card, JSON, JSONL, Markdown, CSV, YAML, plain.
  *
  * Ported from opencli/src/output.ts for biocli.
  */
@@ -238,6 +238,7 @@ export function render(data: unknown, opts: RenderOptions = {}): void {
   }
   switch (fmt) {
     case 'json': renderJson(data); break;
+    case 'jsonl': renderJsonl(data); break;
     case 'plain': renderPlain(data, opts); break;
     case 'md': case 'markdown': renderMarkdown(data, opts); break;
     case 'report': renderReport(data, opts); break;
@@ -249,6 +250,16 @@ export function render(data: unknown, opts: RenderOptions = {}): void {
   // sit at the end of the user's view and stderr is flushed last. JSON
   // consumers get the structured warnings in the body AND on stderr.
   emitWarnings(opts);
+}
+
+function renderJsonl(data: unknown): void {
+  if (Array.isArray(data)) {
+    for (const row of data) {
+      console.log(JSON.stringify(row));
+    }
+    return;
+  }
+  console.log(JSON.stringify(data));
 }
 
 // ── Card view for single records ──────────────────────────────────────────────

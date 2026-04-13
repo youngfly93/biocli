@@ -45,68 +45,62 @@ function makeCtx(): HttpContext {
           entrezGeneIds?: number[];
           sampleIds?: string[];
         };
-        if (body.entrezGeneIds?.[0] === 7157 && url.includes('pageNumber=0')) {
+        // Anchor gene fetch (TP53 by gene ID + sampleListId)
+        if (body.entrezGeneIds?.includes(7157) && !body.sampleIds && url.includes('pageNumber=0')) {
           return [
             { sampleId: 'S1', patientId: 'P1' },
             { sampleId: 'S2', patientId: 'P2' },
             { sampleId: 'S2', patientId: 'P2' },
           ];
         }
-        if (body.entrezGeneIds?.[0] === 7157 && url.includes('pageNumber=1')) {
+        if (body.entrezGeneIds?.includes(7157) && !body.sampleIds && url.includes('pageNumber=1')) {
           return [{ sampleId: 'S3', patientId: 'P3' }];
         }
-        if (body.sampleIds?.length === 3 && url.includes('pageNumber=0')) {
-          return [
-            {
-              sampleId: 'S1',
-              patientId: 'P1',
-              gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' },
-              mutationType: 'Missense_Mutation',
-              proteinChange: 'L858R',
-            },
-            {
-              sampleId: 'S2',
-              patientId: 'P2',
-              gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' },
-              mutationType: 'Missense_Mutation',
-              proteinChange: 'E746_A750del',
-            },
-            {
-              sampleId: 'S2',
-              patientId: 'P2',
-              gene: { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1' },
-              mutationType: 'Nonsense_Mutation',
-              proteinChange: 'Q1756*',
-            },
+        // Co-mutation batched fetch (sampleIds + entrezGeneIds batches)
+        // Only return partner mutations on page 0 for batches that include mock genes
+        if (body.sampleIds?.length === 3 && body.entrezGeneIds) {
+          if (!url.includes('pageNumber=0')) return [];
+          const mockPartners = [
+            { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR', mutations: [
+              { sampleId: 'S1', patientId: 'P1', mutationType: 'Missense_Mutation', proteinChange: 'L858R' },
+              { sampleId: 'S2', patientId: 'P2', mutationType: 'Missense_Mutation', proteinChange: 'E746_A750del' },
+              { sampleId: 'S3', patientId: 'P3', mutationType: 'Amplification', proteinChange: '' },
+            ]},
+            { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1', mutations: [
+              { sampleId: 'S2', patientId: 'P2', mutationType: 'Nonsense_Mutation', proteinChange: 'Q1756*' },
+              { sampleId: 'S3', patientId: 'P3', mutationType: 'Frame_Shift_Del', proteinChange: 'S1140fs' },
+            ]},
+            { entrezGeneId: 5290, hugoGeneSymbol: 'PIK3CA', mutations: [
+              { sampleId: 'S3', patientId: 'P3', mutationType: 'Missense_Mutation', proteinChange: 'H1047R' },
+            ]},
           ];
+          const results = [];
+          for (const partner of mockPartners) {
+            if (body.entrezGeneIds.includes(partner.entrezGeneId)) {
+              for (const m of partner.mutations) {
+                results.push({ ...m, gene: { entrezGeneId: partner.entrezGeneId, hugoGeneSymbol: partner.hugoGeneSymbol } });
+              }
+            }
+          }
+          return results;
         }
-        if (body.sampleIds?.length === 3 && url.includes('pageNumber=1')) {
-          return [
-            {
-              sampleId: 'S3',
-              patientId: 'P3',
-              gene: { entrezGeneId: 5290, hugoGeneSymbol: 'PIK3CA' },
-              mutationType: 'Missense_Mutation',
-              proteinChange: 'H1047R',
-            },
-            {
-              sampleId: 'S3',
-              patientId: 'P3',
-              gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' },
-              mutationType: 'Amplification',
-              proteinChange: '',
-            },
-            {
-              sampleId: 'S3',
-              patientId: 'P3',
-              gene: { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1' },
-              mutationType: 'Frame_Shift_Del',
-              proteinChange: 'S1140fs',
-            },
-          ];
-        }
-        if (body.sampleIds?.length === 3 && url.includes('pageNumber=2')) {
-          return [];
+        // Legacy: sampleIds without entrezGeneIds (should not happen with new code, but keep for safety)
+        if (body.sampleIds?.length === 3 && !body.entrezGeneIds) {
+          if (url.includes('pageNumber=0')) {
+            return [
+              { sampleId: 'S1', patientId: 'P1', gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' }, mutationType: 'Missense_Mutation', proteinChange: 'L858R' },
+              { sampleId: 'S2', patientId: 'P2', gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' }, mutationType: 'Missense_Mutation', proteinChange: 'E746_A750del' },
+              { sampleId: 'S2', patientId: 'P2', gene: { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1' }, mutationType: 'Nonsense_Mutation', proteinChange: 'Q1756*' },
+            ];
+          }
+          if (url.includes('pageNumber=1')) {
+            return [
+              { sampleId: 'S3', patientId: 'P3', gene: { entrezGeneId: 5290, hugoGeneSymbol: 'PIK3CA' }, mutationType: 'Missense_Mutation', proteinChange: 'H1047R' },
+              { sampleId: 'S3', patientId: 'P3', gene: { entrezGeneId: 1956, hugoGeneSymbol: 'EGFR' }, mutationType: 'Amplification', proteinChange: '' },
+              { sampleId: 'S3', patientId: 'P3', gene: { entrezGeneId: 672, hugoGeneSymbol: 'BRCA1' }, mutationType: 'Frame_Shift_Del', proteinChange: 'S1140fs' },
+            ];
+          }
+          if (url.includes('pageNumber=2')) return [];
         }
       }
       throw new Error(`Unexpected fetchJson: ${url}`);

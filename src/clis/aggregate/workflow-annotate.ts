@@ -26,6 +26,7 @@ import { resolveOrganism } from '../_shared/organism-db.js';
 import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getVersion } from '../../version.js';
+import { toCsv } from '../../csv.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,21 +56,6 @@ interface EnrichmentRow {
   adjustedPValue: string;
   combinedScore: string;
   genes: string;
-}
-
-// ── CSV helper ───────────────────────────────────────────────────────────────
-
-function toCsv<T extends Record<string, unknown>>(headers: string[], rows: T[]): string {
-  const escape = (v: unknown): string => {
-    const s = String(v ?? '');
-    return s.includes(',') || s.includes('"') || s.includes('\n')
-      ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const lines = [headers.join(',')];
-  for (const row of rows) {
-    lines.push(headers.map(h => escape(row[h])).join(','));
-  }
-  return lines.join('\n') + '\n';
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import { cli, Strategy } from '../../registry.js';
 import { CliError, EmptyResultError } from '../../errors.js';
+import { parseBatchInput } from '../../batch.js';
 import { wrapResult, type BiocliProvenanceOverride } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { reportProgress } from '../../progress.js';
@@ -14,8 +15,9 @@ import {
   selectMutationSampleList,
   type CbioPortalMutation,
 } from '../../databases/cbioportal.js';
-import { clampLimit, fetchAllMutationPages, summarizeCounts } from '../cbioportal/common.js';
+import { annotatePartnerContext, CANCER_DRIVER_GENE_IDS, clampLimit, fetchAllMutationPages, fetchCoMutationsByGeneBatches, summarizeCounts } from '../cbioportal/common.js';
 import { buildGeneDossier, type GeneDossierBuildResult } from './gene-dossier.js';
+import { runAggregateBatch, type AggregateBatchOptions } from './batch-runtime.js';
 
 export interface TumorExemplarVariant {
   proteinChange: string;
@@ -41,6 +43,10 @@ export interface TumorCoMutationRow {
   coMutationFrequencyInStudyPct: number;
   topMutationTypes: Array<Record<string, number | string>>;
   topProteinChanges: Array<Record<string, number | string>>;
+  context?: {
+    tag: 'tmb_indicator' | 'known_driver' | 'other';
+    note: string;
+  };
 }
 
 export interface TumorSummary {
@@ -66,6 +72,38 @@ export interface TumorBuildResult {
   sources: string[];
   warnings: string[];
   provenance: BiocliProvenanceOverride[];
+}
+
+interface TumorGeneDossierCommandArgs {
+  gene?: unknown;
+  study?: unknown;
+  organism?: unknown;
+  papers?: unknown;
+  profile?: unknown;
+  'sample-list'?: unknown;
+  'co-mutations'?: unknown;
+  variants?: unknown;
+  'min-co-samples'?: unknown;
+  'page-size'?: unknown;
+  __batch?: AggregateBatchOptions;
+}
+
+function buildTumorGeneDossierBatchCacheArgs(
+  gene: string,
+  args: TumorGeneDossierCommandArgs,
+): Record<string, unknown> {
+  return {
+    gene,
+    study: args.study ?? '',
+    organism: args.organism ?? 'human',
+    papers: args.papers ?? 5,
+    profile: args.profile ?? '',
+    sampleList: args['sample-list'] ?? '',
+    coMutations: args['co-mutations'] ?? 10,
+    variants: args.variants ?? 5,
+    minCoSamples: args['min-co-samples'] ?? 1,
+    pageSize: args['page-size'] ?? 500,
+  };
 }
 
 function buildExemplarVariants(
@@ -195,6 +233,7 @@ function buildCoMutations(
         coMutationFrequencyInStudyPct: Number((coMutationFrequencyInStudy * 100).toFixed(2)),
         topMutationTypes: summarizeCounts(partner.mutationTypes, 'mutationType'),
         topProteinChanges: summarizeCounts(partner.proteinChanges, 'proteinChange'),
+        context: annotatePartnerContext(partner.partnerGene, partner.partnerEntrezGeneId),
       };
     });
 }
@@ -282,11 +321,14 @@ export async function buildTumorSummary(
   if (anchorSampleIds.length > 0) {
     try {
       reportProgress('Fetching cBioPortal co-mutations…');
-      const cohortMutations = await fetchAllMutationPages(cbioCtx, {
+      const candidateGeneIds = [...new Set(
+        CANCER_DRIVER_GENE_IDS.filter(id => id !== cbioGene.entrezGeneId),
+      )];
+      const cohortMutations = await fetchCoMutationsByGeneBatches(cbioCtx, {
         molecularProfileId: profile.molecularProfileId,
         sampleIds: anchorSampleIds,
+        candidateGeneIds,
         pageSize,
-        projection: 'DETAILED',
       });
       coMutations = buildCoMutations(
         cbioGene.hugoGeneSymbol,
@@ -348,6 +390,51 @@ export async function buildTumorSummary(
   };
 }
 
+async function buildTumorGeneDossierResult(args: TumorGeneDossierCommandArgs) {
+  const gene = String(args.gene ?? '').trim();
+  const studyId = String(args.study ?? '').trim();
+  if (!gene) throw new CliError('ARGUMENT', 'Gene symbol is required');
+  if (!studyId) throw new CliError('ARGUMENT', 'Study ID is required');
+
+  const pageSize = clampLimit(args['page-size'], 500, 500);
+  const coMutationLimit = clampLimit(args['co-mutations'], 10, 50);
+  const exemplarLimit = clampLimit(args.variants, 5, 20);
+  const minCoSamples = clampLimit(args['min-co-samples'], 1, 100000);
+  const papers = Math.max(1, Math.min(Number(args.papers), 20));
+  const requestedProfileId = String(args.profile ?? '').trim();
+  const requestedSampleListId = String(args['sample-list'] ?? '').trim();
+
+  reportProgress('Building baseline gene dossier and cBioPortal tumor overlay…');
+  const [geneDossier, tumor] = await Promise.all([
+    buildGeneDossier(gene, String(args.organism ?? 'human'), papers),
+    buildTumorSummary(
+      gene,
+      studyId,
+      requestedProfileId,
+      requestedSampleListId,
+      pageSize,
+      coMutationLimit,
+      exemplarLimit,
+      minCoSamples,
+    ),
+  ]);
+
+  return wrapResult({
+    ...geneDossier.data,
+    tumor: tumor.summary,
+  }, {
+    ids: {
+      ...geneDossier.ids,
+      ...tumor.ids,
+    },
+    sources: [...geneDossier.sources, ...tumor.sources],
+    warnings: [...geneDossier.warnings, ...tumor.warnings],
+    organism: geneDossier.organism,
+    query: `${gene.toUpperCase()} @ ${studyId}`,
+    provenance: [...geneDossier.provenance, ...tumor.provenance],
+  });
+}
+
 cli({
   site: 'aggregate',
   name: 'tumor-gene-dossier',
@@ -381,47 +468,43 @@ cli({
   whenToUse: 'Use when you need a tumor-cohort-specific gene briefing that mixes baseline biology with cBioPortal prevalence, variants, and co-mutations.',
   columns: ['symbol', 'studyId', 'alteredSamples', 'mutationFrequencyPct', 'coMutations', 'literature'],
   func: async (_ctx, args) => {
-    const gene = String(args.gene ?? '').trim();
-    const studyId = String(args.study ?? '').trim();
-    if (!gene) throw new CliError('ARGUMENT', 'Gene symbol is required');
-    if (!studyId) throw new CliError('ARGUMENT', 'Study ID is required');
-
-    const pageSize = clampLimit(args['page-size'], 500, 500);
-    const coMutationLimit = clampLimit(args['co-mutations'], 10, 50);
-    const exemplarLimit = clampLimit(args.variants, 5, 20);
-    const minCoSamples = clampLimit(args['min-co-samples'], 1, 100000);
-    const papers = Math.max(1, Math.min(Number(args.papers), 20));
-    const requestedProfileId = String(args.profile ?? '').trim();
-    const requestedSampleListId = String(args['sample-list'] ?? '').trim();
-
-    reportProgress('Building baseline gene dossier and cBioPortal tumor overlay…');
-    const [geneDossier, tumor] = await Promise.all([
-      buildGeneDossier(gene, String(args.organism ?? 'human'), papers),
-      buildTumorSummary(
-        gene,
-        studyId,
-        requestedProfileId,
-        requestedSampleListId,
-        pageSize,
-        coMutationLimit,
-        exemplarLimit,
-        minCoSamples,
-      ),
-    ]);
-
-    return wrapResult({
-      ...geneDossier.data,
-      tumor: tumor.summary,
-    }, {
-      ids: {
-        ...geneDossier.ids,
-        ...tumor.ids,
-      },
-      sources: [...geneDossier.sources, ...tumor.sources],
-      warnings: [...geneDossier.warnings, ...tumor.warnings],
-      organism: geneDossier.organism,
-      query: `${gene.toUpperCase()} @ ${studyId}`,
-      provenance: [...geneDossier.provenance, ...tumor.provenance],
+    const batch = (args.__batch ?? {}) as AggregateBatchOptions;
+    const parsedBatch = parseBatchInput({
+      positionalValue: typeof args.gene === 'string' ? args.gene : undefined,
+      inputFile: batch.inputFile,
+      inputFormat: batch.inputFormat,
+      key: batch.key,
     });
+    const genes = parsedBatch ?? [String(args.gene ?? '').trim()].filter(Boolean);
+    if (genes.length === 0) {
+      throw new CliError('ARGUMENT', 'Gene symbol is required');
+    }
+
+    const explicitBatch = Boolean(
+      parsedBatch
+      || batch.inputFile
+      || batch.outdir
+      || batch.resume
+      || batch.resumeFrom
+      || batch.skipCached
+      || batch.forceRefresh,
+    );
+    if (!explicitBatch && genes.length === 1) {
+      return buildTumorGeneDossierResult(args as TumorGeneDossierCommandArgs);
+    }
+
+    const batchResult = await runAggregateBatch({
+      command: 'aggregate/tumor-gene-dossier',
+      items: genes,
+      batch,
+      progressLabel: 'Batch tumor-gene-dossier',
+      cacheArgs: (gene) => buildTumorGeneDossierBatchCacheArgs(gene, args as TumorGeneDossierCommandArgs),
+      executor: async (gene) => buildTumorGeneDossierResult({
+        ...args,
+        gene,
+      } as TumorGeneDossierCommandArgs),
+    });
+
+    return batchResult.results;
   },
 });

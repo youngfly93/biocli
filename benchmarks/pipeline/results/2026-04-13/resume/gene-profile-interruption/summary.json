@@ -1,0 +1,28 @@
+{
+  "date": "2026-04-13",
+  "cliMode": "dist",
+  "taskId": "gene-profile-resume",
+  "generatedAt": "2026-04-13T13:48:15.348Z",
+  "interruption": {
+    "signal": "SIGTERM",
+    "thresholdSucceeded": 3,
+    "observedSucceeded": 3,
+    "durationMs": 13585,
+    "stdoutPath": "benchmarks/pipeline/results/2026-04-13/resume/gene-profile-interruption/logs/interrupted.stdout.txt",
+    "stderrPath": "benchmarks/pipeline/results/2026-04-13/resume/gene-profile-interruption/logs/interrupted.stderr.txt"
+  },
+  "resume": {
+    "status": "ok",
+    "exitCode": 0,
+    "durationMs": 23087,
+    "stdoutPath": "benchmarks/pipeline/results/2026-04-13/resume/gene-profile-interruption/logs/resume.stdout.txt",
+    "stderrPath": "benchmarks/pipeline/results/2026-04-13/resume/gene-profile-interruption/logs/resume.stderr.txt"
+  },
+  "final": {
+    "manifestPath": "benchmarks/pipeline/results/2026-04-13/resume/gene-profile-interruption/gene-profile-run/manifest.json",
+    "succeeded": 10,
+    "failed": 0,
+    "skippedCompleted": 3,
+    "durationSeconds": 22.867
+  }
+}

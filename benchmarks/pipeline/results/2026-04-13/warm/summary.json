@@ -1,0 +1,137 @@
+{
+  "date": "2026-04-13",
+  "cacheMode": "warm",
+  "cliMode": "dist",
+  "generatedAt": "2026-04-13T13:40:02.432Z",
+  "tasks": [
+    {
+      "taskId": "gene-profile-batch",
+      "title": "Batch gene-profile over a representative cancer gene list",
+      "status": "ok",
+      "exitCode": 0,
+      "durationMs": 204,
+      "command": [
+        "node",
+        "/Volumes/KINGSTON/work/research/biocli/ncbicli/dist/main.js",
+        "aggregate",
+        "gene-profile",
+        "--input-file",
+        "benchmarks/pipeline/fixtures/gene-profile.genes.txt",
+        "--organism",
+        "human",
+        "--concurrency",
+        "4",
+        "-f",
+        "json",
+        "--outdir",
+        "benchmarks/pipeline/results/2026-04-13/warm/gene-profile-batch/gene-profile-run",
+        "--skip-cached"
+      ],
+      "outdir": "benchmarks/pipeline/results/2026-04-13/warm/gene-profile-batch/gene-profile-run",
+      "manifestPath": "benchmarks/pipeline/results/2026-04-13/warm/gene-profile-batch/gene-profile-run/manifest.json",
+      "summary": {
+        "succeeded": 10,
+        "failed": 0,
+        "durationSeconds": 0.02,
+        "cache": {
+          "policy": "skip-cached",
+          "hits": 10,
+          "misses": 0,
+          "writes": 0
+        }
+      }
+    },
+    {
+      "taskId": "drug-target-batch",
+      "title": "Batch drug-target scan over actionable lung cancer genes",
+      "status": "ok",
+      "exitCode": 0,
+      "durationMs": 185,
+      "command": [
+        "node",
+        "/Volumes/KINGSTON/work/research/biocli/ncbicli/dist/main.js",
+        "aggregate",
+        "drug-target",
+        "--input-file",
+        "benchmarks/pipeline/fixtures/drug-target.genes.txt",
+        "--disease",
+        "lung",
+        "--concurrency",
+        "2",
+        "--limit",
+        "5",
+        "--diseaseLimit",
+        "5",
+        "--reportLimit",
+        "2",
+        "-f",
+        "json",
+        "--outdir",
+        "benchmarks/pipeline/results/2026-04-13/warm/drug-target-batch/drug-target-run",
+        "--skip-cached"
+      ],
+      "outdir": "benchmarks/pipeline/results/2026-04-13/warm/drug-target-batch/drug-target-run",
+      "manifestPath": "benchmarks/pipeline/results/2026-04-13/warm/drug-target-batch/drug-target-run/manifest.json",
+      "summary": {
+        "succeeded": 8,
+        "failed": 0,
+        "durationSeconds": 0.012,
+        "cache": {
+          "policy": "skip-cached",
+          "hits": 8,
+          "misses": 0,
+          "writes": 0
+        }
+      }
+    },
+    {
+      "taskId": "tumor-gene-dossier-batch",
+      "title": "Batch tumor-gene-dossier over a LUAD cohort gene list",
+      "status": "ok",
+      "exitCode": 0,
+      "durationMs": 106,
+      "command": [
+        "node",
+        "/Volumes/KINGSTON/work/research/biocli/ncbicli/dist/main.js",
+        "aggregate",
+        "tumor-gene-dossier",
+        "--input-file",
+        "benchmarks/pipeline/fixtures/tumor-gene-dossier.genes.txt",
+        "--study",
+        "luad_tcga_pan_can_atlas_2018",
+        "--organism",
+        "human",
+        "--papers",
+        "3",
+        "--co-mutations",
+        "5",
+        "--variants",
+        "3",
+        "--min-co-samples",
+        "1",
+        "--page-size",
+        "500",
+        "--concurrency",
+        "2",
+        "-f",
+        "json",
+        "--outdir",
+        "benchmarks/pipeline/results/2026-04-13/warm/tumor-gene-dossier-batch/tumor-gene-dossier-run",
+        "--skip-cached"
+      ],
+      "outdir": "benchmarks/pipeline/results/2026-04-13/warm/tumor-gene-dossier-batch/tumor-gene-dossier-run",
+      "manifestPath": "benchmarks/pipeline/results/2026-04-13/warm/tumor-gene-dossier-batch/tumor-gene-dossier-run/manifest.json",
+      "summary": {
+        "succeeded": 6,
+        "failed": 0,
+        "durationSeconds": 0.01,
+        "cache": {
+          "policy": "skip-cached",
+          "hits": 6,
+          "misses": 0,
+          "writes": 0
+        }
+      }
+    }
+  ]
+}

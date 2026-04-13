@@ -1,0 +1,11 @@
+input,query,symbol,name,organism,completeness,sources,warningsCount,pathwayCount,goTermCount,interactionCount,diseaseCount,ncbiGeneId,uniprotAccession,ensemblGeneId,queriedAt
+TP53,TP53,TP53,tumor protein p53,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,51,173,10,48,7157,P04637,ENSG00000141510.20,2026-04-13T13:38:59.223Z
+BRCA1,BRCA1,BRCA1,BRCA1 DNA repair associated,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,7,77,10,7,672,P38398,ENSG00000012048.27,2026-04-13T13:38:56.490Z
+EGFR,EGFR,EGFR,epidermal growth factor receptor,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,51,104,10,12,1956,P00533,ENSG00000146648.22,2026-04-13T13:38:57.579Z
+MYC,MYC,MYC,"MYC proto-oncogene, bHLH transcription factor",Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,34,85,10,18,4609,P01106,ENSG00000136997.22,2026-04-13T13:39:00.112Z
+PIK3CA,PIK3CA,PIK3CA,"phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha",Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,109,66,10,15,5290,P42336,ENSG00000121879.7,2026-04-13T13:39:00.122Z
+KRAS,KRAS,KRAS,"KRAS proto-oncogene, GTPase",Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,84,49,10,30,3845,P01116,ENSG00000133703.15,2026-04-13T13:39:01.890Z
+PTEN,PTEN,PTEN,phosphatase and tensin homolog,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,28,93,10,15,5728,P60484,ENSG00000171862.16,2026-04-13T13:39:04.251Z
+AKT1,AKT1,AKT1,AKT serine/threonine kinase 1,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,103,171,10,6,207,P31749,ENSG00000142208.20,2026-04-13T13:39:05.475Z
+ERBB2,ERBB2,ERBB2,erb-b2 receptor tyrosine kinase 2,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,24,69,10,12,2064,P04626,ENSG00000141736.15,2026-04-13T13:39:03.659Z
+CDK2,CDK2,CDK2,cyclin dependent kinase 2,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,19,59,10,0,1017,P24941,ENSG00000123374.11,2026-04-13T13:39:03.914Z

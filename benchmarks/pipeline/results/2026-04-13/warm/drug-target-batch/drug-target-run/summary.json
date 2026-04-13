@@ -1,0 +1,9 @@
+{
+  "command": "aggregate/drug-target",
+  "totalItems": 8,
+  "succeeded": 8,
+  "failed": 0,
+  "startedAt": "2026-04-13T13:40:02.293Z",
+  "finishedAt": "2026-04-13T13:40:02.305Z",
+  "durationSeconds": 0.012
+}

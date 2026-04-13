@@ -9,8 +9,8 @@
 
 import { getRateLimiterForDatabase } from '../rate-limiter.js';
 import { ApiError } from '../errors.js';
-import { sleep } from '../utils.js';
 import { fetchWithIPv4Fallback } from '../http-dispatcher.js';
+import { buildRetryableApiError, buildRetryableRateLimitError, executeHttpRequestWithRetry } from '../retry-policy.js';
 import type { HttpContext, FetchOptions } from '../types.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
 
@@ -18,9 +18,6 @@ export const CBIOPORTAL_BASE_URL =
   process.env.BIOCLI_CBIOPORTAL_BASE_URL ?? 'https://www.cbioportal.org/api';
 
 const RATE_LIMIT_RPS = 5;
-const MAX_RETRIES = 2;
-const BASE_RETRY_DELAY_MS = 1000;
-const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 
 export interface CbioPortalStudy {
   studyId: string;
@@ -143,52 +140,34 @@ async function cbioPortalFetch(url: string, opts?: FetchOptions): Promise<Respon
     await limiter.acquire();
   }
 
-  let lastError: Error | undefined;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetchWithIPv4Fallback(finalUrl, {
+  return executeHttpRequestWithRetry({
+    backendId: 'cbioportal',
+    execute: () => fetchWithIPv4Fallback(finalUrl, {
         method: opts?.method ?? 'GET',
         headers: {
           'Accept': 'application/json',
           ...opts?.headers,
         },
         body: opts?.body,
-      });
-
-      if (RETRYABLE_STATUS_CODES.has(response.status)) {
-        if (attempt < MAX_RETRIES) {
-          try { await response.text(); } catch { /* ignore */ }
-          await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-          continue;
-        }
-        throw new ApiError(
-          `cBioPortal returned HTTP ${response.status} after ${MAX_RETRIES + 1} attempts`,
+      }),
+    onRetryableStatusExhausted: (status, attempts) => status === 429
+      ? buildRetryableRateLimitError(
+          `cBioPortal returned 429 after ${attempts} attempts`,
           `Check cBioPortal at ${CBIOPORTAL_BASE_URL}`,
-        );
-      }
-
-      if (!response.ok) {
-        throw new ApiError(
-          `cBioPortal returned HTTP ${response.status}: ${response.statusText}`,
-          buildCbioPortalHint(finalUrl),
-        );
-      }
-
-      return response;
-    } catch (error) {
-      if (error instanceof ApiError) throw error;
-      lastError = error instanceof Error ? error : new Error(String(error));
-      if (attempt < MAX_RETRIES) {
-        await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-        continue;
-      }
-    }
-  }
-
-  throw new ApiError(
-    `cBioPortal request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
-    `Check cBioPortal at ${CBIOPORTAL_BASE_URL}`,
-  );
+        )
+      : buildRetryableApiError(
+          `cBioPortal returned HTTP ${status} after ${attempts} attempts`,
+          `Check cBioPortal at ${CBIOPORTAL_BASE_URL}`,
+        ),
+    onNonRetryableStatus: (response) => new ApiError(
+      `cBioPortal returned HTTP ${response.status}: ${response.statusText}`,
+      buildCbioPortalHint(finalUrl),
+    ),
+    onNetworkErrorExhausted: (error, attempts) => buildRetryableApiError(
+      `cBioPortal request failed after ${attempts} attempts: ${error.message}`,
+      `Check cBioPortal at ${CBIOPORTAL_BASE_URL}`,
+    ),
+  });
 }
 
 function createContext(): HttpContext {

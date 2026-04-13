@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/youngfly93/biocli/benchmarks/agent-ab/output.schema.json",
+  "title": "Agent A/B Benchmark Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "arm",
+    "status",
+    "final_answer",
+    "sources",
+    "commands_used",
+    "web_queries",
+    "warnings",
+    "errors",
+    "recovery_actions",
+    "runtime"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "arm": {
+      "type": "string",
+      "enum": ["agent_with_biocli", "agent_without_biocli"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "partial", "failed"]
+    },
+    "final_answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "result"],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "result": {}
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label"],
+        "properties": {
+          "label": { "type": "string" },
+          "url": { "type": "string" },
+          "record_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "commands_used": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "web_queries": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "recovery_actions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wall_clock_ms", "tool_calls"],
+      "properties": {
+        "wall_clock_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

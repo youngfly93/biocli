@@ -15,13 +15,11 @@
 
 import { getRateLimiterForDatabase } from '../rate-limiter.js';
 import { ApiError } from '../errors.js';
-import { sleep } from '../utils.js';
+import { buildRetryableApiError, buildRetryableRateLimitError, executeHttpRequestWithRetry } from '../retry-policy.js';
 import type { HttpContext, FetchOptions } from '../types.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
 
 const BASE_URL = 'https://maayanlab.cloud/Enrichr';
-const MAX_RETRIES = 2;
-const BASE_RETRY_DELAY_MS = 500;
 
 /** Enrichr fetch options — extends FetchOptions with FormData support. */
 interface EnrichrFetchOptions extends FetchOptions {
@@ -35,42 +33,31 @@ async function enrichrFetch(url: string, opts?: EnrichrFetchOptions): Promise<Re
     await limiter.acquire();
   }
 
-  let lastError: Error | undefined;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetch(url, {
+  return executeHttpRequestWithRetry({
+    backendId: 'enrichr',
+    execute: () => fetch(url, {
         method: opts?.method ?? 'GET',
         headers: opts?.formData ? undefined : opts?.headers,
         body: opts?.formData ?? opts?.body,
-      });
-
-      if (response.status === 429) {
-        if (attempt < MAX_RETRIES) {
-          await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-          continue;
-        }
-        throw new ApiError('Enrichr API rate limit exceeded', 'Check Enrichr at https://maayanlab.cloud/Enrichr');
-      }
-
-      if (!response.ok) {
-        throw new ApiError(`Enrichr API returned HTTP ${response.status}: ${response.statusText}`, 'Check Enrichr at https://maayanlab.cloud/Enrichr');
-      }
-
-      return response;
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      lastError = err instanceof Error ? err : new Error(String(err));
-      if (attempt < MAX_RETRIES) {
-        await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-        continue;
-      }
-    }
-  }
-
-  throw new ApiError(
-    `Enrichr request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
-    'Check Enrichr at https://maayanlab.cloud/Enrichr',
-  );
+      }),
+    onRetryableStatusExhausted: (status, attempts) => status === 429
+      ? buildRetryableRateLimitError(
+          `Enrichr API rate limit exceeded after ${attempts} attempts`,
+          'Check Enrichr at https://maayanlab.cloud/Enrichr',
+        )
+      : buildRetryableApiError(
+          `Enrichr API returned HTTP ${status} after ${attempts} attempts`,
+          'Check Enrichr at https://maayanlab.cloud/Enrichr',
+        ),
+    onNonRetryableStatus: (response) => new ApiError(
+      `Enrichr API returned HTTP ${response.status}: ${response.statusText}`,
+      'Check Enrichr at https://maayanlab.cloud/Enrichr',
+    ),
+    onNetworkErrorExhausted: (error, attempts) => buildRetryableApiError(
+      `Enrichr request failed after ${attempts} attempts: ${error.message}`,
+      'Check Enrichr at https://maayanlab.cloud/Enrichr',
+    ),
+  });
 }
 
 /**

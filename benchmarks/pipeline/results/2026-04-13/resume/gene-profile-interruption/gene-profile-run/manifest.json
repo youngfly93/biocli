@@ -1,0 +1,37 @@
+{
+  "command": "aggregate/gene-profile",
+  "totalItems": 10,
+  "succeeded": 10,
+  "failed": 0,
+  "startedAt": "2026-04-13T13:47:52.444Z",
+  "finishedAt": "2026-04-13T13:48:15.311Z",
+  "durationSeconds": 22.867,
+  "biocliVersion": "0.5.0",
+  "outdir": "benchmarks/pipeline/results/2026-04-13/resume/gene-profile-interruption/gene-profile-run",
+  "inputSource": "benchmarks/pipeline/fixtures/gene-profile.genes.txt",
+  "inputFormat": "auto",
+  "concurrency": 1,
+  "retries": 0,
+  "failFast": false,
+  "resume": {
+    "resumed": true,
+    "source": "benchmarks/pipeline/results/2026-04-13/resume/gene-profile-interruption/gene-profile-run",
+    "skippedCompleted": 3,
+    "previousSucceeded": 3,
+    "previousFailed": 0
+  },
+  "cache": {
+    "policy": "default",
+    "hits": 0,
+    "misses": 7,
+    "writes": 7
+  },
+  "files": {
+    "resultsJsonl": "results.jsonl",
+    "failuresJsonl": "failures.jsonl",
+    "summaryJson": "summary.json",
+    "manifestJson": "manifest.json",
+    "summaryCsv": "summary.csv",
+    "methodsMd": "methods.md"
+  }
+}

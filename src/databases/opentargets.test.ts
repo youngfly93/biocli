@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError } from '../errors.js';
+import { ApiError, EXIT_CODES } from '../errors.js';
 
 const { fetchMock } = vi.hoisted(() => ({ fetchMock: vi.fn() }));
 vi.mock('../http-dispatcher.js', async (importOriginal) => {
@@ -146,5 +146,23 @@ describe('opentargets backend', () => {
     await expect(resolveTarget(ctx, 'TP53')).rejects.toMatchObject({
       hint: expect.stringContaining('biocli aggregate drug-target EGFR -f json'),
     });
+  });
+
+  it('repeated 503 responses exhaust retries as a temporary failure', async () => {
+    vi.useFakeTimers();
+    fetchMock
+      .mockResolvedValueOnce(mockResponse(503))
+      .mockResolvedValueOnce(mockResponse(503))
+      .mockResolvedValueOnce(mockResponse(503));
+
+    const ctx = opentargetsBackend.createContext();
+    const promise = fetchDrugsByIds(ctx, ['CHEMBL1173655']);
+    const rejection = expect(promise).rejects.toMatchObject({
+      code: 'API_ERROR',
+      exitCode: EXIT_CODES.TEMPFAIL,
+    });
+    await vi.runAllTimersAsync();
+    await rejection;
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });

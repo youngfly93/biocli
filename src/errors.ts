@@ -113,12 +113,12 @@ export class RateLimitError extends CliError {
 }
 
 export class ApiError extends CliError {
-  constructor(message: string, hint?: string) {
+  constructor(message: string, hint?: string, exitCode: ExitCode = EXIT_CODES.GENERIC_ERROR) {
     super(
       'API_ERROR',
       message,
       hint ?? 'Check the API status page for the relevant database, or try again later',
-      EXIT_CODES.GENERIC_ERROR,
+      exitCode,
     );
   }
 }

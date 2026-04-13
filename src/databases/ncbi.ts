@@ -14,21 +14,15 @@
 import { getApiKey, getEmail } from '../config.js';
 import { getRateLimiter } from '../rate-limiter.js';
 import { parseXml } from '../xml-parser.js';
-import { RateLimitError, ApiError } from '../errors.js';
+import { ApiError } from '../errors.js';
 import { fetchWithIPv4Fallback } from '../http-dispatcher.js';
-import { sleep } from '../utils.js';
+import { buildRetryableApiError, buildRetryableRateLimitError, executeHttpRequestWithRetry } from '../retry-policy.js';
 import type { HttpContext, FetchOptions } from '../types.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 export const EUTILS_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
-
-/** Maximum number of retries on HTTP 429 responses. */
-const MAX_RETRIES = 3;
-
-/** Base delay in ms for exponential backoff (doubled on each retry). */
-const BASE_RETRY_DELAY_MS = 500;
 
 /** Tool parameter sent to NCBI to identify this client. */
 const TOOL_NAME = 'biocli';
@@ -117,54 +111,26 @@ export async function ncbiFetch(
     await limiter.acquire();
   }
 
-  let lastError: Error | undefined;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetchWithIPv4Fallback(finalUrl, {
+  return executeHttpRequestWithRetry({
+    backendId: 'ncbi',
+    execute: () => fetchWithIPv4Fallback(finalUrl, {
         method: opts?.method ?? 'GET',
         headers: opts?.headers,
         body: opts?.body,
-      });
-
-      if (response.status === 429) {
-        if (attempt < MAX_RETRIES) {
-          const retryAfter = response.headers.get('Retry-After');
-          const delayMs = retryAfter
-            ? parseInt(retryAfter, 10) * 1000
-            : BASE_RETRY_DELAY_MS * Math.pow(2, attempt);
-          await sleep(delayMs);
-          continue;
-        }
-        throw new RateLimitError(
-          `NCBI returned 429 after ${MAX_RETRIES + 1} attempts`,
-          'Add an NCBI API key (biocli config set api_key YOUR_KEY) to increase the rate limit from 3 to 10 req/s',
-        );
-      }
-
-      if (!response.ok) {
-        throw new ApiError(
-          `NCBI API returned HTTP ${response.status}: ${response.statusText}`,
-          buildNcbiHint(finalUrl),
-        );
-      }
-
-      return response;
-    } catch (err) {
-      if (err instanceof RateLimitError || err instanceof ApiError) {
-        throw err;
-      }
-      lastError = err instanceof Error ? err : new Error(String(err));
-      if (attempt < MAX_RETRIES) {
-        await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-        continue;
-      }
-    }
-  }
-
-  throw new ApiError(
-    `NCBI request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
-    'Check NCBI API status at https://www.ncbi.nlm.nih.gov/home/develop/',
-  );
+      }),
+    onRetryableStatusExhausted: (_status, attempts) => buildRetryableRateLimitError(
+      `NCBI returned 429 after ${attempts} attempts`,
+      'Add an NCBI API key (biocli config set api_key YOUR_KEY) to increase the rate limit from 3 to 10 req/s',
+    ),
+    onNonRetryableStatus: (response) => new ApiError(
+      `NCBI API returned HTTP ${response.status}: ${response.statusText}`,
+      buildNcbiHint(finalUrl),
+    ),
+    onNetworkErrorExhausted: (error, attempts) => buildRetryableApiError(
+      `NCBI request failed after ${attempts} attempts: ${error.message}`,
+      'Check NCBI API status at https://www.ncbi.nlm.nih.gov/home/develop/',
+    ),
+  });
 }
 
 // ── HttpContext factory ──────────────────────────────────────────────────────

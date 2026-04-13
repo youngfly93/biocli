@@ -27,6 +27,10 @@ interface CacheEntry {
   key: string;
 }
 
+export interface CachedValue<T = unknown> extends CacheEntry {
+  data: T;
+}
+
 export interface CacheStats {
   totalEntries: number;
   totalSizeBytes: number;
@@ -56,7 +60,12 @@ export function buildCacheKey(database: string, command: string, args: Record<st
 }
 
 /** Get a cached result if it exists and hasn't expired. */
-export function getCached(database: string, command: string, argsKey: string, ttlMs?: number): unknown | null {
+export function getCachedEntry<T = unknown>(
+  database: string,
+  command: string,
+  argsKey: string,
+  ttlMs?: number,
+): CachedValue<T> | null {
   const path = cachePath(database, command, argsKey);
   if (!existsSync(path)) return null;
 
@@ -72,10 +81,18 @@ export function getCached(database: string, command: string, argsKey: string, tt
       return null;
     }
 
-    return entry.data;
+    return {
+      ...entry,
+      data: entry.data as T,
+    };
   } catch {
     return null;
   }
+}
+
+/** Get a cached result if it exists and hasn't expired. */
+export function getCached(database: string, command: string, argsKey: string, ttlMs?: number): unknown | null {
+  return getCachedEntry(database, command, argsKey, ttlMs)?.data ?? null;
 }
 
 /** Store a result in the cache. */

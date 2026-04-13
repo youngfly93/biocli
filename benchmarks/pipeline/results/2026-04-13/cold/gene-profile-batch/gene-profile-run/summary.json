@@ -1,0 +1,9 @@
+{
+  "command": "aggregate/gene-profile",
+  "totalItems": 10,
+  "succeeded": 10,
+  "failed": 0,
+  "startedAt": "2026-04-13T13:38:50.345Z",
+  "finishedAt": "2026-04-13T13:39:05.482Z",
+  "durationSeconds": 15.137
+}

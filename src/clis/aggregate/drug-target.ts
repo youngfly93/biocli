@@ -10,6 +10,7 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError, EmptyResultError } from '../../errors.js';
+import { parseBatchInput } from '../../batch.js';
 import { wrapResult } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { reportProgress } from '../../progress.js';
@@ -28,11 +29,15 @@ import { clampLimit } from '../cbioportal/common.js';
 import { buildTumorSummary, type TumorBuildResult, type TumorSummary } from './tumor-gene-dossier.js';
 import {
   findGdscDrugEntriesByName,
+  gdscPaths,
+  getGdscDownloadMeta,
   loadGdscSensitivityIndex,
+  refreshGdscDataset,
   type GdscDrugEntry,
   type GdscSensitivityHit,
   type GdscSensitivityIndex,
 } from '../../datasets/gdsc.js';
+import { runAggregateBatch, type AggregateBatchOptions, type AggregateBatchPreparation } from './batch-runtime.js';
 
 const STAGE_ORDER: Record<string, number> = {
   APPROVAL: 60,
@@ -179,6 +184,75 @@ interface CandidateSensitivityComputation {
   summary: DrugTargetSensitivity;
   rankingScore: number;
   rankingSignals: string[];
+}
+
+interface DrugTargetCommandArgs {
+  gene?: unknown;
+  disease?: unknown;
+  study?: unknown;
+  profile?: unknown;
+  'sample-list'?: unknown;
+  'co-mutations'?: unknown;
+  variants?: unknown;
+  'min-co-samples'?: unknown;
+  'page-size'?: unknown;
+  limit?: unknown;
+  diseaseLimit?: unknown;
+  reportLimit?: unknown;
+  __batch?: AggregateBatchOptions;
+}
+
+function buildDrugTargetBatchCacheArgs(
+  item: string,
+  args: DrugTargetCommandArgs,
+): Record<string, unknown> {
+  return {
+    gene: item,
+    disease: args.disease ?? '',
+    study: args.study ?? '',
+    profile: args.profile ?? '',
+    sampleList: args['sample-list'] ?? '',
+    coMutations: args['co-mutations'] ?? 5,
+    variants: args.variants ?? 3,
+    minCoSamples: args['min-co-samples'] ?? 1,
+    pageSize: args['page-size'] ?? 500,
+    limit: args.limit ?? 8,
+    diseaseLimit: args.diseaseLimit ?? 5,
+    reportLimit: args.reportLimit ?? 3,
+  };
+}
+
+async function prepareDrugTargetBatchRun(
+  batch: AggregateBatchOptions,
+): Promise<AggregateBatchPreparation | void> {
+  const gdscCtx = createHttpContextForDatabase('gdsc');
+  try {
+    if (batch.forceRefresh) {
+      reportProgress('Refreshing GDSC snapshot before batch run…');
+      await refreshGdscDataset(gdscCtx, { force: true });
+    } else {
+      reportProgress('Preloading GDSC snapshot before batch run…');
+    }
+    await loadGdscSensitivityIndex(gdscCtx);
+  } catch (error) {
+    reportProgress(`GDSC preload unavailable; continuing without upfront refresh: ${error instanceof Error ? error.message : String(error)}`);
+    return;
+  }
+
+  const meta = getGdscDownloadMeta();
+  if (!meta) return;
+
+  return {
+    snapshots: [{
+      dataset: 'GDSC',
+      source: 'local-dataset',
+      path: gdscPaths().dir,
+      release: meta.release,
+      fetchedAt: meta.fetchedAt,
+      staleAfterDays: meta.staleAfterDays,
+      refreshed: batch.forceRefresh === true,
+    }],
+  };
 }
 
 interface PhraseMatch {
@@ -738,6 +812,8 @@ function aggregateCandidates(
       maxClinicalStageLabel: formatStageLabel(maxClinicalStage),
       drugType: detail?.drugType ?? candidate.drugType,
       actionTypes: uniqueByKey(detail?.mechanismsOfAction?.uniqueActionTypes ?? [], value => value),
+      description: detail?.description ?? '',
+      approvedIndications: (detail?.indications?.rows ?? []).map(r => r.disease.name),
       diseaseContexts,
       evidenceSourceCounts,
       clinicalReports: reports,
@@ -764,6 +840,208 @@ function aggregateCandidates(
     sensitivitySupportedCandidateCount: matched.filter(candidate => candidate.sensitivity).length,
     returnedCandidates: returned,
   };
+}
+
+async function buildDrugTargetResult(
+  args: DrugTargetCommandArgs,
+): Promise<ReturnType<typeof wrapResult<DrugTargetData>>> {
+  const gene = String(args.gene ?? '').trim();
+  if (!gene) throw new CliError('ARGUMENT', 'Gene symbol or Ensembl gene ID is required');
+
+  const diseaseFilter = String(args.disease ?? '').trim();
+  const studyId = String(args.study ?? '').trim();
+  const requestedProfileId = String(args.profile ?? '').trim();
+  const requestedSampleListId = String(args['sample-list'] ?? '').trim();
+  const pageSize = clampLimit(args['page-size'], 500, 500);
+  const coMutationLimit = clampLimit(args['co-mutations'], 5, 50);
+  const exemplarLimit = clampLimit(args.variants, 3, 20);
+  const minCoSamples = clampLimit(args['min-co-samples'], 1, 100000);
+  const limit = Math.max(1, Math.min(Number(args.limit ?? 8), 25));
+  const diseaseLimit = Math.max(1, Math.min(Number(args.diseaseLimit ?? 5), 10));
+  const reportLimit = Math.max(1, Math.min(Number(args.reportLimit ?? 3), 5));
+
+  const opentargetsCtx = createHttpContextForDatabase('opentargets');
+  reportProgress('Resolving Open Targets target…');
+  const resolved = await resolveTarget(opentargetsCtx, gene);
+  if (!resolved) {
+    throw new EmptyResultError(
+      'aggregate/drug-target',
+      `No Open Targets target matched "${gene}". Try a canonical HGNC symbol like EGFR or TP53.`,
+    );
+  }
+
+  reportProgress('Fetching Open Targets drug snapshot…');
+  const snapshot = await fetchTargetDrugSnapshot(opentargetsCtx, resolved.id, 0, diseaseLimit);
+  if (!snapshot) {
+    throw new EmptyResultError(
+      'aggregate/drug-target',
+      `Open Targets did not return a target snapshot for "${resolved.id}".`,
+    );
+  }
+
+  const chemblIds = snapshot.drugAndClinicalCandidates.rows
+    .map(row => row.drug?.id ?? '')
+    .filter(Boolean);
+  reportProgress('Fetching Open Targets drug details…');
+  const drugDetails = await fetchDrugsByIds(opentargetsCtx, chemblIds);
+  if (studyId) reportProgress('Fetching cBioPortal tumor overlay…');
+  const tumorOverlay: TumorBuildResult | null = studyId
+    ? await buildTumorSummary(
+        resolved.approvedSymbol || gene,
+        studyId,
+        requestedProfileId,
+        requestedSampleListId,
+        pageSize,
+        coMutationLimit,
+        exemplarLimit,
+        minCoSamples,
+      )
+    : null;
+
+  const associatedDiseases = snapshot.associatedDiseases.rows
+    .filter(row => row.disease?.id && row.disease?.name)
+    .map(row => ({
+      id: String(row.disease!.id),
+      name: String(row.disease!.name),
+      score: Number(row.score ?? 0),
+    }));
+
+  const gdscWarnings: string[] = [];
+  let gdscIndex: GdscSensitivityIndex | null = null;
+  try {
+    reportProgress('Loading GDSC sensitivity index…');
+    const gdscCtx = createHttpContextForDatabase('gdsc');
+    gdscIndex = await loadGdscSensitivityIndex(gdscCtx);
+  } catch (error) {
+    gdscWarnings.push(`GDSC sensitivity evidence unavailable: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  const studyMetaWarnings: string[] = [];
+  let studyMeta: CbioPortalStudy | null = null;
+  if (studyId) {
+    const cbioCtx = createHttpContextForDatabase('cbioportal');
+    try {
+      reportProgress('Fetching cBioPortal study metadata…');
+      studyMeta = await fetchStudy(cbioCtx, studyId);
+    } catch (error) {
+      studyMetaWarnings.push(
+        `cBioPortal study metadata: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+  const studyTerms = studyId
+    ? buildStudyContextTerms(studyMeta, associatedDiseases)
+    : [];
+  const geneTerms = studyId
+    ? uniqueNormalizedTerms([
+        snapshot.approvedSymbol,
+        `${snapshot.approvedSymbol} mutation`,
+        `${snapshot.approvedSymbol} mutations`,
+        `${snapshot.approvedSymbol} mutant`,
+        `${snapshot.approvedSymbol} exon 20`,
+        ...(tumorOverlay?.summary.topProteinChanges ?? [])
+          .slice(0, 3)
+          .map(item => String(item.proteinChange ?? '')),
+      ])
+    : [];
+  const tissueTerms = uniqueNormalizedTerms([
+    diseaseFilter,
+    ...studyTerms,
+  ]);
+
+  reportProgress('Ranking drug candidates…');
+  const {
+    totalCandidates,
+    matchedCandidateCount,
+    approvedCandidateCount,
+    clinicalCandidateCount,
+    sensitivitySupportedCandidateCount,
+    returnedCandidates,
+  } = aggregateCandidates(
+    snapshot.drugAndClinicalCandidates.rows,
+    drugDetails,
+    diseaseFilter,
+    studyTerms,
+    geneTerms,
+    tissueTerms,
+    gdscIndex,
+    limit,
+    diseaseLimit,
+    reportLimit,
+  );
+
+  const warnings: string[] = [];
+  if (totalCandidates === 0) {
+    warnings.push(`Open Targets reported no drug or clinical candidates for ${snapshot.approvedSymbol}.`);
+  } else if (diseaseFilter && matchedCandidateCount === 0) {
+    warnings.push(`No drug candidates matched disease filter "${diseaseFilter}".`);
+  }
+  warnings.push(...gdscWarnings);
+  warnings.push(...studyMetaWarnings);
+  if (tumorOverlay?.warnings.length) {
+    warnings.push(...tumorOverlay.warnings);
+  }
+
+  const data: DrugTargetData = {
+    target: {
+      input: gene,
+      symbol: snapshot.approvedSymbol,
+      name: snapshot.approvedName ?? '',
+      ensemblId: snapshot.id,
+      biotype: snapshot.biotype ?? undefined,
+    },
+    summary: {
+      rankingMode: studyId ? 'study-aware' : diseaseFilter ? 'disease-aware' : 'global',
+      diseaseFilter: diseaseFilter || undefined,
+      totalCandidates,
+      matchedCandidates: matchedCandidateCount,
+      returnedCandidates: returnedCandidates.length,
+      approvedDrugs: approvedCandidateCount,
+      clinicalCandidates: clinicalCandidateCount,
+      sensitivitySupportedCandidates: sensitivitySupportedCandidateCount,
+    },
+    tractability: summarizeTractability(snapshot.tractability),
+    associatedDiseases,
+    candidates: returnedCandidates,
+    ...(tumorOverlay ? { tumorStudy: tumorOverlay.summary } : {}),
+  };
+
+  const querySuffix = [
+    diseaseFilter ? `[disease=${diseaseFilter}]` : '',
+    studyId ? `@ ${studyId}` : '',
+  ].filter(Boolean).join(' ');
+
+  return wrapResult(data, {
+    ids: {
+      ensemblGeneId: snapshot.id,
+      ...(tumorOverlay?.ids ?? {}),
+    },
+    sources: [
+      'Open Targets',
+      ...(returnedCandidates.some(candidate => candidate.sensitivity) ? ['GDSC'] : []),
+      ...(tumorOverlay?.sources ?? []),
+    ],
+    warnings,
+    query: querySuffix ? `${gene} ${querySuffix}` : gene,
+    provenance: [
+      {
+        source: 'Open Targets',
+        recordIds: [snapshot.id],
+      },
+      ...(returnedCandidates.some(candidate => candidate.sensitivity)
+        ? [{
+            source: 'GDSC',
+            url: 'https://www.cancerrxgene.org/downloads/bulk_download',
+            databaseRelease: gdscIndex?.meta.release,
+            recordIds: uniqueByKey(
+              returnedCandidates.flatMap(candidate => candidate.sensitivity?.matchedDrugIds ?? []),
+              value => value,
+            ),
+          }]
+        : []),
+      ...(tumorOverlay?.provenance ?? []),
+    ],
+  });
 }
 
 cli({
@@ -802,202 +1080,44 @@ cli({
   whenToUse: 'Use when you need target tractability and candidate therapies for a gene, optionally with tumor-study context.',
   columns: ['drugName', 'maxClinicalStage', 'drugType'],
   func: async (_ctx, args) => {
-    const gene = String(args.gene).trim();
-    if (!gene) throw new CliError('ARGUMENT', 'Gene symbol or Ensembl gene ID is required');
-
-    const diseaseFilter = String(args.disease ?? '').trim();
-    const studyId = String(args.study ?? '').trim();
-    const requestedProfileId = String(args.profile ?? '').trim();
-    const requestedSampleListId = String(args['sample-list'] ?? '').trim();
-    const pageSize = clampLimit(args['page-size'], 500, 500);
-    const coMutationLimit = clampLimit(args['co-mutations'], 5, 50);
-    const exemplarLimit = clampLimit(args.variants, 3, 20);
-    const minCoSamples = clampLimit(args['min-co-samples'], 1, 100000);
-    const limit = Math.max(1, Math.min(Number(args.limit ?? 8), 25));
-    const diseaseLimit = Math.max(1, Math.min(Number(args.diseaseLimit ?? 5), 10));
-    const reportLimit = Math.max(1, Math.min(Number(args.reportLimit ?? 3), 5));
-
-    const opentargetsCtx = createHttpContextForDatabase('opentargets');
-    reportProgress('Resolving Open Targets target…');
-    const resolved = await resolveTarget(opentargetsCtx, gene);
-    if (!resolved) {
-      throw new EmptyResultError(
-        'aggregate/drug-target',
-        `No Open Targets target matched "${gene}". Try a canonical HGNC symbol like EGFR or TP53.`,
-      );
-    }
-
-    reportProgress('Fetching Open Targets drug snapshot…');
-    const snapshot = await fetchTargetDrugSnapshot(opentargetsCtx, resolved.id, 0, diseaseLimit);
-    if (!snapshot) {
-      throw new EmptyResultError(
-        'aggregate/drug-target',
-        `Open Targets did not return a target snapshot for "${resolved.id}".`,
-      );
-    }
-
-    const chemblIds = snapshot.drugAndClinicalCandidates.rows
-      .map(row => row.drug?.id ?? '')
-      .filter(Boolean);
-    reportProgress('Fetching Open Targets drug details…');
-    const drugDetails = await fetchDrugsByIds(opentargetsCtx, chemblIds);
-    if (studyId) reportProgress('Fetching cBioPortal tumor overlay…');
-    const tumorOverlay: TumorBuildResult | null = studyId
-      ? await buildTumorSummary(
-          resolved.approvedSymbol || gene,
-          studyId,
-          requestedProfileId,
-          requestedSampleListId,
-          pageSize,
-          coMutationLimit,
-          exemplarLimit,
-          minCoSamples,
-        )
-      : null;
-
-    const associatedDiseases = snapshot.associatedDiseases.rows
-      .filter(row => row.disease?.id && row.disease?.name)
-      .map(row => ({
-        id: String(row.disease!.id),
-        name: String(row.disease!.name),
-        score: Number(row.score ?? 0),
-      }));
-
-    const gdscWarnings: string[] = [];
-    let gdscIndex: GdscSensitivityIndex | null = null;
-    try {
-      reportProgress('Loading GDSC sensitivity index…');
-      const gdscCtx = createHttpContextForDatabase('gdsc');
-      gdscIndex = await loadGdscSensitivityIndex(gdscCtx);
-    } catch (error) {
-      gdscWarnings.push(`GDSC sensitivity evidence unavailable: ${error instanceof Error ? error.message : String(error)}`);
-    }
-
-    const studyMetaWarnings: string[] = [];
-    let studyMeta: CbioPortalStudy | null = null;
-    if (studyId) {
-      const cbioCtx = createHttpContextForDatabase('cbioportal');
-      try {
-        reportProgress('Fetching cBioPortal study metadata…');
-        studyMeta = await fetchStudy(cbioCtx, studyId);
-      } catch (error) {
-        studyMetaWarnings.push(
-          `cBioPortal study metadata: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
-    const studyTerms = studyId
-      ? buildStudyContextTerms(studyMeta, associatedDiseases)
-      : [];
-    const geneTerms = studyId
-      ? uniqueNormalizedTerms([
-          snapshot.approvedSymbol,
-          `${snapshot.approvedSymbol} mutation`,
-          `${snapshot.approvedSymbol} mutations`,
-          `${snapshot.approvedSymbol} mutant`,
-          `${snapshot.approvedSymbol} exon 20`,
-          ...(tumorOverlay?.summary.topProteinChanges ?? [])
-            .slice(0, 3)
-            .map(item => String(item.proteinChange ?? '')),
-        ])
-      : [];
-    const tissueTerms = uniqueNormalizedTerms([
-      diseaseFilter,
-      ...studyTerms,
-    ]);
-
-    reportProgress('Ranking drug candidates…');
-    const {
-      totalCandidates,
-      matchedCandidateCount,
-      approvedCandidateCount,
-      clinicalCandidateCount,
-      sensitivitySupportedCandidateCount,
-      returnedCandidates,
-    } = aggregateCandidates(
-      snapshot.drugAndClinicalCandidates.rows,
-      drugDetails,
-      diseaseFilter,
-      studyTerms,
-      geneTerms,
-      tissueTerms,
-      gdscIndex,
-      limit,
-      diseaseLimit,
-      reportLimit,
-    );
-
-    const warnings: string[] = [];
-    if (totalCandidates === 0) {
-      warnings.push(`Open Targets reported no drug or clinical candidates for ${snapshot.approvedSymbol}.`);
-    } else if (diseaseFilter && matchedCandidateCount === 0) {
-      warnings.push(`No drug candidates matched disease filter "${diseaseFilter}".`);
-    }
-    warnings.push(...gdscWarnings);
-    warnings.push(...studyMetaWarnings);
-    if (tumorOverlay?.warnings.length) {
-      warnings.push(...tumorOverlay.warnings);
-    }
-
-    const data: DrugTargetData = {
-      target: {
-        input: gene,
-        symbol: snapshot.approvedSymbol,
-        name: snapshot.approvedName ?? '',
-        ensemblId: snapshot.id,
-        biotype: snapshot.biotype ?? undefined,
-      },
-      summary: {
-        rankingMode: studyId ? 'study-aware' : diseaseFilter ? 'disease-aware' : 'global',
-        diseaseFilter: diseaseFilter || undefined,
-        totalCandidates,
-        matchedCandidates: matchedCandidateCount,
-        returnedCandidates: returnedCandidates.length,
-        approvedDrugs: approvedCandidateCount,
-        clinicalCandidates: clinicalCandidateCount,
-        sensitivitySupportedCandidates: sensitivitySupportedCandidateCount,
-      },
-      tractability: summarizeTractability(snapshot.tractability),
-      associatedDiseases,
-      candidates: returnedCandidates,
-      ...(tumorOverlay ? { tumorStudy: tumorOverlay.summary } : {}),
-    };
-
-    const querySuffix = [
-      diseaseFilter ? `[disease=${diseaseFilter}]` : '',
-      studyId ? `@ ${studyId}` : '',
-    ].filter(Boolean).join(' ');
-
-    return wrapResult(data, {
-      ids: {
-        ensemblGeneId: snapshot.id,
-        ...(tumorOverlay?.ids ?? {}),
-      },
-      sources: [
-        'Open Targets',
-        ...(returnedCandidates.some(candidate => candidate.sensitivity) ? ['GDSC'] : []),
-        ...(tumorOverlay?.sources ?? []),
-      ],
-      warnings,
-      query: querySuffix ? `${gene} ${querySuffix}` : gene,
-      provenance: [
-        {
-          source: 'Open Targets',
-          recordIds: [snapshot.id],
-        },
-        ...(returnedCandidates.some(candidate => candidate.sensitivity)
-          ? [{
-              source: 'GDSC',
-              url: 'https://www.cancerrxgene.org/downloads/bulk_download',
-              databaseRelease: gdscIndex?.meta.release,
-              recordIds: uniqueByKey(
-                returnedCandidates.flatMap(candidate => candidate.sensitivity?.matchedDrugIds ?? []),
-                value => value,
-              ),
-            }]
-          : []),
-        ...(tumorOverlay?.provenance ?? []),
-      ],
+    const batch = (args.__batch ?? {}) as AggregateBatchOptions;
+    const parsedBatch = parseBatchInput({
+      positionalValue: typeof args.gene === 'string' ? args.gene : undefined,
+      inputFile: batch.inputFile,
+      inputFormat: batch.inputFormat,
+      key: batch.key,
     });
+    const genes = parsedBatch ?? [String(args.gene ?? '').trim()].filter(Boolean);
+    if (genes.length === 0) {
+      throw new CliError('ARGUMENT', 'Gene symbol or Ensembl gene ID is required');
+    }
+
+    const explicitBatch = Boolean(
+      parsedBatch
+      || batch.inputFile
+      || batch.outdir
+      || batch.resume
+      || batch.resumeFrom
+      || batch.skipCached
+      || batch.forceRefresh,
+    );
+    if (!explicitBatch && genes.length === 1) {
+      return buildDrugTargetResult(args as DrugTargetCommandArgs);
+    }
+
+    const batchResult = await runAggregateBatch({
+      command: 'aggregate/drug-target',
+      items: genes,
+      batch,
+      progressLabel: 'Batch drug-target',
+      cacheArgs: (gene) => buildDrugTargetBatchCacheArgs(gene, args as DrugTargetCommandArgs),
+      prepareRun: async ({ batch: batchOpts }) => prepareDrugTargetBatchRun(batchOpts),
+      executor: async (gene) => buildDrugTargetResult({
+        ...args,
+        gene,
+      } as DrugTargetCommandArgs),
+    });
+
+    return batchResult.results;
   },
 });

@@ -29,17 +29,7 @@ import { resolveOrganism } from '../_shared/organism-db.js';
 import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getVersion } from '../../version.js';
-
-// ── CSV helper ───────────────────────────────────────────────────────────────
-
-function toCsv(headers: string[], rows: Record<string, unknown>[]): string {
-  const escape = (v: unknown): string => {
-    const s = String(v ?? '');
-    return s.includes(',') || s.includes('"') || s.includes('\n')
-      ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  return [headers.join(','), ...rows.map(r => headers.map(h => escape(r[h])).join(','))].join('\n') + '\n';
-}
+import { toCsv } from '../../csv.js';
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 

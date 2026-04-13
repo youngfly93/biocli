@@ -64,6 +64,39 @@ describe('parseBatchInput', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it('reads from csv using the first column by default', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'biocli-batch-'));
+    const file = join(dir, 'ids.csv');
+    writeFileSync(file, 'gene,label\nTP53,p53\nBRCA1,brca\n');
+    try {
+      expect(parseBatchInput({ inputFile: file, inputFormat: 'csv' })).toEqual(['TP53', 'BRCA1']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('reads from csv using a named key', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'biocli-batch-'));
+    const file = join(dir, 'ids.csv');
+    writeFileSync(file, 'gene,label\nTP53,p53\nBRCA1,brca\n');
+    try {
+      expect(parseBatchInput({ inputFile: file, inputFormat: 'csv', key: 'label' })).toEqual(['p53', 'brca']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('reads from jsonl using a named key', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'biocli-batch-'));
+    const file = join(dir, 'ids.jsonl');
+    writeFileSync(file, '{"gene":"TP53"}\n{"gene":"BRCA1"}\n');
+    try {
+      expect(parseBatchInput({ inputFile: file, inputFormat: 'jsonl', key: 'gene' })).toEqual(['TP53', 'BRCA1']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('mergeBatchResults', () => {

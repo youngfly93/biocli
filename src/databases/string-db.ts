@@ -11,13 +11,11 @@
 
 import { getRateLimiterForDatabase } from '../rate-limiter.js';
 import { ApiError } from '../errors.js';
-import { sleep } from '../utils.js';
+import { buildRetryableApiError, buildRetryableRateLimitError, executeHttpRequestWithRetry } from '../retry-policy.js';
 import type { HttpContext, FetchOptions } from '../types.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
 
 const BASE_URL = 'https://string-db.org/api';
-const MAX_RETRIES = 2;
-const BASE_RETRY_DELAY_MS = 1000;
 
 /** Build a STRING API URL. Format is embedded in path: /api/{format}/{endpoint} */
 export function buildStringUrl(endpoint: string, params?: Record<string, string>): string {
@@ -49,42 +47,26 @@ async function stringFetch(url: string, opts?: FetchOptions): Promise<Response> 
     await limiter.acquire();
   }
 
-  let lastError: Error | undefined;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetch(url, {
+  return executeHttpRequestWithRetry({
+    backendId: 'string',
+    execute: () => fetch(url, {
         method: opts?.method ?? 'GET',
         headers: { 'Accept': 'application/json', ...opts?.headers },
         body: opts?.body,
-      });
-
-      if (response.status === 429 || response.status === 503) {
-        if (attempt < MAX_RETRIES) {
-          await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-          continue;
-        }
-        throw new ApiError('STRING API rate limit exceeded. Try again in a few seconds.', 'Check STRING at https://string-db.org');
-      }
-
-      if (!response.ok) {
-        throw new ApiError(`STRING API returned HTTP ${response.status}: ${response.statusText}`, 'Check STRING at https://string-db.org');
-      }
-
-      return response;
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      lastError = err instanceof Error ? err : new Error(String(err));
-      if (attempt < MAX_RETRIES) {
-        await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-        continue;
-      }
-    }
-  }
-
-  throw new ApiError(
-    `STRING request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
-    'Check STRING at https://string-db.org',
-  );
+      }),
+    onRetryableStatusExhausted: (_status, attempts) => buildRetryableRateLimitError(
+      `STRING API rate limit exceeded after ${attempts} attempts`,
+      'Check STRING at https://string-db.org',
+    ),
+    onNonRetryableStatus: (response) => new ApiError(
+      `STRING API returned HTTP ${response.status}: ${response.statusText}`,
+      'Check STRING at https://string-db.org',
+    ),
+    onNetworkErrorExhausted: (error, attempts) => buildRetryableApiError(
+      `STRING request failed after ${attempts} attempts: ${error.message}`,
+      'Check STRING at https://string-db.org',
+    ),
+  });
 }
 
 function createContext(): HttpContext {

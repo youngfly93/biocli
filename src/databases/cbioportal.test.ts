@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError } from '../errors.js';
+import { ApiError, EXIT_CODES } from '../errors.js';
 
 const { fetchMock } = vi.hoisted(() => ({ fetchMock: vi.fn() }));
 vi.mock('../http-dispatcher.js', async (importOriginal) => {
@@ -99,6 +99,27 @@ describe('cbioportal backend', () => {
       hint: expect.stringContaining('biocli cbioportal studies -f json'),
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('repeated 503 responses exhaust retries as a temporary failure', async () => {
+    vi.useFakeTimers();
+    fetchMock
+      .mockResolvedValueOnce(mockResponse(503))
+      .mockResolvedValueOnce(mockResponse(503))
+      .mockResolvedValueOnce(mockResponse(503));
+
+    const ctx = cbioportalBackend.createContext();
+    const promise = ctx.fetchJson(
+      buildCbioPortalUrl('/studies', { projection: 'SUMMARY' }),
+      { skipRateLimit: true },
+    );
+    const rejection = expect(promise).rejects.toMatchObject({
+      code: 'API_ERROR',
+      exitCode: EXIT_CODES.TEMPFAIL,
+    });
+    await vi.runAllTimersAsync();
+    await rejection;
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it('mutation profile 404 suggests inspecting profiles instead of exposing a URL', async () => {

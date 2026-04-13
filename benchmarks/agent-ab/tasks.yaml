@@ -1,0 +1,151 @@
+version: "1.0"
+date: "2026-04-12"
+purpose: "Measure whether access to biocli improves agent accuracy, structure, and recovery on bioinformatics tasks."
+
+arms:
+  - id: agent_with_biocli
+    description: "Agent may use any tools, but should prefer biocli for biological retrieval and workflow operations."
+  - id: agent_without_biocli
+    description: "Agent must not invoke biocli or reuse biocli outputs."
+
+dimensions:
+  - factual_accuracy
+  - source_verifiability
+  - structural_usability
+  - task_completion
+  - recovery_behavior
+  - efficiency
+
+tasks:
+  - id: gene-dossier-tp53
+    track: retrieval
+    weight: 10
+    title: "TP53 multi-source gene dossier"
+    objective: "Assemble a compact but source-backed TP53 dossier."
+    prompt: "Find a structured TP53 dossier covering stable identifiers, function, pathways, interaction evidence, and clinically relevant variant context."
+    expected_outputs:
+      - "Canonical gene symbol and at least one stable identifier"
+      - "Functional summary"
+      - "Pathway information"
+      - "At least one interaction or network clue"
+      - "Variant or clinical context"
+    gold_anchors:
+      - "TP53"
+      - "7157 or ENSG00000141510 or P04637"
+    notes:
+      - "Useful for testing multi-source stitching."
+
+  - id: variant-dossier-rs334
+    track: retrieval
+    weight: 10
+    title: "rs334 clinical variant interpretation"
+    objective: "Interpret rs334 with disease and molecular context."
+    prompt: "Return a structured interpretation of rs334 including linked gene, disease significance, and molecular consequence."
+    expected_outputs:
+      - "rs334"
+      - "HBB"
+      - "Clinical significance or disease context"
+      - "Molecular consequence or protein-level explanation"
+    gold_anchors:
+      - "rs334"
+      - "HBB"
+      - "sickle"
+
+  - id: tumor-gene-dossier-tp53-luad
+    track: cohort
+    weight: 14
+    title: "Tumor cohort dossier for TP53 in LUAD"
+    objective: "Characterize TP53 in a concrete cBioPortal lung adenocarcinoma cohort."
+    prompt: "Find TP53 mutation/prevalence context in LUAD using a specific study, and return mutation frequency, representative alterations, and co-mutation clues."
+    provided_inputs:
+      gene: "TP53"
+      study_hint: "luad_tcga_pan_can_atlas_2018"
+    expected_outputs:
+      - "Study identifier"
+      - "Mutation or alteration prevalence"
+      - "Representative protein changes or exemplar variants"
+      - "At least one co-mutation clue"
+    gold_anchors:
+      - "TP53"
+      - "luad_tcga_pan_can_atlas_2018"
+    notes:
+      - "This is a high-value test of structured tumor workflow support."
+
+  - id: drug-target-egfr
+    track: aggregation
+    weight: 14
+    title: "EGFR drug-target brief"
+    objective: "Return a source-backed EGFR targetability brief."
+    prompt: "Find whether EGFR is a viable drug target and summarize disease links, tractability, and candidate drugs in structured form."
+    expected_outputs:
+      - "Resolved target identifier"
+      - "Disease association context"
+      - "Drug or clinical candidate evidence"
+      - "Tractability or targetability signal"
+    gold_anchors:
+      - "EGFR"
+      - "ENSG00000146648"
+
+  - id: literature-brief-tp53-apoptosis
+    track: literature
+    weight: 8
+    title: "Recent TP53 apoptosis literature brief"
+    objective: "Produce a short, source-backed literature brief."
+    prompt: "Find recent papers on TP53 apoptosis and return at least 3 relevant articles with identifiers and concise topic summaries."
+    expected_outputs:
+      - "At least 3 articles"
+      - "Titles"
+      - "PMID or DOI"
+      - "Relevance to TP53 apoptosis"
+
+  - id: workflow-scout-breast-cancer-tp53
+    track: workflow
+    weight: 12
+    title: "Dataset scouting for TP53 breast cancer RNA-seq"
+    objective: "Find datasets worth downstream analysis."
+    prompt: "Identify candidate expression datasets relevant to TP53 and breast cancer RNA-seq, with accessions and triage metadata."
+    expected_outputs:
+      - "Dataset accession(s)"
+      - "Title or study description"
+      - "Metadata such as assay, sample count, or date"
+      - "A recommendation for next step"
+
+  - id: workflow-prepare-preview-gse315149
+    track: workflow
+    weight: 12
+    title: "Workflow prepare in preview mode"
+    objective: "Plan work for GSE315149 without downloading payloads."
+    prompt: "Show what would happen if preparing a workflow for GSE315149 with TP53, but do not write files or download data."
+    expected_outputs:
+      - "Preview or dry-run semantics"
+      - "Planned steps"
+      - "Expected downloads or annotations"
+      - "No write-side execution"
+    gold_anchors:
+      - "GSE315149"
+
+  - id: recovery-invalid-study-cbioportal
+    track: recovery
+    weight: 10
+    title: "Recover from invalid cBioPortal study"
+    objective: "Test whether the agent can repair a bad study ID."
+    prompt: "You are first given the invalid study id 'bogus_study'. Recover and produce a valid TP53 tumor-cohort result for a real lung adenocarcinoma study."
+    expected_outputs:
+      - "Acknowledges invalid study id"
+      - "Performs a repair step to find valid studies"
+      - "Re-runs the analysis with a valid study"
+      - "Returns a structured final result"
+    gold_anchors:
+      - "bogus_study"
+      - "luad"
+    notes:
+      - "This is the cleanest test of agent-actionable error recovery."
+
+adjudication:
+  repeats_per_arm: 3
+  report_separately:
+    - retrieval
+    - cohort
+    - aggregation
+    - workflow
+    - recovery

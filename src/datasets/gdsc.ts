@@ -209,6 +209,10 @@ function readMeta(path: string): GdscDownloadMeta | null {
   }
 }
 
+export function getGdscDownloadMeta(): GdscDownloadMeta | null {
+  return readMeta(gdscPaths().meta);
+}
+
 function writeJsonAtomic(path: string, data: unknown): void {
   const tmp = `${path}.tmp-${process.pid}`;
   writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n', 'utf-8');

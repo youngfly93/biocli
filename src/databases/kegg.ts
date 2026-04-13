@@ -10,13 +10,11 @@
 
 import { getRateLimiterForDatabase } from '../rate-limiter.js';
 import { ApiError } from '../errors.js';
-import { sleep } from '../utils.js';
+import { buildRetryableApiError, buildRetryableRateLimitError, executeHttpRequestWithRetry } from '../retry-policy.js';
 import type { HttpContext, FetchOptions } from '../types.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
 
 const BASE_URL = 'https://rest.kegg.jp';
-const MAX_RETRIES = 2;
-const BASE_RETRY_DELAY_MS = 500;
 
 /** Build a KEGG API URL. */
 export function buildKeggUrl(path: string): string {
@@ -68,49 +66,31 @@ async function keggFetch(url: string, opts?: FetchOptions): Promise<Response> {
     await limiter.acquire();
   }
 
-  let lastError: Error | undefined;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetch(url, {
+  return executeHttpRequestWithRetry({
+    backendId: 'kegg',
+    execute: () => fetch(url, {
         method: opts?.method ?? 'GET',
         headers: opts?.headers,
         body: opts?.body,
-      });
-
-      if (response.status === 403 || response.status === 429) {
-        if (attempt < MAX_RETRIES) {
-          await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-          continue;
-        }
-        throw new ApiError('KEGG API rate limit exceeded. Try again shortly.', 'Check KEGG API at https://rest.kegg.jp');
-      }
-
+      }),
+    onRetryableStatusExhausted: (_status, attempts) => buildRetryableRateLimitError(
+      `KEGG API rate limit exceeded after ${attempts} attempts`,
+      'Check KEGG API at https://rest.kegg.jp',
+    ),
+    onNonRetryableStatus: (response) => {
       if (response.status === 404) {
-        throw new ApiError('KEGG entry not found', 'Check the KEGG ID is valid at https://www.kegg.jp');
+        return new ApiError('KEGG entry not found', 'Check the KEGG ID is valid at https://www.kegg.jp');
       }
-
-      if (!response.ok) {
-        throw new ApiError(
-          `KEGG API returned HTTP ${response.status}: ${response.statusText}`,
-          'Check KEGG API at https://rest.kegg.jp',
-        );
-      }
-
-      return response;
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      lastError = err instanceof Error ? err : new Error(String(err));
-      if (attempt < MAX_RETRIES) {
-        await sleep(BASE_RETRY_DELAY_MS * Math.pow(2, attempt));
-        continue;
-      }
-    }
-  }
-
-  throw new ApiError(
-    `KEGG request failed after ${MAX_RETRIES + 1} attempts: ${lastError?.message ?? 'unknown error'}`,
-    'Check KEGG API at https://rest.kegg.jp',
-  );
+      return new ApiError(
+        `KEGG API returned HTTP ${response.status}: ${response.statusText}`,
+        'Check KEGG API at https://rest.kegg.jp',
+      );
+    },
+    onNetworkErrorExhausted: (error, attempts) => buildRetryableApiError(
+      `KEGG request failed after ${attempts} attempts: ${error.message}`,
+      'Check KEGG API at https://rest.kegg.jp',
+    ),
+  });
 }
 
 /** Create a KEGG HttpContext. */
