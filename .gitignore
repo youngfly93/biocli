@@ -30,3 +30,4 @@ benchmarks/v2/scripts/*
 .tmp-home/
 .tmp-tmp/
 benchmarks/agent-comparison/
+coverage/

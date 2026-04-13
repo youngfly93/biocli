@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-04-14
+
+### Added
+
+- **Batch pipeline infrastructure** — unified batch runner with bounded concurrency,
+  structured failure model, output directory contract (results.jsonl, failures.jsonl,
+  summary.json, summary.csv, manifest.json, methods.md), resume & checkpointing,
+  and cache-aware execution (skip-cached / force-refresh)
+- **Unified HTTP retry policy** — `retry-policy.ts` with per-backend strategy overrides;
+  all 7 HTTP backends (NCBI, UniProt, KEGG, STRING, Enrichr, Open Targets, cBioPortal)
+  refactored to use `executeHttpRequestWithRetry()`
+- **Hero command batch adoption** — `gene-profile`, `drug-target`, and `tumor-gene-dossier`
+  support batch input via `--input-file`, `--concurrency`, `--resume`, `--outdir`
+- **Co-mutations context annotation** — TMB indicator genes (TTN, MUC16, etc.) distinguished
+  from known cancer drivers (KRAS, KEAP1, etc.) via `context.tag` field
+- **Drug-target clinical enrichment** — Open Targets GraphQL now returns `description` and
+  `approvedIndications` for each candidate drug
+- **Agent A/B benchmark** — 8-task evaluation framework comparing biocli-assisted vs
+  web-only agent performance (`benchmarks/agent-ab/`)
+- **Pipeline benchmark** — batch execution harness for throughput, resume, and cache testing
+  (`benchmarks/pipeline/`)
+- **Test coverage expansion** — 91 test files, 466 tests; new coverage for cli.ts,
+  pipeline engine, validate, verify, workflow-annotate, workflow-profile, completion
+
+### Changed
+
+- Co-mutations uses batched gene-level queries (CANCER_DRIVER_GENE_IDS) instead of
+  full-cohort scan — **25x speedup** on TCGA LUAD cohorts
+
+## [0.5.0] - 2026-04-12
+
+### Added
+
+- **cBioPortal backend** — 5 commands: studies, profiles, mutations, frequency, co-mutations
+- **Open Targets backend** — target search, tractability, disease evidence, drug candidates (GraphQL)
+- **GDSC backend** — drug sensitivity index (local reference dataset)
+- **New aggregate commands** — drug-target, tumor-gene-dossier, compare-genes
+- **Catalog metadata layer** — per-command JSON Schema, agent-facing examples (17 commands),
+  workflow catalog (6 pipelines), readOnly/sideEffects/artifacts on all 65 commands,
+  producedBy cross-command links, whenToUse routing hints
+- **Progress reporting** — AsyncLocalStorage-based progress for slow aggregate commands
+- **MCP companion package** — split into `@yangfei_93sky/biocli-mcp`
+- **Methods command** — generate publication-ready summaries from result JSON
+- **Provenance schema** — BiocliResult enhanced with completeness, provenance, biocliVersion
+- **Conda packaging scaffold**
+
+### Fixed
+
+- Manifest modulePath attribution (import side-effect bug)
+- defaultFormat / requiredEnv not serialized in manifest
+- Batch mode incorrectly splitting comma-separated gene lists (enrichr, string commands)
+- Ensembl lookup/xrefs now accept Ensembl IDs (ENSG*)
+- Error hints changed from NCBI-hardcoded to agent-actionable per-backend guidance
+- AppleDouble cleanup in build pipeline
+- validate skips hidden files
+
 ## [0.4.0] - 2026-04-08
 
 The first public-facing release. Three things ship together:
