@@ -11,7 +11,7 @@
 import { cli, Strategy } from '../../registry.js';
 import { CliError, EmptyResultError } from '../../errors.js';
 import { parseBatchInput } from '../../batch.js';
-import { wrapResult, type BiocliCompleteness } from '../../types.js';
+import { deriveBiocliCompleteness, wrapResult, type BiocliCompleteness } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { reportProgress } from '../../progress.js';
 import { fetchStudy, type CbioPortalStudy } from '../../databases/cbioportal.js';
@@ -342,10 +342,6 @@ function buildDrugTargetCommandSnippet(
   return parts.join(' ');
 }
 
-function deriveAgentCompleteness(warnings: string[]): BiocliCompleteness {
-  return warnings.length === 0 ? 'complete' : 'partial';
-}
-
 function buildDrugTargetTumorContext(
   tumorSummary: TumorSummary | undefined,
 ): DrugTargetAgentSummaryTumorContext | null {
@@ -473,7 +469,10 @@ function buildDrugTargetAgentSummary(args: {
     tumorContext,
     topSensitivitySignals,
     warnings: [...args.warnings],
-    completeness: deriveAgentCompleteness(args.warnings),
+    completeness: deriveBiocliCompleteness(
+      ['Open Targets', ...(args.tumorSummary ? ['cBioPortal'] : [])],
+      args.warnings,
+    ),
     recommendedNextStep: buildDrugTargetRecommendedNextStep(
       args.gene,
       args.diseaseFilter,

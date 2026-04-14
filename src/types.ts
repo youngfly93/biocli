@@ -197,7 +197,7 @@ export function buildBiocliProvenance(opts: {
   };
 }
 
-function deriveCompleteness(
+export function deriveBiocliCompleteness(
   sources: string[],
   warnings: string[],
   override?: BiocliCompleteness,
@@ -267,7 +267,7 @@ export function wrapResult<T>(
     queriedAt,
     organism: opts.organism,
     query: opts.query,
-    completeness: deriveCompleteness(sources, warnings, opts.completeness),
+    completeness: deriveBiocliCompleteness(sources, warnings, opts.completeness),
     provenance: buildBiocliProvenance({
       queriedAt,
       ids,

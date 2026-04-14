@@ -1,7 +1,7 @@
 import { cli, Strategy } from '../../registry.js';
 import { CliError, EmptyResultError } from '../../errors.js';
 import { parseBatchInput } from '../../batch.js';
-import { wrapResult, type BiocliCompleteness, type BiocliProvenanceOverride } from '../../types.js';
+import { deriveBiocliCompleteness, wrapResult, type BiocliCompleteness, type BiocliProvenanceOverride } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { reportProgress } from '../../progress.js';
 import {
@@ -182,6 +182,7 @@ function buildTumorGeneDossierTopFinding(gene: string, tumor: TumorSummary): str
 function buildTumorGeneDossierAgentSummary(
   gene: string,
   tumor: TumorSummary,
+  sources: string[],
   warnings: string[],
 ): TumorGeneDossierAgentSummary {
   const topCoMutations = tumor.coMutations.slice(0, 3).map(item => ({
@@ -211,7 +212,7 @@ function buildTumorGeneDossierAgentSummary(
       sampleListId: tumor.sampleListId,
     },
     warnings: [...warnings],
-    completeness: warnings.length === 0 ? 'complete' : 'partial',
+    completeness: deriveBiocliCompleteness(sources, warnings),
     recommendedNextStep: {
       type: 'inspect-cohort-context',
       command: buildTumorGeneDossierCommandSnippet(gene, tumor.studyId),
@@ -539,9 +540,10 @@ async function buildTumorGeneDossierResult(args: TumorGeneDossierCommandArgs) {
   ]);
 
   const allWarnings = [...geneDossier.warnings, ...tumor.warnings];
+  const allSources = [...geneDossier.sources, ...tumor.sources];
   const data: TumorGeneDossierData = {
     ...geneDossier.data,
-    agentSummary: buildTumorGeneDossierAgentSummary(gene, tumor.summary, allWarnings),
+    agentSummary: buildTumorGeneDossierAgentSummary(gene, tumor.summary, allSources, allWarnings),
     tumor: tumor.summary,
   };
 
@@ -550,7 +552,7 @@ async function buildTumorGeneDossierResult(args: TumorGeneDossierCommandArgs) {
       ...geneDossier.ids,
       ...tumor.ids,
     },
-    sources: [...geneDossier.sources, ...tumor.sources],
+    sources: allSources,
     warnings: allWarnings,
     organism: geneDossier.organism,
     query: `${gene.toUpperCase()} @ ${studyId}`,

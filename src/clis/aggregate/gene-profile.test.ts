@@ -182,6 +182,26 @@ describe('aggregate/gene-profile', () => {
     expect(result.data.agentSummary.recommendedNextStep.rationale).toContain('pathway');
   });
 
+  it('keeps agentSummary completeness aligned with the top-level envelope when all sources fail', async () => {
+    createHttpContextForDatabaseMock.mockImplementation((databaseId: string) => ({
+      databaseId,
+      fetch: unexpected(`${databaseId}.fetch`),
+      fetchText: async () => { throw new Error('fetch failed'); },
+      fetchXml: unexpected(`${databaseId}.fetchXml`),
+      fetchJson: async () => { throw new Error('fetch failed'); },
+    }));
+
+    const cmd = getRegistry().get('aggregate/gene-profile');
+    const result = await cmd!.func!({} as HttpContext, {
+      genes: 'TP53',
+      organism: 'human',
+    }) as Record<string, any>;
+
+    expect(result.completeness).toBe('degraded');
+    expect(result.data.agentSummary.completeness).toBe('degraded');
+    expect(result.sources).toEqual([]);
+  });
+
   it('writes batch artifacts when outdir is provided', async () => {
     const cmd = getRegistry().get('aggregate/gene-profile');
     const outdir = mkdtempSync(join(tmpdir(), 'biocli-gene-profile-batch-'));

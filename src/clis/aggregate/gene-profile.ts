@@ -16,7 +16,7 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
-import { wrapResult, type BiocliCompleteness } from '../../types.js';
+import { deriveBiocliCompleteness, wrapResult, type BiocliCompleteness } from '../../types.js';
 import { parseBatchInput } from '../../batch.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { buildEutilsUrl } from '../../databases/ncbi.js';
@@ -130,6 +130,7 @@ function buildGeneProfileAgentSummary(
   pathways: Array<{ id: string; name: string; source: string }>,
   interactions: Array<{ partner: string; score: number }>,
   diseases: Array<{ id: string; name: string; source: string }>,
+  sources: string[],
   warnings: string[],
 ): GeneProfileAgentSummary {
   const topPathways = pathways.slice(0, 3);
@@ -141,7 +142,7 @@ function buildGeneProfileAgentSummary(
     topInteractionPartners,
     topDiseaseLinks,
     warnings: [...warnings],
-    completeness: warnings.length === 0 ? 'complete' : 'partial',
+    completeness: deriveBiocliCompleteness(sources, warnings),
     recommendedNextStep: {
       type: 'inspect-profile',
       command: buildGeneProfileCommandSnippet(symbol, organismName),
@@ -444,6 +445,7 @@ async function buildGeneProfile(
       (keggData?.pathways ?? []).map(p => ({ ...p, source: 'KEGG' })),
       interactions,
       (keggData?.diseases ?? []).map(d => ({ ...d, source: 'KEGG' })),
+      meta.sources,
       meta.errors,
     ),
   };

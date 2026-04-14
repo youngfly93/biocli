@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildBiocliProvenance, wrapResult } from './types.js';
+import { buildBiocliProvenance, deriveBiocliCompleteness, wrapResult } from './types.js';
 import { getVersion } from './version.js';
 
 describe('types', () => {
@@ -96,5 +96,11 @@ describe('types', () => {
         },
       ],
     });
+  });
+
+  it('deriveBiocliCompleteness marks warning-only no-source results as degraded', () => {
+    expect(deriveBiocliCompleteness([], ['fetch failed'])).toBe('degraded');
+    expect(deriveBiocliCompleteness(['NCBI Gene'], ['fetch failed'])).toBe('partial');
+    expect(deriveBiocliCompleteness(['NCBI Gene'], [])).toBe('complete');
   });
 });
