@@ -15,8 +15,11 @@ import { createHash } from 'node:crypto';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const CACHE_DIR = join(homedir(), '.biocli', 'cache');
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function getCacheDir(): string {
+  return join(homedir(), '.biocli', 'cache');
+}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +51,7 @@ function cacheHash(key: string): string {
 
 /** Build the cache file path for a given database, command, and args. */
 function cachePath(database: string, command: string, argsKey: string): string {
-  const dir = join(CACHE_DIR, database, command);
+  const dir = join(getCacheDir(), database, command);
   return join(dir, `${cacheHash(argsKey)}.json`);
 }
 
@@ -98,7 +101,7 @@ export function getCached(database: string, command: string, argsKey: string, tt
 /** Store a result in the cache. */
 export function setCached(database: string, command: string, argsKey: string, data: unknown, ttlMs: number = DEFAULT_TTL_MS): void {
   const path = cachePath(database, command, argsKey);
-  const dir = join(CACHE_DIR, database, command);
+  const dir = join(getCacheDir(), database, command);
 
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
@@ -126,7 +129,8 @@ export function getStats(): CacheStats {
     newestEntry: null,
   };
 
-  if (!existsSync(CACHE_DIR)) return stats;
+  const cacheDir = getCacheDir();
+  if (!existsSync(cacheDir)) return stats;
 
   let oldestTime = Infinity;
   let newestTime = 0;
@@ -156,15 +160,16 @@ export function getStats(): CacheStats {
     }
   }
 
-  walkDir(CACHE_DIR);
+  walkDir(cacheDir);
   return stats;
 }
 
 /** Clear all cache entries. Returns number of entries deleted. */
 export function clearCache(): number {
-  if (!existsSync(CACHE_DIR)) return 0;
+  const cacheDir = getCacheDir();
+  if (!existsSync(cacheDir)) return 0;
   const stats = getStats();
-  rmSync(CACHE_DIR, { recursive: true, force: true });
+  rmSync(cacheDir, { recursive: true, force: true });
   return stats.totalEntries;
 }
 

@@ -48,11 +48,12 @@ All of the following should be true before publishing.
 ### Product and Docs
 
 - [ ] `package.json` version is updated.
-- [ ] `README.md` reflects the current command count, workflow count, and benchmark summary.
+- [ ] `README.md` reflects the current hero workflows, batch-first examples, and benchmark summary.
 - [ ] benchmark claims in `README.md` match files in `benchmarks/results/<date>/`.
 - [ ] `benchmarks/tasks.yaml` uses pinned competitor versions, not `latest`.
 - [ ] no duplicate or stale sections remain in `README.md`.
-- [ ] release notes summary is drafted.
+- [ ] release notes summary is drafted using [`docs/release-template.md`](docs/release-template.md).
+- [ ] README and release notes lead with task entrypoints, not command count.
 
 ### Repo Hygiene
 
@@ -218,6 +219,12 @@ git push origin --tags
 ### 7. Create GitHub Release
 
 Create a GitHub release for the tag and paste the release notes summary.
+
+Use [`docs/release-template.md`](docs/release-template.md) so the public release story stays aligned with:
+
+- batch gene scanning
+- tumor cohort briefing
+- target discovery
 
 Minimum release notes should include:
 - release version

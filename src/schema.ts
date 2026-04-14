@@ -277,6 +277,39 @@ const geneProfileDataSchema = objectSchema({
     name: { type: 'string' },
     source: { type: 'string' },
   }, ['id', 'name', 'source'])),
+  agentSummary: objectSchema({
+    topFinding: { type: 'string' },
+    topPathways: arraySchema(objectSchema({
+      id: { type: 'string' },
+      name: { type: 'string' },
+      source: { type: 'string' },
+    }, ['id', 'name', 'source'])),
+    topInteractionPartners: arraySchema(objectSchema({
+      partner: { type: 'string' },
+      score: { type: 'number' },
+    }, ['partner', 'score'])),
+    topDiseaseLinks: arraySchema(objectSchema({
+      id: { type: 'string' },
+      name: { type: 'string' },
+      source: { type: 'string' },
+    }, ['id', 'name', 'source'])),
+    warnings: arraySchema({ type: 'string' }),
+    completeness: stringEnum(['complete', 'partial', 'degraded']),
+    recommendedNextStep: objectSchema({
+      type: { type: 'string' },
+      command: { type: 'string' },
+      focus: { type: 'string' },
+      rationale: { type: 'string' },
+    }, ['type', 'rationale']),
+  }, [
+    'topFinding',
+    'topPathways',
+    'topInteractionPartners',
+    'topDiseaseLinks',
+    'warnings',
+    'completeness',
+    'recommendedNextStep',
+  ]),
 }, [
   'symbol',
   'name',
@@ -289,6 +322,7 @@ const geneProfileDataSchema = objectSchema({
   'goTerms',
   'interactions',
   'diseases',
+  'agentSummary',
 ]);
 
 const recentLiteratureSchema = objectSchema({
@@ -418,9 +452,52 @@ const tumorSummarySchema = objectSchema({
 
 const tumorGeneDossierDataSchema = objectSchema({
   ...(geneDossierDataSchema.properties as Record<string, JsonSchema>),
+  agentSummary: objectSchema({
+    topFinding: { type: 'string' },
+    prevalence: objectSchema({
+      studyId: { type: 'string' },
+      mutationFrequencyPct: { type: 'number' },
+      alteredSamples: { type: 'number' },
+      totalSamples: { type: 'number' },
+    }, ['studyId', 'mutationFrequencyPct', 'alteredSamples', 'totalSamples']),
+    topCoMutations: arraySchema(objectSchema({
+      partnerGene: { type: 'string' },
+      coMutatedSamples: { type: 'number' },
+      coMutationRateInAnchorPct: { type: 'number' },
+      contextTag: stringEnum(['tmb_indicator', 'known_driver', 'other']),
+    }, ['partnerGene', 'coMutatedSamples', 'coMutationRateInAnchorPct'])),
+    exemplarVariants: arraySchema(objectSchema({
+      proteinChange: { type: 'string' },
+      mutationType: { type: 'string' },
+      sampleCount: { type: 'number' },
+    }, ['proteinChange', 'mutationType', 'sampleCount'])),
+    cohortContext: objectSchema({
+      studyId: { type: 'string' },
+      molecularProfileId: { type: 'string' },
+      sampleListId: { type: 'string' },
+    }, ['studyId', 'molecularProfileId', 'sampleListId']),
+    warnings: arraySchema({ type: 'string' }),
+    completeness: stringEnum(['complete', 'partial', 'degraded']),
+    recommendedNextStep: objectSchema({
+      type: { type: 'string' },
+      command: { type: 'string' },
+      focus: { type: 'string' },
+      rationale: { type: 'string' },
+    }, ['type', 'rationale']),
+  }, [
+    'topFinding',
+    'prevalence',
+    'topCoMutations',
+    'exemplarVariants',
+    'cohortContext',
+    'warnings',
+    'completeness',
+    'recommendedNextStep',
+  ]),
   tumor: tumorSummarySchema,
 }, [
   ...((geneDossierDataSchema.required as string[]) ?? []),
+  'agentSummary',
   'tumor',
 ]);
 
@@ -450,6 +527,62 @@ const drugTargetDataSchema = objectSchema({
     'clinicalCandidates',
     'sensitivitySupportedCandidates',
   ]),
+  agentSummary: objectSchema({
+    topFinding: { type: 'string' },
+    topCandidates: arraySchema(objectSchema({
+      drugName: { type: 'string' },
+      chemblId: { type: 'string' },
+      maxClinicalStage: { type: 'string' },
+      maxClinicalStageLabel: { type: 'string' },
+      score: { type: 'number' },
+      reasons: arraySchema({ type: 'string' }),
+    }, [
+      'drugName',
+      'chemblId',
+      'maxClinicalStage',
+      'maxClinicalStageLabel',
+      'score',
+      'reasons',
+    ])),
+    matchedDisease: nullable({ type: 'string' }),
+    tumorContext: nullable(objectSchema({
+      studyId: { type: 'string' },
+      mutationFrequencyPct: { type: 'number' },
+      alteredSamples: { type: 'number' },
+      totalSamples: { type: 'number' },
+      topCoMutations: arraySchema({ type: 'string' }),
+    }, [
+      'studyId',
+      'mutationFrequencyPct',
+      'alteredSamples',
+      'totalSamples',
+      'topCoMutations',
+    ])),
+    topSensitivitySignals: arraySchema(objectSchema({
+      drugName: { type: 'string' },
+      dataset: stringEnum(['GDSC1', 'GDSC2']),
+      tissue: { type: 'string' },
+      cellLineName: { type: 'string' },
+      zScore: { type: 'number' },
+    }, ['drugName', 'dataset', 'tissue', 'cellLineName', 'zScore'])),
+    warnings: arraySchema({ type: 'string' }),
+    completeness: stringEnum(['complete', 'partial', 'degraded']),
+    recommendedNextStep: objectSchema({
+      type: { type: 'string' },
+      command: { type: 'string' },
+      focus: { type: 'string' },
+      rationale: { type: 'string' },
+    }, ['type', 'rationale']),
+  }, [
+    'topFinding',
+    'topCandidates',
+    'matchedDisease',
+    'tumorContext',
+    'topSensitivitySignals',
+    'warnings',
+    'completeness',
+    'recommendedNextStep',
+  ]),
   tractability: objectSchema({
     positiveFeatureCount: { type: 'number' },
     enabledModalities: arraySchema(objectSchema({
@@ -470,6 +603,8 @@ const drugTargetDataSchema = objectSchema({
     maxClinicalStageLabel: { type: 'string' },
     drugType: { type: 'string' },
     actionTypes: arraySchema({ type: 'string' }),
+    description: { type: 'string' },
+    approvedIndications: arraySchema({ type: 'string' }),
     diseaseContexts: arraySchema(objectSchema({
       id: { type: 'string' },
       name: { type: 'string' },
@@ -529,13 +664,15 @@ const drugTargetDataSchema = objectSchema({
     'maxClinicalStageLabel',
     'drugType',
     'actionTypes',
+    'description',
+    'approvedIndications',
     'diseaseContexts',
     'evidenceSourceCounts',
     'clinicalReports',
     'ranking',
   ])),
   tumorStudy: tumorSummarySchema,
-}, ['target', 'summary', 'tractability', 'associatedDiseases', 'candidates']);
+}, ['target', 'summary', 'agentSummary', 'tractability', 'associatedDiseases', 'candidates']);
 
 const workflowScoutDataSchema = objectSchema({
   candidates: arraySchema(objectSchema({

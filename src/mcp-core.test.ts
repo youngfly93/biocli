@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getMcpToolName, normalizeMcpResult, parseMcpScope } from './mcp-core.js';
+import { buildMcpToolDescription, getMcpToolName, normalizeMcpResult, parseMcpScope } from './mcp-core.js';
 import type { CliCommand } from './registry.js';
 import { withMeta, wrapResult } from './types.js';
 
@@ -22,6 +22,34 @@ describe('mcp-core', () => {
   it('normalizes tool names from command ids', () => {
     const cmd = makeCommand({ site: 'aggregate', name: 'gene-dossier' });
     expect(getMcpToolName(cmd)).toBe('aggregate_gene_dossier');
+  });
+
+  it('uses summary-first descriptions for hero workflows with agentSummary', () => {
+    const cmd = makeCommand({
+      site: 'aggregate',
+      name: 'drug-target',
+      description: 'Target tractability and drug candidate summary from Open Targets',
+      database: 'aggregate',
+      args: [{ name: 'gene', required: true, help: 'Gene symbol' }] as CliCommand['args'],
+    });
+    const description = buildMcpToolDescription(cmd);
+    expect(description).toContain('Use data.agentSummary first');
+    expect(description).toContain('full nested report remains available');
+    expect(description).toContain('CLI equivalent: biocli aggregate drug-target');
+  });
+
+  it('uses summary-first descriptions for gene-profile now that it has agentSummary', () => {
+    const cmd = makeCommand({
+      site: 'aggregate',
+      name: 'gene-profile',
+      description: 'Complete gene profile from NCBI + UniProt + KEGG + STRING',
+      database: 'aggregate',
+      args: [{ name: 'genes', required: true, help: 'Gene symbol(s)' }] as CliCommand['args'],
+    });
+    const description = buildMcpToolDescription(cmd);
+    expect(description).toContain('Use data.agentSummary first');
+    expect(description).toContain('top pathways');
+    expect(description).toContain('top interaction partners');
   });
 
   it('normalizes ResultWithMeta payloads', () => {

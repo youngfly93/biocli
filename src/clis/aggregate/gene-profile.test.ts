@@ -166,6 +166,22 @@ describe('aggregate/gene-profile', () => {
     expect(rows[1].query).toBe('BRCA1');
   });
 
+  it('returns an agentSummary for single-gene execution', async () => {
+    const cmd = getRegistry().get('aggregate/gene-profile');
+    const result = await cmd!.func!({} as HttpContext, {
+      genes: 'TP53',
+      organism: 'human',
+    }) as Record<string, any>;
+
+    expect(result.data.agentSummary.topFinding).toContain('TP53');
+    expect(result.data.agentSummary.topPathways[0]).toMatchObject({
+      id: 'hsa04115',
+      name: 'p53 signaling pathway',
+      source: 'KEGG',
+    });
+    expect(result.data.agentSummary.recommendedNextStep.rationale).toContain('pathway');
+  });
+
   it('writes batch artifacts when outdir is provided', async () => {
     const cmd = getRegistry().get('aggregate/gene-profile');
     const outdir = mkdtempSync(join(tmpdir(), 'biocli-gene-profile-batch-'));

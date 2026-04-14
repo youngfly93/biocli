@@ -59,6 +59,30 @@ describe('flattenBatchSuccesses', () => {
             clinicalCandidates: 2,
             sensitivitySupportedCandidates: 2,
           },
+          agentSummary: {
+            topFinding: 'EGFR has approval-stage candidates for lung cancer led by AFATINIB.',
+            matchedDisease: 'lung',
+            topCandidates: [{
+              drugName: 'AFATINIB',
+              maxClinicalStageLabel: 'Approved',
+              score: 12.4,
+              reasons: ['disease match', 'approval-stage evidence'],
+            }],
+            topSensitivitySignals: [{
+              drugName: 'AFATINIB',
+              dataset: 'GDSC2',
+              tissue: 'LUAD',
+              cellLineName: 'HCC-827',
+              zScore: -2.8,
+            }],
+            tumorContext: {
+              alteredSamples: 20,
+              totalSamples: 100,
+            },
+            recommendedNextStep: {
+              type: 'inspect-candidate',
+            },
+          },
           candidates: [{
             drugName: 'AFATINIB',
             maxClinicalStage: 'APPROVAL',
@@ -72,8 +96,14 @@ describe('flattenBatchSuccesses', () => {
 
     expect(table).not.toBeNull();
     expect(table!.headers).toContain('topDrugName');
+    expect(table!.headers).toContain('topFinding');
+    expect(table!.headers).toContain('topSummaryReasons');
+    expect(table!.headers).toContain('topSensitivityDrugName');
     expect(table!.rows[0].targetSymbol).toBe('EGFR');
     expect(table!.rows[0].topDrugName).toBe('AFATINIB');
+    expect(table!.rows[0].matchedDisease).toBe('lung');
+    expect(table!.rows[0].topSummaryReasons).toBe('disease match;approval-stage evidence');
+    expect(table!.rows[0].topSensitivityDrugName).toBe('AFATINIB');
     expect(table!.rows[0].tumorStudyId).toBe('luad');
   });
 
@@ -95,6 +125,21 @@ describe('flattenBatchSuccesses', () => {
           symbol: 'TP53',
           name: 'tumor protein p53',
           literature: [{ pmid: '36766853' }],
+          agentSummary: {
+            topFinding: 'TP53 is altered in 30% of the cohort and co-occurs with EGFR.',
+            topCoMutations: [{
+              partnerGene: 'EGFR',
+              coMutationRateInAnchorPct: 100,
+              contextTag: 'known_driver',
+            }],
+            exemplarVariants: [{
+              proteinChange: 'R248Q',
+              mutationType: 'Missense_Mutation',
+            }],
+            recommendedNextStep: {
+              type: 'inspect-cohort-context',
+            },
+          },
           tumor: {
             studyId: 'study',
             alterationStatus: 'altered',
@@ -114,8 +159,13 @@ describe('flattenBatchSuccesses', () => {
 
     expect(table).not.toBeNull();
     expect(table!.headers).toContain('studyId');
+    expect(table!.headers).toContain('topFinding');
+    expect(table!.headers).toContain('topCoMutationContextTag');
+    expect(table!.headers).toContain('topVariantProteinChange');
     expect(table!.rows[0].symbol).toBe('TP53');
     expect(table!.rows[0].studyId).toBe('study');
     expect(table!.rows[0].topCoMutationGene).toBe('EGFR');
+    expect(table!.rows[0].topCoMutationContextTag).toBe('known_driver');
+    expect(table!.rows[0].topVariantProteinChange).toBe('R248Q');
   });
 });

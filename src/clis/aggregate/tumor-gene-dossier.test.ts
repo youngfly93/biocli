@@ -384,6 +384,46 @@ describe('aggregate/tumor-gene-dossier adapter', () => {
       data: expect.objectContaining({
         symbol: 'TP53',
         function: 'Acts as a tumor suppressor.',
+        agentSummary: expect.objectContaining({
+          topFinding: expect.stringContaining('TP53'),
+          prevalence: {
+            studyId: 'study',
+            mutationFrequencyPct: 30,
+            alteredSamples: 3,
+            totalSamples: 10,
+          },
+          topCoMutations: [
+            expect.objectContaining({
+              partnerGene: 'EGFR',
+              coMutatedSamples: 3,
+              coMutationRateInAnchorPct: 100,
+              contextTag: 'known_driver',
+            }),
+            expect.objectContaining({
+              partnerGene: 'BRCA1',
+              coMutatedSamples: 2,
+              coMutationRateInAnchorPct: 66.67,
+            }),
+          ],
+          exemplarVariants: expect.arrayContaining([
+            expect.objectContaining({
+              proteinChange: 'R248Q',
+              mutationType: 'Missense_Mutation',
+              sampleCount: 1,
+            }),
+          ]),
+          cohortContext: {
+            studyId: 'study',
+            molecularProfileId: 'study_mutations',
+            sampleListId: 'study_sequenced',
+          },
+          warnings: [],
+          completeness: 'complete',
+          recommendedNextStep: expect.objectContaining({
+            type: 'inspect-cohort-context',
+            command: 'biocli aggregate tumor-gene-dossier TP53 --study study -f json',
+          }),
+        }),
         tumor: expect.objectContaining({
           studyId: 'study',
           alterationStatus: 'altered',

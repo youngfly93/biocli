@@ -24,10 +24,25 @@ describe('command JSON schemas', () => {
 
   it('returns a precise tumor-gene-dossier schema with nested tumor co-mutations', () => {
     const schema = getJsonSchemaForTarget('aggregate/tumor-gene-dossier') as Record<string, any>;
-    const tumor = schema.properties.data.properties.tumor;
+    const data = schema.properties.data.properties;
+    const tumor = data.tumor;
     expect(tumor.properties.studyId.type).toBe('string');
     expect(tumor.properties.coMutations.items.properties.partnerGene.type).toBe('string');
     expect(tumor.properties.exemplarVariants.items.properties.sampleCount.type).toBe('number');
+    expect(data.agentSummary.properties.topFinding.type).toBe('string');
+    expect(data.agentSummary.properties.prevalence.properties.mutationFrequencyPct.type).toBe('number');
+    expect(data.agentSummary.properties.topCoMutations.items.properties.partnerGene.type).toBe('string');
+    expect(data.agentSummary.properties.recommendedNextStep.properties.rationale.type).toBe('string');
+  });
+
+  it('returns a precise drug-target schema with agentSummary and enriched candidate fields', () => {
+    const schema = getJsonSchemaForTarget('aggregate/drug-target') as Record<string, any>;
+    const data = schema.properties.data.properties;
+    expect(data.agentSummary.properties.topFinding.type).toBe('string');
+    expect(data.agentSummary.properties.topCandidates.items.properties.drugName.type).toBe('string');
+    expect(data.agentSummary.properties.recommendedNextStep.properties.rationale.type).toBe('string');
+    expect(data.candidates.items.properties.description.type).toBe('string');
+    expect(data.candidates.items.properties.approvedIndications.items.type).toBe('string');
   });
 
   it('describes both single and batch outputs for aggregate/gene-profile', () => {
@@ -35,6 +50,9 @@ describe('command JSON schemas', () => {
     expect(Array.isArray(schema.oneOf)).toBe(true);
     expect(schema.oneOf).toHaveLength(2);
     expect(schema.oneOf[0].properties.data.properties.symbol.type).toBe('string');
+    expect(schema.oneOf[0].properties.data.properties.agentSummary.properties.topFinding.type).toBe('string');
+    expect(schema.oneOf[0].properties.data.properties.agentSummary.properties.topPathways.items.properties.name.type).toBe('string');
+    expect(schema.oneOf[0].properties.data.properties.agentSummary.properties.recommendedNextStep.properties.rationale.type).toBe('string');
     expect(schema.oneOf[1].type).toBe('array');
   });
 

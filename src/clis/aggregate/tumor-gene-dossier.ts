@@ -1,7 +1,7 @@
 import { cli, Strategy } from '../../registry.js';
 import { CliError, EmptyResultError } from '../../errors.js';
 import { parseBatchInput } from '../../batch.js';
-import { wrapResult, type BiocliProvenanceOverride } from '../../types.js';
+import { wrapResult, type BiocliCompleteness, type BiocliProvenanceOverride } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { reportProgress } from '../../progress.js';
 import {
@@ -74,6 +74,53 @@ export interface TumorBuildResult {
   provenance: BiocliProvenanceOverride[];
 }
 
+interface TumorGeneDossierAgentSummaryPrevalence {
+  studyId: string;
+  mutationFrequencyPct: number;
+  alteredSamples: number;
+  totalSamples: number;
+}
+
+interface TumorGeneDossierAgentSummaryCoMutation {
+  partnerGene: string;
+  coMutatedSamples: number;
+  coMutationRateInAnchorPct: number;
+  contextTag?: 'tmb_indicator' | 'known_driver' | 'other';
+}
+
+interface TumorGeneDossierAgentSummaryVariant {
+  proteinChange: string;
+  mutationType: string;
+  sampleCount: number;
+}
+
+interface TumorGeneDossierRecommendedNextStep {
+  type: string;
+  command?: string;
+  focus?: string;
+  rationale: string;
+}
+
+interface TumorGeneDossierAgentSummary {
+  topFinding: string;
+  prevalence: TumorGeneDossierAgentSummaryPrevalence;
+  topCoMutations: TumorGeneDossierAgentSummaryCoMutation[];
+  exemplarVariants: TumorGeneDossierAgentSummaryVariant[];
+  cohortContext: {
+    studyId: string;
+    molecularProfileId: string;
+    sampleListId: string;
+  };
+  warnings: string[];
+  completeness: BiocliCompleteness;
+  recommendedNextStep: TumorGeneDossierRecommendedNextStep;
+}
+
+type TumorGeneDossierData = GeneDossierBuildResult['data'] & {
+  agentSummary: TumorGeneDossierAgentSummary;
+  tumor: TumorSummary;
+};
+
 interface TumorGeneDossierCommandArgs {
   gene?: unknown;
   study?: unknown;
@@ -103,6 +150,78 @@ function buildTumorGeneDossierBatchCacheArgs(
     variants: args.variants ?? 5,
     minCoSamples: args['min-co-samples'] ?? 1,
     pageSize: args['page-size'] ?? 500,
+  };
+}
+
+function shellQuote(value: string): string {
+  if (/^[A-Za-z0-9._:/=-]+$/.test(value)) return value;
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function buildTumorGeneDossierCommandSnippet(gene: string, studyId: string): string {
+  return [
+    'biocli',
+    'aggregate',
+    'tumor-gene-dossier',
+    shellQuote(gene),
+    '--study',
+    shellQuote(studyId),
+    '-f',
+    'json',
+  ].join(' ');
+}
+
+function buildTumorGeneDossierTopFinding(gene: string, tumor: TumorSummary): string {
+  const lead = tumor.coMutations[0];
+  if (lead) {
+    return `${gene.toUpperCase()} is altered in ${tumor.mutationFrequencyPct}% of samples in ${tumor.studyId} and co-occurs most strongly with ${lead.partnerGene}.`;
+  }
+  return `${gene.toUpperCase()} is altered in ${tumor.mutationFrequencyPct}% of samples in ${tumor.studyId}.`;
+}
+
+function buildTumorGeneDossierAgentSummary(
+  gene: string,
+  tumor: TumorSummary,
+  warnings: string[],
+): TumorGeneDossierAgentSummary {
+  const topCoMutations = tumor.coMutations.slice(0, 3).map(item => ({
+    partnerGene: item.partnerGene,
+    coMutatedSamples: item.coMutatedSamples,
+    coMutationRateInAnchorPct: item.coMutationRateInAnchorPct,
+    contextTag: item.context?.tag,
+  }));
+  const exemplarVariants = tumor.exemplarVariants.slice(0, 3).map(item => ({
+    proteinChange: item.proteinChange,
+    mutationType: item.mutationType,
+    sampleCount: item.sampleCount,
+  }));
+  return {
+    topFinding: buildTumorGeneDossierTopFinding(gene, tumor),
+    prevalence: {
+      studyId: tumor.studyId,
+      mutationFrequencyPct: tumor.mutationFrequencyPct,
+      alteredSamples: tumor.alteredSamples,
+      totalSamples: tumor.totalSamples,
+    },
+    topCoMutations,
+    exemplarVariants,
+    cohortContext: {
+      studyId: tumor.studyId,
+      molecularProfileId: tumor.molecularProfileId,
+      sampleListId: tumor.sampleListId,
+    },
+    warnings: [...warnings],
+    completeness: warnings.length === 0 ? 'complete' : 'partial',
+    recommendedNextStep: {
+      type: 'inspect-cohort-context',
+      command: buildTumorGeneDossierCommandSnippet(gene, tumor.studyId),
+      focus: topCoMutations.length > 0
+        ? `Review cohort prevalence together with co-mutation partners led by ${topCoMutations[0].partnerGene}.`
+        : 'Review cohort prevalence and exemplar variants for the selected study.',
+      rationale: topCoMutations.length > 0
+        ? `The selected cohort shows ${tumor.mutationFrequencyPct}% alteration prevalence with co-mutation support.`
+        : `The selected cohort shows ${tumor.mutationFrequencyPct}% alteration prevalence for ${gene.toUpperCase()}.`,
+    },
   };
 }
 
@@ -419,16 +538,20 @@ async function buildTumorGeneDossierResult(args: TumorGeneDossierCommandArgs) {
     ),
   ]);
 
-  return wrapResult({
+  const allWarnings = [...geneDossier.warnings, ...tumor.warnings];
+  const data: TumorGeneDossierData = {
     ...geneDossier.data,
+    agentSummary: buildTumorGeneDossierAgentSummary(gene, tumor.summary, allWarnings),
     tumor: tumor.summary,
-  }, {
+  };
+
+  return wrapResult(data, {
     ids: {
       ...geneDossier.ids,
       ...tumor.ids,
     },
     sources: [...geneDossier.sources, ...tumor.sources],
-    warnings: [...geneDossier.warnings, ...tumor.warnings],
+    warnings: allWarnings,
     organism: geneDossier.organism,
     query: `${gene.toUpperCase()} @ ${studyId}`,
     provenance: [...geneDossier.provenance, ...tumor.provenance],
@@ -457,15 +580,15 @@ cli({
   ],
   examples: [
     {
-      goal: 'Summarize TP53 mutation prevalence and co-mutations in a TCGA lung cohort',
-      command: 'biocli aggregate tumor-gene-dossier TP53 --study luad_tcga_pan_can_atlas_2018 -f json',
+      goal: 'Run a batch cohort briefing for a gene list and keep resumable artifacts',
+      command: 'biocli aggregate tumor-gene-dossier --input-file genes.txt --study luad_tcga_pan_can_atlas_2018 --outdir runs/tumor-gene-dossier --resume -f json',
     },
     {
       goal: 'Inspect EGFR in a study with an explicit molecular profile and sample list',
       command: 'biocli aggregate tumor-gene-dossier EGFR --study luad_tcga_pan_can_atlas_2018 --profile luad_tcga_pan_can_atlas_2018_mutations --sample-list luad_tcga_pan_can_atlas_2018_all -f json',
     },
   ],
-  whenToUse: 'Use when you need a tumor-cohort-specific gene briefing that mixes baseline biology with cBioPortal prevalence, variants, and co-mutations.',
+  whenToUse: 'Use when you need a tumor-cohort-specific briefing for a gene list or a single gene that mixes baseline biology with cBioPortal prevalence, variants, and co-mutations.',
   columns: ['symbol', 'studyId', 'alteredSamples', 'mutationFrequencyPct', 'coMutations', 'literature'],
   func: async (_ctx, args) => {
     const batch = (args.__batch ?? {}) as AggregateBatchOptions;

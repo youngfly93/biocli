@@ -42,11 +42,19 @@ function flattenDrugTargetRecord(record: BatchSuccessRecord): Record<string, unk
   if (!isRecord(result) || !isRecord(result.data)) return null;
   const data = result.data;
   const summary = isRecord(data.summary) ? data.summary : {};
+  const agentSummary = isRecord(data.agentSummary) ? data.agentSummary : {};
   const target = isRecord(data.target) ? data.target : {};
   const candidates = Array.isArray(data.candidates) ? data.candidates : [];
   const topCandidate = (candidates[0] && isRecord(candidates[0])) ? candidates[0] : {};
   const ranking = isRecord(topCandidate.ranking) ? topCandidate.ranking : {};
   const tumorStudy = isRecord(data.tumorStudy) ? data.tumorStudy : {};
+  const topSummaryCandidate = Array.isArray(agentSummary.topCandidates) && isRecord(agentSummary.topCandidates[0])
+    ? agentSummary.topCandidates[0]
+    : {};
+  const topSensitivitySignal = Array.isArray(agentSummary.topSensitivitySignals) && isRecord(agentSummary.topSensitivitySignals[0])
+    ? agentSummary.topSensitivitySignals[0]
+    : {};
+  const tumorContext = isRecord(agentSummary.tumorContext) ? agentSummary.tumorContext : {};
   const warnings = Array.isArray(result.warnings) ? result.warnings : [];
   const sources = Array.isArray(result.sources) ? result.sources : [];
 
@@ -63,12 +71,26 @@ function flattenDrugTargetRecord(record: BatchSuccessRecord): Record<string, unk
     approvedDrugs: summary.approvedDrugs ?? 0,
     clinicalCandidates: summary.clinicalCandidates ?? 0,
     sensitivitySupportedCandidates: summary.sensitivitySupportedCandidates ?? 0,
+    topFinding: agentSummary.topFinding ?? '',
+    matchedDisease: agentSummary.matchedDisease ?? summary.diseaseFilter ?? '',
     topDrugName: topCandidate.drugName ?? '',
     topDrugStage: topCandidate.maxClinicalStage ?? '',
     topDrugType: topCandidate.drugType ?? '',
     topDrugScore: ranking.score ?? '',
+    topSummaryDrugName: topSummaryCandidate.drugName ?? '',
+    topSummaryDrugStage: topSummaryCandidate.maxClinicalStageLabel ?? topSummaryCandidate.maxClinicalStage ?? '',
+    topSummaryDrugScore: topSummaryCandidate.score ?? '',
+    topSummaryReasons: Array.isArray(topSummaryCandidate.reasons) ? topSummaryCandidate.reasons.join(';') : '',
+    topSensitivityDrugName: topSensitivitySignal.drugName ?? '',
+    topSensitivityDataset: topSensitivitySignal.dataset ?? '',
+    topSensitivityTissue: topSensitivitySignal.tissue ?? '',
+    topSensitivityCellLine: topSensitivitySignal.cellLineName ?? '',
+    topSensitivityZScore: topSensitivitySignal.zScore ?? '',
     tumorStudyId: tumorStudy.studyId ?? '',
     tumorMutationFrequencyPct: tumorStudy.mutationFrequencyPct ?? '',
+    tumorAlteredSamples: tumorContext.alteredSamples ?? '',
+    tumorTotalSamples: tumorContext.totalSamples ?? '',
+    recommendedNextStepType: isRecord(agentSummary.recommendedNextStep) ? agentSummary.recommendedNextStep.type ?? '' : '',
     completeness: result.completeness,
     warningsCount: warnings.length,
     sources: sources.join(';'),
@@ -82,10 +104,17 @@ function flattenTumorGeneDossierRecord(record: BatchSuccessRecord): Record<strin
   if (!isRecord(result) || !isRecord(result.data)) return null;
   const data = result.data;
   const tumor = isRecord(data.tumor) ? data.tumor : {};
+  const agentSummary = isRecord(data.agentSummary) ? data.agentSummary : {};
   const coMutations = Array.isArray(tumor.coMutations) ? tumor.coMutations : [];
   const exemplarVariants = Array.isArray(tumor.exemplarVariants) ? tumor.exemplarVariants : [];
   const literature = Array.isArray(data.literature) ? data.literature : [];
   const topCoMutation = (coMutations[0] && isRecord(coMutations[0])) ? coMutations[0] : {};
+  const topSummaryCoMutation = Array.isArray(agentSummary.topCoMutations) && isRecord(agentSummary.topCoMutations[0])
+    ? agentSummary.topCoMutations[0]
+    : {};
+  const topSummaryVariant = Array.isArray(agentSummary.exemplarVariants) && isRecord(agentSummary.exemplarVariants[0])
+    ? agentSummary.exemplarVariants[0]
+    : {};
   const warnings = Array.isArray(result.warnings) ? result.warnings : [];
   const sources = Array.isArray(result.sources) ? result.sources : [];
 
@@ -101,10 +130,15 @@ function flattenTumorGeneDossierRecord(record: BatchSuccessRecord): Record<strin
     totalSamples: tumor.totalSamples ?? 0,
     mutationEvents: tumor.mutationEvents ?? 0,
     mutationFrequencyPct: tumor.mutationFrequencyPct ?? 0,
+    topFinding: agentSummary.topFinding ?? '',
     coMutationCount: coMutations.length,
     topCoMutationGene: topCoMutation.partnerGene ?? '',
     topCoMutationRatePct: topCoMutation.coMutationRateInAnchorPct ?? '',
+    topCoMutationContextTag: topSummaryCoMutation.contextTag ?? '',
     exemplarVariantCount: exemplarVariants.length,
+    topVariantProteinChange: topSummaryVariant.proteinChange ?? '',
+    topVariantMutationType: topSummaryVariant.mutationType ?? '',
+    recommendedNextStepType: isRecord(agentSummary.recommendedNextStep) ? agentSummary.recommendedNextStep.type ?? '' : '',
     literatureCount: literature.length,
     completeness: result.completeness,
     warningsCount: warnings.length,
@@ -166,12 +200,26 @@ export function flattenBatchSuccesses(
         'approvedDrugs',
         'clinicalCandidates',
         'sensitivitySupportedCandidates',
+        'topFinding',
+        'matchedDisease',
         'topDrugName',
         'topDrugStage',
         'topDrugType',
         'topDrugScore',
+        'topSummaryDrugName',
+        'topSummaryDrugStage',
+        'topSummaryDrugScore',
+        'topSummaryReasons',
+        'topSensitivityDrugName',
+        'topSensitivityDataset',
+        'topSensitivityTissue',
+        'topSensitivityCellLine',
+        'topSensitivityZScore',
         'tumorStudyId',
         'tumorMutationFrequencyPct',
+        'tumorAlteredSamples',
+        'tumorTotalSamples',
+        'recommendedNextStepType',
         'completeness',
         'warningsCount',
         'sources',
@@ -199,10 +247,15 @@ export function flattenBatchSuccesses(
         'totalSamples',
         'mutationEvents',
         'mutationFrequencyPct',
+        'topFinding',
         'coMutationCount',
         'topCoMutationGene',
         'topCoMutationRatePct',
+        'topCoMutationContextTag',
         'exemplarVariantCount',
+        'topVariantProteinChange',
+        'topVariantMutationType',
+        'recommendedNextStepType',
         'literatureCount',
         'completeness',
         'warningsCount',

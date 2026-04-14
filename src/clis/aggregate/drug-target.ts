@@ -11,7 +11,7 @@
 import { cli, Strategy } from '../../registry.js';
 import { CliError, EmptyResultError } from '../../errors.js';
 import { parseBatchInput } from '../../batch.js';
-import { wrapResult } from '../../types.js';
+import { wrapResult, type BiocliCompleteness } from '../../types.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { reportProgress } from '../../progress.js';
 import { fetchStudy, type CbioPortalStudy } from '../../databases/cbioportal.js';
@@ -121,11 +121,56 @@ interface DrugTargetCandidate {
   maxClinicalStageLabel: string;
   drugType: string;
   actionTypes: string[];
+  description: string;
+  approvedIndications: string[];
   diseaseContexts: DrugTargetDiseaseContext[];
   evidenceSourceCounts: DrugTargetEvidenceSourceCount[];
   clinicalReports: DrugTargetClinicalEvidence[];
   ranking: DrugTargetRanking;
   sensitivity?: DrugTargetSensitivity;
+}
+
+interface DrugTargetAgentSummaryCandidate {
+  drugName: string;
+  chemblId: string;
+  maxClinicalStage: string;
+  maxClinicalStageLabel: string;
+  score: number;
+  reasons: string[];
+}
+
+interface DrugTargetAgentSummarySignal {
+  drugName: string;
+  dataset: 'GDSC1' | 'GDSC2';
+  tissue: string;
+  cellLineName: string;
+  zScore: number;
+}
+
+interface DrugTargetAgentSummaryTumorContext {
+  studyId: string;
+  mutationFrequencyPct: number;
+  alteredSamples: number;
+  totalSamples: number;
+  topCoMutations: string[];
+}
+
+interface DrugTargetRecommendedNextStep {
+  type: string;
+  command?: string;
+  focus?: string;
+  rationale: string;
+}
+
+interface DrugTargetAgentSummary {
+  topFinding: string;
+  topCandidates: DrugTargetAgentSummaryCandidate[];
+  matchedDisease: string | null;
+  tumorContext: DrugTargetAgentSummaryTumorContext | null;
+  topSensitivitySignals: DrugTargetAgentSummarySignal[];
+  warnings: string[];
+  completeness: BiocliCompleteness;
+  recommendedNextStep: DrugTargetRecommendedNextStep;
 }
 
 interface DrugTargetData {
@@ -154,6 +199,7 @@ interface DrugTargetData {
       features: string[];
     }>;
   };
+  agentSummary: DrugTargetAgentSummary;
   associatedDiseases: Array<{
     id: string;
     name: string;
@@ -273,6 +319,170 @@ const GENERIC_STUDY_TERMS = new Set([
 
 function normalizeTerm(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function shellQuote(value: string): string {
+  if (/^[A-Za-z0-9._:/=-]+$/.test(value)) return value;
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function buildDrugTargetCommandSnippet(
+  gene: string,
+  diseaseFilter: string,
+  studyId: string,
+): string {
+  const parts = ['biocli', 'aggregate', 'drug-target', shellQuote(gene)];
+  if (diseaseFilter) {
+    parts.push('--disease', shellQuote(diseaseFilter));
+  }
+  if (studyId) {
+    parts.push('--study', shellQuote(studyId));
+  }
+  parts.push('-f', 'json');
+  return parts.join(' ');
+}
+
+function deriveAgentCompleteness(warnings: string[]): BiocliCompleteness {
+  return warnings.length === 0 ? 'complete' : 'partial';
+}
+
+function buildDrugTargetTumorContext(
+  tumorSummary: TumorSummary | undefined,
+): DrugTargetAgentSummaryTumorContext | null {
+  if (!tumorSummary) return null;
+  return {
+    studyId: tumorSummary.studyId,
+    mutationFrequencyPct: tumorSummary.mutationFrequencyPct,
+    alteredSamples: tumorSummary.alteredSamples,
+    totalSamples: tumorSummary.totalSamples,
+    topCoMutations: tumorSummary.coMutations.slice(0, 3).map(item => item.partnerGene),
+  };
+}
+
+function buildDrugTargetTopSensitivitySignals(
+  candidates: DrugTargetCandidate[],
+): DrugTargetAgentSummarySignal[] {
+  const signals: DrugTargetAgentSummarySignal[] = [];
+  for (const candidate of candidates) {
+    for (const hit of candidate.sensitivity?.strongestHits ?? []) {
+      const zScore = hit.zScore;
+      if (zScore == null || !Number.isFinite(zScore)) continue;
+      signals.push({
+        drugName: candidate.drugName,
+        dataset: hit.dataset,
+        tissue: hit.tissue,
+        cellLineName: hit.cellLineName,
+        zScore,
+      });
+    }
+  }
+  return signals
+    .sort((a, b) =>
+      a.zScore - b.zScore
+      || a.drugName.localeCompare(b.drugName)
+      || a.dataset.localeCompare(b.dataset))
+    .slice(0, 3);
+}
+
+function buildDrugTargetRecommendedNextStep(
+  gene: string,
+  diseaseFilter: string,
+  studyId: string,
+  topCandidates: DrugTargetAgentSummaryCandidate[],
+  matchedDisease: string | null,
+  tumorContext: DrugTargetAgentSummaryTumorContext | null,
+): DrugTargetRecommendedNextStep {
+  if (topCandidates.length === 0 && diseaseFilter) {
+    return {
+      type: 'broaden-disease-filter',
+      command: buildDrugTargetCommandSnippet(gene, '', studyId),
+      focus: 'Rerun without the disease filter and inspect the global candidate set.',
+      rationale: `No candidates matched the current disease filter "${diseaseFilter}".`,
+    };
+  }
+
+  if (topCandidates.length === 0) {
+    return {
+      type: 'review-target-context',
+      command: buildDrugTargetCommandSnippet(gene, diseaseFilter, studyId),
+      focus: 'Inspect tractability and disease associations to decide whether another gene or disease context is more promising.',
+      rationale: `No drug candidates were retained for ${gene}.`,
+    };
+  }
+
+  const lead = topCandidates[0];
+  return {
+    type: studyId ? 'inspect-tumor-prioritized-candidate' : 'inspect-candidate',
+    command: buildDrugTargetCommandSnippet(gene, diseaseFilter, studyId),
+    focus: tumorContext
+      ? `Review ${lead.drugName} together with ${tumorContext.studyId} cohort prevalence and co-mutation context.`
+      : `Review ${lead.drugName} and its supporting evidence${matchedDisease ? ` for ${matchedDisease}` : ''}.`,
+    rationale: tumorContext
+      ? `The top candidate is ranked with study-aware evidence and the selected cohort shows ${tumorContext.mutationFrequencyPct}% alteration prevalence.`
+      : `The top candidate has the strongest combined ranking signal${matchedDisease ? ` for ${matchedDisease}` : ''}.`,
+  };
+}
+
+function buildDrugTargetTopFinding(
+  symbol: string,
+  matchedDisease: string | null,
+  topCandidates: DrugTargetAgentSummaryCandidate[],
+  tumorContext: DrugTargetAgentSummaryTumorContext | null,
+): string {
+  const lead = topCandidates[0];
+  if (!lead && matchedDisease) {
+    return `No drug candidates were retained for ${symbol} after applying the ${matchedDisease} disease filter.`;
+  }
+  if (!lead) {
+    return `No drug or clinical candidates were returned for ${symbol}.`;
+  }
+  if (tumorContext && matchedDisease) {
+    return `${symbol} has ${lead.maxClinicalStageLabel.toLowerCase()} support for ${matchedDisease}, led by ${lead.drugName}; the selected cohort shows ${tumorContext.mutationFrequencyPct}% alteration prevalence.`;
+  }
+  if (matchedDisease) {
+    return `${symbol} has ${lead.maxClinicalStageLabel.toLowerCase()} candidates aligned with ${matchedDisease}, led by ${lead.drugName}.`;
+  }
+  return `${symbol} has ${lead.maxClinicalStageLabel.toLowerCase()} target-support candidates, led by ${lead.drugName}.`;
+}
+
+function buildDrugTargetAgentSummary(args: {
+  gene: string;
+  symbol: string;
+  diseaseFilter: string;
+  studyId: string;
+  associatedDiseases: Array<{ id: string; name: string; score: number }>;
+  returnedCandidates: DrugTargetCandidate[];
+  tumorSummary?: TumorSummary;
+  warnings: string[];
+}): DrugTargetAgentSummary {
+  const matchedDisease = args.diseaseFilter || args.associatedDiseases[0]?.name || null;
+  const topCandidates = args.returnedCandidates.slice(0, 3).map(candidate => ({
+    drugName: candidate.drugName,
+    chemblId: candidate.chemblId,
+    maxClinicalStage: candidate.maxClinicalStage,
+    maxClinicalStageLabel: candidate.maxClinicalStageLabel,
+    score: candidate.ranking.score,
+    reasons: candidate.ranking.signals.slice(0, 3),
+  }));
+  const tumorContext = buildDrugTargetTumorContext(args.tumorSummary);
+  const topSensitivitySignals = buildDrugTargetTopSensitivitySignals(args.returnedCandidates);
+  return {
+    topFinding: buildDrugTargetTopFinding(args.symbol, matchedDisease, topCandidates, tumorContext),
+    topCandidates,
+    matchedDisease,
+    tumorContext,
+    topSensitivitySignals,
+    warnings: [...args.warnings],
+    completeness: deriveAgentCompleteness(args.warnings),
+    recommendedNextStep: buildDrugTargetRecommendedNextStep(
+      args.gene,
+      args.diseaseFilter,
+      args.studyId,
+      topCandidates,
+      matchedDisease,
+      tumorContext,
+    ),
+  };
 }
 
 function normalizePhrase(value: string): string {
@@ -982,6 +1192,17 @@ async function buildDrugTargetResult(
     warnings.push(...tumorOverlay.warnings);
   }
 
+  const agentSummary = buildDrugTargetAgentSummary({
+    gene,
+    symbol: snapshot.approvedSymbol,
+    diseaseFilter,
+    studyId,
+    associatedDiseases,
+    returnedCandidates,
+    tumorSummary: tumorOverlay?.summary,
+    warnings,
+  });
+
   const data: DrugTargetData = {
     target: {
       input: gene,
@@ -1001,6 +1222,7 @@ async function buildDrugTargetResult(
       sensitivitySupportedCandidates: sensitivitySupportedCandidateCount,
     },
     tractability: summarizeTractability(snapshot.tractability),
+    agentSummary,
     associatedDiseases,
     candidates: returnedCandidates,
     ...(tumorOverlay ? { tumorStudy: tumorOverlay.summary } : {}),
@@ -1069,15 +1291,15 @@ cli({
   ],
   examples: [
     {
-      goal: 'Get tractability and candidate drugs for EGFR',
-      command: 'biocli aggregate drug-target EGFR -f json',
+      goal: 'Run a batch target scan for a gene list and keep a resumable run directory',
+      command: 'biocli aggregate drug-target --input-file genes.txt --disease lung --outdir runs/drug-target --resume -f json',
     },
     {
       goal: 'Prioritize EGFR drugs for lung cancer with a tumor-study overlay',
       command: 'biocli aggregate drug-target EGFR --disease lung --study luad_tcga_pan_can_atlas_2018 -f json',
     },
   ],
-  whenToUse: 'Use when you need target tractability and candidate therapies for a gene, optionally with tumor-study context.',
+  whenToUse: 'Use when you need target tractability and candidate therapies for a gene list or a single gene, optionally with tumor-study context.',
   columns: ['drugName', 'maxClinicalStage', 'drugType'],
   func: async (_ctx, args) => {
     const batch = (args.__batch ?? {}) as AggregateBatchOptions;

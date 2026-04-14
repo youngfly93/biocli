@@ -1,7 +1,7 @@
 {
   "name": "@yangfei_93sky/biocli",
   "version": "0.6.0",
-  "description": "Query biological databases from the terminal — agent-first bioinformatics CLI",
+  "description": "Batch gene scanning, tumor cohort briefing, and target discovery for agent-driven biology workflows",
   "type": "module",
   "main": "dist/main.js",
   "files": [
@@ -49,13 +49,20 @@
     "smoke:live": "bash scripts/smoke-live.sh"
   },
   "keywords": [
+    "agent",
+    "batch",
+    "cancer",
+    "cbioportal",
     "ncbi",
+    "opentargets",
     "pubmed",
     "bioinformatics",
     "cli",
     "gene",
     "geo",
-    "sra"
+    "sra",
+    "target-discovery",
+    "tumor"
   ],
   "author": "youngfly93",
   "license": "MIT",

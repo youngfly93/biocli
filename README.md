@@ -6,11 +6,20 @@
 [![node](https://img.shields.io/node/v/@yangfei_93sky/biocli?color=339933&label=node&logo=node.js&logoColor=white)](https://nodejs.org)
 [![license](https://img.shields.io/github/license/youngfly93/biocli?color=blue)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/youngfly93/biocli?label=release&color=orange&logo=github)](https://github.com/youngfly93/biocli/releases)
-[![commands](https://img.shields.io/badge/commands-65-7c3aed)](#all-commands)
 [![benchmark v2](https://img.shields.io/badge/benchmark%20v2-workflow%20100%2F100-brightgreen)](benchmarks/v2/runs/report-public-stable/public_report.md)
 
-**One terminal command replaces four browser tabs.**
-biocli is the agent-first CLI for biological databases — 65 commands across 11 backends (NCBI, UniProt, KEGG, STRING, Ensembl, Enrichr, ProteomeXchange, PRIDE, cBioPortal, Open Targets, GDSC) plus local reference datasets, all behind a strict JSON contract.
+**biocli is the execution layer for agent-driven biology workflows.**
+Use it for three things first:
+
+- batch gene scanning across core public databases
+- tumor cohort briefing with cBioPortal prevalence, variants, and co-mutations
+- target discovery with Open Targets evidence and GDSC sensitivity context
+
+It stays useful because the outputs are structured, resumable, and pipeline-friendly:
+
+- summary-first hero workflows via `data.agentSummary`
+- batch runs via `--input-file`, `--outdir`, and `--resume`
+- stable run artifacts via `results.jsonl`, `summary.csv`, `manifest.json`, and `methods.md`
 
 <p align="center">
   <img src="docs/demo.gif" width="820" alt="biocli demo: pubmed search 'CRISPR cancer' returns a structured table with PMID, title, authors, journal, year, and source">
@@ -19,7 +28,8 @@ biocli is the agent-first CLI for biological databases — 65 commands across 11
 ```
 biocli v0.6.0
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · cBioPortal · Open Targets · GDSC · Unimod (local)
-65 commands · 11 database backends · 2 reference datasets · 14 workflow commands · 4 download commands
+Task-first entrypoints: batch gene scanning · tumor cohort briefing · target discovery
+Platform inventory: 65 commands · 11 database backends · 2 reference datasets · 14 workflow commands · 4 download commands
 ```
 
 ## Install
@@ -81,10 +91,81 @@ If all three return without error, biocli is installed and every upstream API is
 ## Quick start
 
 ```bash
+biocli aggregate drug-target \
+  --input-file genes.txt \
+  --disease lung \
+  --outdir runs/drug-target \
+  --resume \
+  -f json
+```
+
+That command gives you a resumable target triage run directory instead of one-off terminal output. The default artifact path is:
+
+```text
+runs/drug-target/
+  results.jsonl
+  failures.jsonl
+  summary.json
+  summary.csv
+  manifest.json
+  methods.md
+```
+
+If you need a single-item sanity check first:
+
+```bash
 biocli aggregate gene-dossier TP53 -f json
 ```
 
-Returns a unified JSON with gene summary, protein function, KEGG pathways, GO terms, protein interactions, recent literature, and clinical variants — sourced from NCBI, UniProt, KEGG, STRING, PubMed, and ClinVar in parallel.
+For the two tumor / target hero workflows, the intended agent path is now:
+
+1. read `data.agentSummary`
+2. decide whether the result is actionable
+3. drill into the full nested report only if needed
+
+```bash
+# Summary-first target triage
+biocli aggregate drug-target EGFR --disease lung -f json \
+  | jq '.data.agentSummary'
+
+# Summary-first tumor cohort briefing
+biocli aggregate tumor-gene-dossier TP53 --study acc_tcga_pan_can_atlas_2018 -f json \
+  | jq '.data.agentSummary'
+```
+
+`aggregate gene-profile` now follows the same summary-first pattern for pathway, interaction, and disease triage:
+
+```bash
+biocli aggregate gene-profile TP53 --organism human -f json \
+  | jq '.data.agentSummary'
+```
+
+For repeated work, the intended user path is batch-first:
+
+```bash
+# Batch scan a gene list and keep resumable artifacts
+biocli aggregate gene-profile \
+  --input-file genes.txt \
+  --outdir runs/gene-profile \
+  --resume \
+  -f json
+
+# Batch target triage for a cohort-specific disease area
+biocli aggregate drug-target \
+  --input-file genes.txt \
+  --disease lung \
+  --outdir runs/drug-target \
+  --resume \
+  -f json
+
+# Batch tumor cohort briefing for a study
+biocli aggregate tumor-gene-dossier \
+  --input-file genes.txt \
+  --study luad_tcga_pan_can_atlas_2018 \
+  --outdir runs/tumor-gene-dossier \
+  --resume \
+  -f json
+```
 
 ```bash
 # Gene intelligence (NCBI + UniProt + KEGG + STRING + PubMed + ClinVar)
@@ -127,6 +208,46 @@ biocli gdsc prewarm
 biocli aggregate ptm-datasets TP53 --modification phospho --limit 5
 ```
 
+For agent pipelines, treat these as the stable first-pass fields:
+
+- `aggregate gene-profile` -> `data.agentSummary.topPathways`, `topInteractionPartners`, `topDiseaseLinks`, `recommendedNextStep`
+- `aggregate drug-target` -> `data.agentSummary.topCandidates`, `matchedDisease`, `tumorContext`, `topSensitivitySignals`
+- `aggregate tumor-gene-dossier` -> `data.agentSummary.prevalence`, `topCoMutations`, `exemplarVariants`, `recommendedNextStep`
+
+## Batch run outputs
+
+When you run a batch-capable workflow with `--input-file` and `--outdir`, biocli writes a stable run directory instead of making you scrape terminal output.
+
+Default artifacts:
+
+- `results.jsonl` — full per-item successes
+- `failures.jsonl` — structured per-item failures
+- `summary.json` — run-level counts and timing
+- `summary.csv` — flat table for quick sorting and filtering
+- `manifest.json` — canonical run metadata, cache, resume, and snapshot usage
+- `methods.md` — first-pass methods text for notes and reports
+
+The formal contract is documented in [`docs/contracts/run-artifacts.md`](docs/contracts/run-artifacts.md).
+
+For the current hero workflows, `summary.csv` is already optimized for first-pass ranking:
+
+- `aggregate gene-profile` — `symbol`, `pathwayCount`, `interactionCount`, `diseaseCount`
+- `aggregate drug-target` — `matchedDisease`, `topSummaryDrugName`, `topSummaryDrugStage`, `topSummaryDrugScore`, `topSensitivityDrugName`, `topSensitivityZScore`
+- `aggregate tumor-gene-dossier` — `mutationFrequencyPct`, `topCoMutationGene`, `topCoMutationContextTag`, `topVariantProteinChange`
+
+That means the usual workflow is:
+
+1. open `summary.csv` to sort and shortlist
+2. read `results.jsonl` only for the shortlisted items
+3. use `manifest.json` and `methods.md` for reproducibility and reporting
+
+Recommended consumption order:
+
+1. `manifest.json`
+2. `summary.json`
+3. `results.jsonl`
+4. `failures.jsonl` only when `failed > 0`
+
 ## Why biocli
 
 biocli's workflow commands go beyond retrieval. They scout datasets, download data, fetch annotations, and produce a manifest-tracked working directory in a single pipeline — the kind of multi-step job that otherwise takes four browser tabs and a shell script.
@@ -139,7 +260,15 @@ biocli aggregate workflow-scout "TP53 breast cancer RNA-seq" --gene TP53
 biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
 ```
 
-Benchmark v2 shows biocli at **88% workflow coverage with 100.0 quality** on supported tasks; next-best (BioMCP) is 24% at 97.1. See the [benchmark section](#benchmark-v2) for the full four-tool comparison.
+Pipeline benchmark proof on current hero workflows:
+
+| Workflow | Cold run | Warm run | Effect |
+|---|---:|---:|---:|
+| `aggregate gene-profile` | 15.35 s | 0.204 s | 75.3x faster |
+| `aggregate drug-target` | 26.12 s | 0.185 s | 141.2x faster |
+| `aggregate tumor-gene-dossier` | 22.22 s | 0.106 s | 209.6x faster |
+
+This is the product claim in one table: biocli does not make agents smarter, it makes repeated biological workflows much more reliable and much cheaper to rerun. The reusable public-facing benchmark block lives in [`docs/benchmarks/hero-pipeline-block.md`](docs/benchmarks/hero-pipeline-block.md). See the [benchmark section](#benchmark-v2) for the broader comparison.
 
 Designed for **AI agents** (Claude Code, Codex CLI, etc.) — structured JSON output, per-command schema, self-describing help, batch input, local cache, and an optional MCP companion package.
 
@@ -257,6 +386,8 @@ node packages/biocli-mcp/cli.js serve --scope hero
 ```
 
 That companion package exposes hero workflows such as `gene-dossier`, `tumor-gene-dossier`, `drug-target`, `variant-dossier`, `literature-brief`, and `workflow-prepare` as MCP tools for Claude Desktop or any compatible MCP client, while keeping the core `biocli` install lean.
+
+For `gene-profile`, `drug-target`, and `tumor-gene-dossier`, MCP consumers should read `data.agentSummary` first. The full nested report is still returned for drill-down, but `agentSummary` is the stable machine-facing entrypoint.
 
 ## How biocli compares
 

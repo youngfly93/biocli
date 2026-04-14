@@ -1,14 +1,24 @@
-import { describe, expect, it, beforeEach, afterAll } from 'vitest';
+import { describe, expect, it, beforeEach, afterAll, afterEach } from 'vitest';
 import { buildCacheKey, getCached, getCachedEntry, setCached, getStats, clearCache } from './cache.js';
-import { rmSync, existsSync } from 'node:fs';
+import { rmSync, existsSync, mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
-import { homedir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 
 // Use a test-specific subdirectory to avoid interfering with real cache
 // Note: These tests use the real cache dir but clean up after themselves
 
 const TEST_DB = '_test_cache_';
 const TEST_CMD = 'test/command';
+const originalHome = process.env.HOME;
+let suiteHome = '';
+
+function restoreHome(): void {
+  if (originalHome == null) {
+    delete process.env.HOME;
+  } else {
+    process.env.HOME = originalHome;
+  }
+}
 
 function cleanup() {
   const testDir = join(homedir(), '.biocli', 'cache', TEST_DB);
@@ -16,8 +26,25 @@ function cleanup() {
 }
 
 describe('cache', () => {
-  beforeEach(cleanup);
-  afterAll(cleanup);
+  beforeEach(() => {
+    suiteHome = mkdtempSync(join(tmpdir(), 'biocli-cache-home-'));
+    process.env.HOME = suiteHome;
+    cleanup();
+  });
+
+  afterEach(() => {
+    cleanup();
+    if (suiteHome) {
+      rmSync(suiteHome, { recursive: true, force: true });
+      suiteHome = '';
+    }
+    restoreHome();
+  });
+
+  afterAll(() => {
+    restoreHome();
+    cleanup();
+  });
 
   describe('buildCacheKey', () => {
     it('produces stable keys for same args', () => {

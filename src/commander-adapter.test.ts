@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Command } from 'commander';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -30,6 +30,17 @@ vi.mock('./spinner.js', () => ({
 
 import { registerCommandToProgram } from './commander-adapter.js';
 
+const originalHome = process.env.HOME;
+let suiteHome = '';
+
+function restoreHome(): void {
+  if (originalHome == null) {
+    delete process.env.HOME;
+  } else {
+    process.env.HOME = originalHome;
+  }
+}
+
 function cleanupCache(): void {
   rmSync(join(homedir(), '.biocli', 'cache', 'gene'), { recursive: true, force: true });
 }
@@ -52,13 +63,25 @@ function makeProgram(): Command {
 
 describe('registerCommandToProgram batch cache integration', () => {
   beforeEach(() => {
+    suiteHome = mkdtempSync(join(tmpdir(), 'biocli-commander-home-'));
+    process.env.HOME = suiteHome;
     cleanupCache();
     executeCommandMock.mockReset();
     renderMock.mockReset();
     process.exitCode = undefined;
   });
 
+  afterEach(() => {
+    cleanupCache();
+    if (suiteHome) {
+      rmSync(suiteHome, { recursive: true, force: true });
+      suiteHome = '';
+    }
+    restoreHome();
+  });
+
   afterAll(() => {
+    restoreHome();
     cleanupCache();
   });
 

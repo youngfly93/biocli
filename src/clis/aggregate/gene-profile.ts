@@ -16,7 +16,7 @@
 
 import { cli, Strategy } from '../../registry.js';
 import { CliError } from '../../errors.js';
-import { wrapResult } from '../../types.js';
+import { wrapResult, type BiocliCompleteness } from '../../types.js';
 import { parseBatchInput } from '../../batch.js';
 import { createHttpContextForDatabase } from '../../databases/index.js';
 import { buildEutilsUrl } from '../../databases/ncbi.js';
@@ -43,12 +43,115 @@ interface GeneProfileData {
   goTerms: Array<{ id: string; name: string; aspect: string }>;
   interactions: Array<{ partner: string; score: number }>;
   diseases: Array<{ id: string; name: string; source: string }>;
+  agentSummary: GeneProfileAgentSummary;
+}
+
+interface GeneProfileAgentSummaryPathway {
+  id: string;
+  name: string;
+  source: string;
+}
+
+interface GeneProfileAgentSummaryInteraction {
+  partner: string;
+  score: number;
+}
+
+interface GeneProfileAgentSummaryDisease {
+  id: string;
+  name: string;
+  source: string;
+}
+
+interface GeneProfileRecommendedNextStep {
+  type: string;
+  command?: string;
+  focus?: string;
+  rationale: string;
+}
+
+interface GeneProfileAgentSummary {
+  topFinding: string;
+  topPathways: GeneProfileAgentSummaryPathway[];
+  topInteractionPartners: GeneProfileAgentSummaryInteraction[];
+  topDiseaseLinks: GeneProfileAgentSummaryDisease[];
+  warnings: string[];
+  completeness: BiocliCompleteness;
+  recommendedNextStep: GeneProfileRecommendedNextStep;
 }
 
 function buildGeneProfileBatchCacheArgs(symbol: string, organism: unknown): Record<string, unknown> {
   return {
     gene: symbol,
     organism: String(organism ?? 'human'),
+  };
+}
+
+function shellQuote(value: string): string {
+  if (/^[A-Za-z0-9._:/=-]+$/.test(value)) return value;
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function buildGeneProfileCommandSnippet(symbol: string, organismName: string): string {
+  return [
+    'biocli',
+    'aggregate',
+    'gene-profile',
+    shellQuote(symbol),
+    '--organism',
+    shellQuote(organismName),
+    '-f',
+    'json',
+  ].join(' ');
+}
+
+function buildGeneProfileTopFinding(
+  symbol: string,
+  pathways: Array<{ id: string; name: string; source: string }>,
+  interactions: Array<{ partner: string; score: number }>,
+  diseases: Array<{ id: string; name: string; source: string }>,
+): string {
+  const leadPathway = pathways[0];
+  const leadInteraction = interactions[0];
+  const leadDisease = diseases[0];
+  const findings: string[] = [];
+  if (leadPathway) findings.push(`top pathway ${leadPathway.name}`);
+  if (leadInteraction) findings.push(`top interaction partner ${leadInteraction.partner}`);
+  if (leadDisease) findings.push(`disease link ${leadDisease.name}`);
+  if (findings.length === 0) {
+    return `${symbol.toUpperCase()} returned a baseline multi-database profile with no strong pathway, interaction, or disease highlights.`;
+  }
+  return `${symbol.toUpperCase()} profile highlights ${findings.join(', ')}.`;
+}
+
+function buildGeneProfileAgentSummary(
+  symbol: string,
+  organismName: string,
+  pathways: Array<{ id: string; name: string; source: string }>,
+  interactions: Array<{ partner: string; score: number }>,
+  diseases: Array<{ id: string; name: string; source: string }>,
+  warnings: string[],
+): GeneProfileAgentSummary {
+  const topPathways = pathways.slice(0, 3);
+  const topInteractionPartners = interactions.slice(0, 3);
+  const topDiseaseLinks = diseases.slice(0, 3);
+  return {
+    topFinding: buildGeneProfileTopFinding(symbol, pathways, interactions, diseases),
+    topPathways,
+    topInteractionPartners,
+    topDiseaseLinks,
+    warnings: [...warnings],
+    completeness: warnings.length === 0 ? 'complete' : 'partial',
+    recommendedNextStep: {
+      type: 'inspect-profile',
+      command: buildGeneProfileCommandSnippet(symbol, organismName),
+      focus: topPathways[0]
+        ? `Review pathway context starting with ${topPathways[0].name}.`
+        : 'Review the baseline profile fields and identifier mappings.',
+      rationale: topPathways[0] || topInteractionPartners[0] || topDiseaseLinks[0]
+        ? `The profile already exposes pathway, interaction, or disease signals worth deeper inspection.`
+        : `The baseline profile is available, but the strongest next value comes from reviewing the full report details.`,
+    },
   };
 }
 
@@ -187,7 +290,7 @@ async function fetchKeggData(
         // /list/pathway/hsa returns "hsa04115\tPathway name - Homo sapiens (human)"
         const listText = await ctx.fetchText(buildKeggUrl(`/list/pathway/${keggOrg}`));
         const allPaths = parseKeggTsv(listText);
-        const pathMap = new Map(allPaths.map(p => [p.key, p.value.replace(/ - .*$/, '')]));
+        const pathMap = new Map(allPaths.map(p => [normalizeKeggId(p.key), p.value.replace(/ - .*$/, '')]));
         pathways = pathIds.map(rawId => {
           const normalized = normalizeKeggId(rawId);
           return { id: normalized, name: pathMap.get(normalized) ?? normalized };
@@ -335,6 +438,14 @@ async function buildGeneProfile(
     goTerms: uniprotData?.goTerms ?? [],
     interactions,
     diseases: (keggData?.diseases ?? []).map(d => ({ ...d, source: 'KEGG' })),
+    agentSummary: buildGeneProfileAgentSummary(
+      symbol,
+      organismName,
+      (keggData?.pathways ?? []).map(p => ({ ...p, source: 'KEGG' })),
+      interactions,
+      (keggData?.diseases ?? []).map(d => ({ ...d, source: 'KEGG' })),
+      meta.errors,
+    ),
   };
 
   const ids: Record<string, string> = {};
@@ -366,15 +477,15 @@ cli({
   ],
   examples: [
     {
-      goal: 'Get a multi-database profile for TP53 in human',
-      command: 'biocli aggregate gene-profile TP53 --organism human -f json',
+      goal: 'Run a batch gene profile scan from a file and write a resumable run directory',
+      command: 'biocli aggregate gene-profile --input-file genes.txt --organism human --outdir runs/gene-profile --resume -f json',
     },
     {
-      goal: 'Compare several genes in one batch profile request',
-      command: 'biocli aggregate gene-profile TP53,BRCA1,EGFR --organism human -f json',
+      goal: 'Get a single multi-database profile for TP53 in human',
+      command: 'biocli aggregate gene-profile TP53 --organism human -f json',
     },
   ],
-  whenToUse: 'Use when you need a biology-first summary of one or a few genes across core public databases without literature or clinical interpretation.',
+  whenToUse: 'Use when you need a biology-first scan of a gene list across core public databases, or a single-gene profile without literature or clinical interpretation.',
   columns: ['symbol', 'name', 'organism', 'pathways', 'goTerms', 'interactions'],
   func: async (_ctx, args) => {
     const batch = (args.__batch ?? {}) as AggregateBatchOptions;

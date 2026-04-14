@@ -15,6 +15,12 @@ const HERO_COMMANDS = new Set([
   'aggregate/workflow-prepare',
 ]);
 
+const AGENT_SUMMARY_COMMANDS = new Set([
+  'aggregate/gene-profile',
+  'aggregate/drug-target',
+  'aggregate/tumor-gene-dossier',
+]);
+
 const MUTATING_COMMANDS = new Set([
   'aggregate/workflow-annotate',
   'aggregate/workflow-prepare',
@@ -81,6 +87,29 @@ export function getMcpToolName(cmd: CliCommand): string {
 }
 
 export function buildMcpToolDescription(cmd: CliCommand): string {
+  const commandId = fullName(cmd);
+  if (AGENT_SUMMARY_COMMANDS.has(commandId)) {
+    const focus = commandId === 'aggregate/drug-target'
+      ? 'Use data.agentSummary first for top candidates, matched disease/tumor context, strongest sensitivity signals, warnings, completeness, and recommended next step.'
+      : commandId === 'aggregate/tumor-gene-dossier'
+        ? 'Use data.agentSummary first for prevalence, top co-mutations, exemplar variants, cohort context, warnings, completeness, and recommended next step.'
+        : 'Use data.agentSummary first for top pathways, top interaction partners, top disease links, warnings, completeness, and recommended next step.';
+    const pieces = [
+      cmd.description,
+      focus,
+      'The full nested report remains available alongside agentSummary for drill-down.',
+    ];
+    if (cmd.database) pieces.push(`Database: ${cmd.database}.`);
+    if (cmd.args.length > 0) {
+      const argSummary = cmd.args
+        .map(arg => `${arg.name}${arg.required ? ' (required)' : ''}${arg.help ? `: ${arg.help}` : ''}`)
+        .join(' ');
+      pieces.push(`Arguments: ${argSummary}`);
+    }
+    pieces.push(`CLI equivalent: biocli ${cmd.site} ${cmd.name}`);
+    return pieces.filter(Boolean).join(' ');
+  }
+
   const pieces = [cmd.description];
   if (cmd.database) pieces.push(`Database: ${cmd.database}.`);
   if (cmd.args.length > 0) {

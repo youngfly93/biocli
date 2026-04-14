@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
@@ -36,6 +36,17 @@ vi.mock('../../datasets/gdsc.js', () => ({
 }));
 
 import '../../clis/aggregate/drug-target.js';
+
+const originalHome = process.env.HOME;
+let suiteHome = '';
+
+function restoreHome(): void {
+  if (originalHome == null) {
+    delete process.env.HOME;
+  } else {
+    process.env.HOME = originalHome;
+  }
+}
 
 function cleanupDrugTargetCache(): void {
   rmSync(join(homedir(), '.biocli', 'cache', 'aggregate', 'aggregate', 'drug-target'), {
@@ -550,10 +561,21 @@ function buildGdscIndexWithLateStrongHit() {
 
 describe('aggregate/drug-target', () => {
   afterAll(() => {
+    restoreHome();
     cleanupDrugTargetCache();
   });
 
+  afterEach(() => {
+    if (suiteHome) {
+      rmSync(suiteHome, { recursive: true, force: true });
+      suiteHome = '';
+    }
+    restoreHome();
+  });
+
   beforeEach(() => {
+    suiteHome = mkdtempSync(join(tmpdir(), 'biocli-drug-target-home-'));
+    process.env.HOME = suiteHome;
     cleanupDrugTargetCache();
     createHttpContextForDatabaseMock.mockReset();
     loadGdscSensitivityIndexMock.mockReset();
@@ -634,6 +656,22 @@ describe('aggregate/drug-target', () => {
       approvedDrugs: 2,
       sensitivitySupportedCandidates: 2,
     });
+    const agentSummary = data.agentSummary as Record<string, unknown>;
+    expect(agentSummary.matchedDisease).toBe('lung');
+    expect(agentSummary.warnings).toEqual([]);
+    expect(agentSummary.completeness).toBe('complete');
+    expect(agentSummary.topFinding).toEqual(expect.stringContaining('EGFR'));
+    expect(agentSummary.recommendedNextStep).toMatchObject({
+      type: 'inspect-candidate',
+    });
+    expect((agentSummary.topCandidates as Array<Record<string, unknown>>)[0]).toMatchObject({
+      drugName: 'AFATINIB',
+      chemblId: 'CHEMBL1173655',
+      maxClinicalStage: 'APPROVAL',
+    });
+    expect((agentSummary.topSensitivitySignals as Array<Record<string, unknown>>)[0]).toMatchObject({
+      drugName: 'AFATINIB',
+    });
     expect(data.tractability).toMatchObject({
       positiveFeatureCount: 3,
     });
@@ -681,6 +719,17 @@ describe('aggregate/drug-target', () => {
       sensitivitySupportedCandidates: 0,
     });
     expect(data.candidates).toEqual([]);
+    const agentSummary = data.agentSummary as Record<string, unknown>;
+    expect(agentSummary).toMatchObject({
+      matchedDisease: 'sarcoma',
+      topCandidates: [],
+      warnings: ['No drug candidates matched disease filter "sarcoma".'],
+      completeness: 'partial',
+    });
+    expect(agentSummary.recommendedNextStep).toMatchObject({
+      type: 'broaden-disease-filter',
+      command: 'biocli aggregate drug-target EGFR -f json',
+    });
   });
 
   it('keeps summary counts based on all matched candidates even when the returned list is limited', async () => {
@@ -763,6 +812,21 @@ describe('aggregate/drug-target', () => {
       diseaseFilter: 'lung',
       sensitivitySupportedCandidates: 2,
     });
+    const agentSummary = data.agentSummary as Record<string, unknown>;
+    expect(agentSummary.matchedDisease).toBe('lung');
+    expect(agentSummary.recommendedNextStep).toMatchObject({
+      type: 'inspect-tumor-prioritized-candidate',
+      command: 'biocli aggregate drug-target EGFR --disease lung --study luad -f json',
+    });
+    expect(agentSummary.tumorContext).toMatchObject({
+      studyId: 'luad',
+      mutationFrequencyPct: 20,
+      alteredSamples: 2,
+      totalSamples: 10,
+    });
+    expect((agentSummary.tumorContext as Record<string, unknown>).topCoMutations).toEqual(
+      expect.arrayContaining(['TP53', 'PIK3CA']),
+    );
     const candidates = data.candidates as Array<Record<string, unknown>>;
     expect(candidates[0]?.drugName).toBe('AFATINIB');
     expect((candidates[0]?.ranking as Record<string, unknown>).matchedDiseaseTerms).toEqual(['lung']);
