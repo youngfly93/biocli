@@ -35,6 +35,15 @@ import {
   EmptyResultError,
 } from './errors.js';
 
+/**
+ * Formats accepted by `-f`. Anything else used to fall through to the table
+ * renderer with exit code 0, so a typo looked like a successful run in a
+ * different shape.
+ */
+const SUPPORTED_OUTPUT_FORMATS = new Set([
+  'table', 'plain', 'json', 'jsonl', 'yaml', 'yml', 'md', 'markdown', 'csv', 'report',
+]);
+
 // ── Arg value normalization ─────────────────────────────────────────────────
 
 export function normalizeArgValue(argType: string | undefined, value: unknown, name: string): unknown {
@@ -78,7 +87,7 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
   }
   const hasNamedArg = (name: string) => cmd.args.some(arg => !arg.positional && arg.name === name);
   subCmd
-    .option('-f, --format <fmt>', 'Output format: table, plain, json, jsonl, yaml, md, csv', 'table')
+    .option('-f, --format <fmt>', 'Output format: table, plain, json, jsonl, yaml, md, csv, report', 'table')
     .option('-c, --columns <cols>', 'Columns to display (comma-separated, e.g. pmid,title,abstract)')
     .option('-A, --all-columns', 'Show all available columns', false)
     .option('-v, --verbose', 'Debug output', false)
@@ -162,6 +171,17 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       }
 
       let format = typeof optionsRecord.format === 'string' ? optionsRecord.format : 'table';
+      // Commander's default for -f is 'table', so the value alone cannot tell an
+      // explicit `-f table` apart from an unspecified format. Ask Commander
+      // which source it came from, otherwise a command's defaultFormat would
+      // silently override what the user actually asked for.
+      const formatExplicit = subCmd.getOptionValueSource('format') === 'cli';
+      if (formatExplicit && !SUPPORTED_OUTPUT_FORMATS.has(format)) {
+        console.error(chalk.red(`error: unknown format '${format}'`));
+        console.error(`  Supported: ${[...SUPPORTED_OUTPUT_FORMATS].join(', ')}`);
+        process.exitCode = EXIT_CODES.USAGE_ERROR;
+        return;
+      }
       if (verbose) process.env.BIOCLI_VERBOSE = '1';
       if (cmd.deprecated) {
         const message = typeof cmd.deprecated === 'string' ? cmd.deprecated : `${fullName(cmd)} is deprecated.`;
@@ -354,12 +374,12 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       }
 
       const resolved = getRegistry().get(fullName(cmd)) ?? cmd;
-      if (format === 'table' && resolved.defaultFormat) {
+      if (format === 'table' && !formatExplicit && resolved.defaultFormat) {
         format = resolved.defaultFormat;
       }
 
       // Auto-detect pipe: output JSON when stdout is not a terminal
-      if (format === 'table' && !process.stdout.isTTY) {
+      if (format === 'table' && !formatExplicit && !process.stdout.isTTY) {
         format = 'json';
       }
 

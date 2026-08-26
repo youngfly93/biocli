@@ -4,6 +4,7 @@
  * Ported from opencli/src/output.ts for biocli.
  */
 
+import { formatCell } from './cell-format.js';
 import chalk from 'chalk';
 import Table from 'cli-table3';
 import yaml from 'js-yaml';
@@ -435,7 +436,7 @@ function renderMarkdown(data: unknown, opts: RenderOptions): void {
   console.log('| ' + columns.join(' | ') + ' |');
   console.log('| ' + columns.map(() => '---').join(' | ') + ' |');
   for (const row of rows) {
-    console.log('| ' + columns.map(c => String((row as Record<string, unknown>)[c] ?? '')).join(' | ') + ' |');
+    console.log('| ' + columns.map(c => formatCell((row as Record<string, unknown>)[c])).join(' | ') + ' |');
   }
 }
 
@@ -446,7 +447,7 @@ function renderCsv(data: unknown, opts: RenderOptions): void {
   console.log(columns.join(','));
   for (const row of rows) {
     console.log(columns.map(c => {
-      const v = String((row as Record<string, unknown>)[c] ?? '');
+      const v = formatCell((row as Record<string, unknown>)[c]);
       return v.includes(',') || v.includes('"') || v.includes('\n') || v.includes('\r')
         ? `"${v.replace(/"/g, '""')}"` : v;
     }).join(','));

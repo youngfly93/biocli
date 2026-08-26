@@ -122,7 +122,7 @@ interface BiocliResult<T> {
   queriedAt: string;
   organism?: string;
   query: string;
-  completeness: 'complete' | 'partial' | 'empty';
+  completeness: 'complete' | 'partial' | 'degraded';
   provenance: BiocliProvenance;
 }
 ```

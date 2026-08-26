@@ -50,6 +50,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   source counts
 - `manifest.json` `resume.skippedCompleted` now reports what the rerun actually
   skipped instead of the size of the previous success list
+- **`-f csv` and `-f md` no longer destroy nested fields.** Nested values were
+  stringified directly, so a gene's 51 pathways became `[object Object]`
+  repeated 51 times — on the path most people use to load results into R or a
+  spreadsheet. Nested records now reduce to their most identifying label,
+  joined with `; `
+- **An explicit `-f table` is no longer overridden.** Commander's default for
+  `-f` is `table`, so an explicit `-f table` was indistinguishable from an
+  unspecified format and a command's `defaultFormat` silently replaced it —
+  `aggregate gene-profile EGFR -f table` printed 777 lines of JSON. Explicit
+  formats now win over both `defaultFormat` and the non-TTY JSON heuristic
+- An unknown `-f` value now fails with exit `2` and lists the supported formats
+  instead of falling through to the table renderer with exit `0`
+- `ARCHITECTURE.md` documented `completeness` as `'complete' | 'partial' |
+  'empty'`; the actual union is `'complete' | 'partial' | 'degraded'`, as
+  `docs/contracts/hero-summary.md` already stated
 - **Batch `methods.md` no longer fabricates provenance.** Sources were deduped
   by backend name across the whole run, so the first item to contribute a
   backend lent its accession numbers to every other item — a 12-gene run could
