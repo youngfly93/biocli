@@ -1,4 +1,5 @@
 import { ApiError, CliError, EXIT_CODES, RateLimitError } from './errors.js';
+import { peekRateLimiter } from './rate-limiter.js';
 import { sleep } from './utils.js';
 
 export interface HttpRetryPolicy {
@@ -157,9 +158,19 @@ export async function executeHttpRequestWithRetry(opts: {
       const response = await opts.execute();
 
       if (isRetryableHttpStatus(policy, response.status)) {
+        const delayMs = computeRetryDelayMs(policy, attempt, response.headers.get('Retry-After'));
+
+        // A 429 is a statement about the whole client, not this one request.
+        // Backends acquire a rate-limit slot before entering this loop, so
+        // without this the other in-flight workers keep saturating the window
+        // the retry is about to land in.
+        if (response.status === 429) {
+          peekRateLimiter(opts.backendId)?.penalize(delayMs);
+        }
+
         if (attempt < policy.maxRetries) {
           try { await response.text(); } catch { /* ignore */ }
-          await sleep(computeRetryDelayMs(policy, attempt, response.headers.get('Retry-After')));
+          await sleep(delayMs);
           continue;
         }
         throw opts.onRetryableStatusExhausted(response.status, policy.maxRetries + 1);

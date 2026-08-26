@@ -24,6 +24,8 @@ export class RateLimiter {
   private queue: Array<() => void> = [];
   /** Whether a drain loop is already scheduled. */
   private draining = false;
+  /** Epoch ms until which every acquisition is held back. */
+  private cooldownUntil = 0;
 
   constructor(private maxPerSecond: number) {}
 
@@ -32,6 +34,14 @@ export class RateLimiter {
    * Callers should `await limiter.acquire()` before each HTTP request.
    */
   async acquire(): Promise<void> {
+    // An upstream 429 means the whole client is over budget, not just the one
+    // request that was rejected. Hold every worker until the cooldown expires,
+    // otherwise a retry lands right back into a window the other workers are
+    // still saturating.
+    while (this.cooldownUntil > Date.now()) {
+      await sleep(Math.max(1, this.cooldownUntil - Date.now()));
+    }
+
     this.pruneOldTimestamps();
 
     if (this.timestamps.length < this.maxPerSecond) {
@@ -52,6 +62,24 @@ export class RateLimiter {
     this.maxPerSecond = maxPerSecond;
   }
 
+  /**
+   * Hold back every acquisition for `ms`, and drop the current window so the
+   * next requests start from a clean budget. Call this when the upstream
+   * signals rate limiting (HTTP 429), so backoff applies to all in-flight
+   * workers rather than only the rejected request.
+   */
+  penalize(ms: number): void {
+    if (!Number.isFinite(ms) || ms <= 0) return;
+    const until = Date.now() + ms;
+    if (until > this.cooldownUntil) this.cooldownUntil = until;
+    this.timestamps = [];
+  }
+
+  /** Remaining cooldown in ms (0 when not penalized). Exposed for tests. */
+  get cooldownRemainingMs(): number {
+    return Math.max(0, this.cooldownUntil - Date.now());
+  }
+
   // ── Internal helpers ────────────────────────────────────────────────────
 
   /** Remove timestamps older than 1 second from the window. */
@@ -69,6 +97,10 @@ export class RateLimiter {
 
     const drain = async (): Promise<void> => {
       while (this.queue.length > 0) {
+        if (this.cooldownUntil > Date.now()) {
+          await sleep(Math.max(1, this.cooldownUntil - Date.now()));
+          continue;
+        }
         this.pruneOldTimestamps();
 
         if (this.timestamps.length < this.maxPerSecond) {
@@ -118,6 +150,16 @@ export function getRateLimiterForDatabase(databaseId: string, maxPerSecond: numb
     _limiters.set(databaseId, limiter);
   }
   return limiter;
+}
+
+/**
+ * Look up an existing limiter without creating one.
+ *
+ * Used by the retry layer to apply upstream rate-limit feedback to whichever
+ * limiter the backend already registered, without needing to know its rate.
+ */
+export function peekRateLimiter(databaseId: string): RateLimiter | undefined {
+  return _limiters.get(databaseId);
 }
 
 /**

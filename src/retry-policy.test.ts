@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { computeRetryDelayMs, isRetryableNetworkError, resolveHttpRetryPolicy } from './retry-policy.js';
+import { computeRetryDelayMs, executeHttpRequestWithRetry, isRetryableNetworkError, resolveHttpRetryPolicy } from './retry-policy.js';
+import { getRateLimiterForDatabase } from './rate-limiter.js';
+import { ApiError } from './errors.js';
 
 describe('retry-policy', () => {
   it('resolves backend defaults with exponential backoff', () => {
@@ -16,4 +18,54 @@ describe('retry-policy', () => {
     expect(isRetryableNetworkError(policy, new TypeError('fetch failed'))).toBe(true);
     expect(isRetryableNetworkError(policy, new Error('permanent schema mismatch'))).toBe(false);
   });
+
+  it('feeds an upstream 429 back into the backend rate limiter', async () => {
+    // Backends acquire a slot before the retry loop runs, so a 429 that only
+    // slowed its own request left every other worker saturating the window.
+    const backendId = 'test-429-feedback';
+    const limiter = getRateLimiterForDatabase(backendId, 100);
+    expect(limiter.cooldownRemainingMs).toBe(0);
+
+    let calls = 0;
+    const response = await executeHttpRequestWithRetry({
+      backendId,
+      policy: { maxRetries: 1, baseDelayMs: 60, backoffFactor: 1, retryableStatusCodes: [429] },
+      execute: async () => {
+        calls += 1;
+        return calls === 1
+          ? new Response('rate limited', { status: 429 })
+          : new Response('{}', { status: 200 });
+      },
+      onRetryableStatusExhausted: (status, attempts) => new ApiError(`${status} after ${attempts}`),
+      onNonRetryableStatus: res => new ApiError(`HTTP ${res.status}`),
+      onNetworkErrorExhausted: err => new ApiError(err.message),
+    });
+
+    expect(calls).toBe(2);
+    expect(response.status).toBe(200);
+  });
+
+  it('does not penalize the limiter for non-rate-limit retryable statuses', async () => {
+    const backendId = 'test-503-no-penalty';
+    const limiter = getRateLimiterForDatabase(backendId, 100);
+
+    let calls = 0;
+    await executeHttpRequestWithRetry({
+      backendId,
+      policy: { maxRetries: 1, baseDelayMs: 5, backoffFactor: 1, retryableStatusCodes: [503] },
+      execute: async () => {
+        calls += 1;
+        return calls === 1
+          ? new Response('unavailable', { status: 503 })
+          : new Response('{}', { status: 200 });
+      },
+      onRetryableStatusExhausted: (status, attempts) => new ApiError(`${status} after ${attempts}`),
+      onNonRetryableStatus: res => new ApiError(`HTTP ${res.status}`),
+      onNetworkErrorExhausted: err => new ApiError(err.message),
+    });
+
+    expect(calls).toBe(2);
+    expect(limiter.cooldownRemainingMs).toBe(0);
+  });
+
 });

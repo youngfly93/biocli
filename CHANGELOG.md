@@ -57,6 +57,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sentence. Record identifiers are no longer carried to batch level (they stay
   per-item in `results.jsonl`), and a URL survives only when it is a backend
   root rather than a record landing page
+- **Upstream rate limiting now backs off the whole client, not one request.**
+  Backends acquire a rate-limit slot *before* the retry loop, so an HTTP 429
+  only slowed the rejected request while every other in-flight worker kept
+  saturating the same window — and the retry itself bypassed the limiter
+  entirely, adding load exactly when the upstream asked for less. A 429 now
+  applies a cooldown to that backend's limiter and clears its window, so all
+  workers pause together. This is what let a default-concurrency gene-profile
+  batch lose a gene's KEGG pathways to a transient NCBI 429
 - Batch `methods.md` completeness was derived from hard failures alone, so a run
   of partial results described itself as `complete`. It now reflects per-item
   completeness, and the block lists complete/incomplete counts and names the
