@@ -1,4 +1,8 @@
-# Hero Workflow `agentSummary` Contract v0.1
+# Hero Workflow `agentSummary` Contract v0.2
+
+Version `0.2` adds the required gene-profile `selectionBasis` object so bounded
+KEGG previews cannot be mistaken for relevance rankings. Version `0.1`
+introduced the shared `agentSummary` layer and remains otherwise compatible.
 
 ## Purpose
 
@@ -144,12 +148,18 @@ Required fields:
 - `topPathways`
 - `topInteractionPartners`
 - `topDiseaseLinks`
+- `selectionBasis`
+
+The three `top*` names are retained for compatibility. `topPathways` and
+`topDiseaseLinks` are bounded previews in KEGG upstream order, not biological
+relevance rankings. `topInteractionPartners` is sorted by STRING combined
+score. Consumers must read `selectionBasis` before interpreting these arrays.
 
 Suggested shape:
 
 ```json
 {
-  "topFinding": "TP53 profile highlights top pathway p53 signaling pathway, top interaction partner MDM2, disease link Li-Fraumeni syndrome.",
+  "topFinding": "TP53 profile includes a KEGG pathway association (p53 signaling pathway), the highest-STRING-score interaction partner (MDM2, 0.998), and a KEGG disease association (Li-Fraumeni syndrome).",
   "topPathways": [
     {
       "id": "hsa04115",
@@ -170,6 +180,11 @@ Suggested shape:
       "source": "KEGG"
     }
   ],
+  "selectionBasis": {
+    "topPathways": "First three KEGG pathway links in upstream order; KEGG does not provide a relevance ranking.",
+    "topInteractionPartners": "First three STRING partners after descending combined-score sorting.",
+    "topDiseaseLinks": "First three KEGG disease links in upstream order; KEGG does not provide a relevance ranking."
+  },
   "warnings": [],
   "completeness": "complete",
   "recommendedNextStep": {

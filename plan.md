@@ -4,21 +4,49 @@ Last updated: 2026-08-26
 
 ## Current state
 
-- Released: `v0.8.0` on `main` (tag `v0.8.0`, GitHub Release published, CI green).
-- npm `latest` is still `0.7.1`. `0.8.0` was never published to the registry;
-  `0.8.1` is the next npm release.
-- In progress: round 3, closing the review findings against `0.8.0` before the
-  npm publish. See "Round 3" below.
+- Release target: `v0.9.0`; the minor bump follows `RELEASE_CHECKLIST.md`
+  because `gene-profile.agentSummary.selectionBasis` is a new required agent
+  contract field.
+- Baseline: `v0.8.1` on `main` at `deaf790`; npm `latest` was still `0.7.1` at
+  the pre-release check on 2026-08-26.
+- Round 4 customer-trust safeguards are implemented and locally verified.
+  External publication is now explicitly authorized and follows the repository
+  release checklist.
 
 ## Working agreement
 
 - Scope: this repository root only.
 - One writer at a time. Review agents are read-only on the deliverable and
   write only their own audit notes.
-- Do not move or rewrite the public `v0.8.0` tag or its GitHub Release.
+- Do not move or rewrite the public `v0.8.0` or `v0.8.1` tags or releases.
 - `opencli/` and the frozen public benchmark bundles outside this repository are reference-only.
 
-## Round 3: post-0.8.0 review findings (current)
+## Round 4: customer-path trust safeguards (complete locally)
+
+A clean customer-path exercise against `v0.8.1` found four cases where valid
+JSON could still invite a scientifically wrong or operationally surprising
+interpretation. This round fixes those cases without removing existing output
+fields.
+
+| # | Finding | Severity | Status |
+|---|---|---|---|
+| 1 | The cBioPortal candidate list stored bare Entrez IDs; `4018` was commented as `LRP1B` although it resolves to `LPA`, allowing a false context label | P0 | Implemented; 172 identities validated against NCBI Gene |
+| 2 | `workflow-prepare --skip-download` accepted a regex-shaped but nonexistent accession, created files, and reported complete | P0 | Implemented; exact GEO/SRA validation now precedes all writes |
+| 3 | `gene-profile` described first-in-upstream-order KEGG entries as “top” findings without a ranking basis | P1 | Implemented; semantics and `selectionBasis` are explicit |
+| 4 | A clean `drug-target` run silently downloaded and indexed large GDSC workbooks | P1 | Implemented; default is local-only and missing data degrades visibly |
+
+Acceptance targets:
+
+- `LPA/4018` is not context-labelled; all 172 reference identities pass the
+  opt-in NCBI validator and offline regression.
+- Invalid GEO/SRA accessions leave the requested output path untouched; valid
+  accessions produce `metadata/dataset.json`.
+- KEGG pathway/disease previews state upstream ordering; STRING partners are
+  deterministically sorted by combined score.
+- `aggregate drug-target` never downloads GDSC unless the user explicitly runs
+  `gdsc prewarm`, `gdsc refresh`, or batch `--force-refresh`.
+
+## Round 3: post-0.8.0 review findings (complete)
 
 An independent review of `0.8.0` confirmed the release is sound but found four
 gaps where the shipped behaviour did not fully match what the docs and commit
@@ -113,13 +141,54 @@ The following paths were already modified or untracked before this optimization 
 - 2026-08-26: `drug-target` ranking is frozen as `biocli-drug-target-ranking-v1`; score components are exposed and documented.
 - 2026-08-26: `--report-limit` is presentation-only. All unique Open Targets reports returned to the command are used for ranking and source counts.
 - 2026-08-26: Generic CLI batch and aggregate hero batch now share `src/batch-execution.ts`; wrappers retain their existing cache-read policies and UI/error behavior.
-- 2026-08-26: Release/documentation truth is `0.7.1`, 65 commands, 14 documented agent-optimized workflow commands, 11 registered backends, and two local reference datasets. The generated manifest has 16 entries whose internal `database` is `aggregate`; `px dataset` and `px files` are the two multi-backend adapters outside the 14-command workflow table.
+- 2026-08-26: At the round 2 baseline, release/documentation truth was `0.7.1`, 65 commands, 14 documented agent-optimized workflow commands, 11 registered backends, and two local reference datasets. The generated manifest had 16 entries whose internal `database` was `aggregate`; `px dataset` and `px files` were the two multi-backend adapters outside the 14-command workflow table.
 - 2026-08-26: Undici is constrained to `^6.28.0` to preserve Node >=20 support. `js-yaml` was raised to patched `^4.3.1`. `npm audit` still reports 13 findings (2 low, 4 moderate, 7 high, 0 critical); the remaining direct findings are `fast-xml-parser` (major-version migration required) and `xlsx` (no npm fix available).
 - 2026-08-26: Agent A/B scoring uses `agent-ab-v1` (`0-2` across five operational dimensions). Accuracy, source, and safety are separate reviews; the current 24-row scored set marks them not completed.
 - 2026-08-26: Two immutable repeat-001 raw contract failures are SHA-256 pinned as known historical failures. Validator success means no additional core failures were found.
 - 2026-08-26: Ten historical pipeline runtime-home directories were moved, without deletion, to ignored `.work/legacy-benchmark-cache/2026-04-13/`. Retained pipeline results are about 20 MB; the recoverable archive is about 263 MB. Git history was not rewritten.
+- 2026-08-26: cBioPortal co-mutation candidates now come from
+  `biocli-cancer-gene-context-v1`, a unique symbol/Entrez pair reference. The
+  legacy `known_driver` label is compatibility-only and its note states that
+  membership is a retrieval heuristic rather than driver evidence.
+- 2026-08-26: `workflow-prepare` validates exact GEO/SRA identity before any
+  filesystem write and stores the source record in `metadata/dataset.json`.
+- 2026-08-26: `gene-profile` retains its stable `top*` field names but exposes
+  `selectionBasis`; only STRING partners receive an explicit score ordering.
+- 2026-08-26: GDSC acquisition is opt-in. `drug-target` reads only a complete
+  local snapshot and otherwise returns partial completeness with an actionable
+  `gdsc prewarm` warning.
 
-## Final verification
+## Round 4 verification
+
+| Check | Result |
+|---|---|
+| `npm run validate:cancer-gene-context` | Passed; 172/172 identities matched current NCBI Gene symbols |
+| Focused regressions | Passed: cancer context 16, dataset/workflow validation 4, gene-profile 4, drug-target 12, GDSC 3 |
+| `npm ci` | Passed from the lockfile; 187 packages installed with no engine mismatch |
+| `npm run typecheck` | Passed |
+| `npm run test:all` | 98 files, 549 tests passed |
+| `npm run build` | Passed; generated 65-command manifest including `metadata/dataset.json` artifact metadata |
+| `npm run smoke:core` | Six core smoke checks passed |
+| `npm run smoke:live` | Seven live upstream checks passed |
+| `npm run verify:conda` | Passed |
+| `npm run check:repo-hygiene` | Passed across 646 tracked or publishable untracked files |
+| `npm run bench:agent-ab:validate` | Passed; two hash-pinned historical failures and strict warnings remain visible |
+| `npm audit --json` | 13 findings reviewed: 2 low, 4 moderate, 7 high, 0 critical; unchanged baseline, no force fix |
+| `npm pack` | Passed; `0.9.0` tarball is 281,688 bytes compressed with 293 entries |
+| Clean tarball install | Passed; version `0.9.0`, doctor 17/17, core smoke 6/6 |
+| Local conda build | Not run: default `/tmp` cache has 7.3 GiB free, below the helper's 8 GiB safety gate |
+| `git fsck --full` | Passed; only two unreachable dangling trees reported after AppleDouble cleanup |
+| `git diff --check` | Passed |
+
+Live customer-path smoke evidence:
+
+- clean-cache `drug-target EGFR --disease lung` completed in about 3.4 seconds
+  with Open Targets only, visible partial completeness, and no GDSC directory;
+- nonexistent `GSE999999999` returned `NOT_FOUND` and created no output path;
+- valid `GSE315149 --skip-download` resolved NCBI UID `200315149`, reported six
+  samples, and wrote source-backed GEO metadata.
+
+## Historical round 2 verification
 
 | Check | Result |
 |---|---|

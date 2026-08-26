@@ -863,6 +863,24 @@ describe('aggregate/drug-target', () => {
     });
   });
 
+  it('does not implicitly download GDSC when the local snapshot is missing', async () => {
+    getGdscDownloadMetaMock.mockReturnValue(null);
+    const command = getRegistry().get('aggregate/drug-target');
+
+    const result = await command!.func!(
+      {} as HttpContext,
+      { gene: 'EGFR', disease: 'lung', limit: 5, diseaseLimit: 5, reportLimit: 2 },
+    ) as Record<string, unknown>;
+
+    expect(loadGdscSensitivityIndexMock).not.toHaveBeenCalled();
+    expect(refreshGdscDatasetMock).not.toHaveBeenCalled();
+    expect(result.sources).toEqual(['Open Targets']);
+    expect(result.completeness).toBe('partial');
+    expect(result.warnings).toContain(
+      'GDSC sensitivity evidence skipped: local snapshot is not installed; run `biocli gdsc prewarm` explicitly to enable it.',
+    );
+  });
+
   it('keeps summary counts based on all matched candidates even when the returned list is limited', async () => {
     const command = getRegistry().get('aggregate/drug-target');
     const result = await command!.func!(

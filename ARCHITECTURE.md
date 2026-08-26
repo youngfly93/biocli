@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the `v0.8.1` runtime.
+This document describes the `v0.9.0` runtime.
 
 ## Runtime map
 

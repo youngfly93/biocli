@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-08-26
+
+This release makes customer-facing biological summaries safer to interpret and
+removes two surprising first-run behaviours: nonexistent accessions can no
+longer produce a complete workspace, and target discovery no longer starts a
+large GDSC download implicitly.
+
+### Added
+
+- **Versioned cancer-context identities.** cBioPortal co-mutation candidates
+  now come from `biocli-cancer-gene-context-v1`, which stores the human symbol
+  and Entrez Gene ID together. A live validator checks all 172 identities
+  against NCBI Gene, while offline regressions lock corrected mappings and the
+  `LPA`/`LRP1B` failure case.
+- **Source-backed workflow metadata.** `aggregate workflow-prepare` writes the
+  exact resolved GEO/SRA record to `metadata/dataset.json` and declares that
+  artifact in the generated command manifest.
+- **Explicit gene-profile selection semantics.** `data.agentSummary` gains the
+  required `selectionBasis` object. It states that KEGG pathway and disease
+  arrays are bounded upstream-order previews, while STRING partners are sorted
+  by combined score. The hero-summary contract is now version `0.2`.
+
+### Changed
+
+- `aggregate workflow-prepare` validates an exact GEO/SRA accession before any
+  filesystem write. Invalid accessions leave the requested output path
+  untouched. Atomic `sra run SRX...` queries retain their earlier experiment-to-
+  run resolution; only workspace preparation requires an exact run accession.
+- `aggregate drug-target` reads GDSC only from a complete local snapshot. When
+  the optional snapshot is absent, it returns Open Targets evidence promptly
+  with visible partial completeness and an actionable `biocli gdsc prewarm`
+  warning. Only explicit prewarm, refresh, or batch force-refresh operations
+  download GDSC files.
+- The compatibility `known_driver` context label now requires a matching
+  symbol/Entrez pair, identifies its versioned reference in the note, and
+  states that membership is a retrieval heuristic rather than independent
+  driver evidence.
+
+### Fixed
+
+- Corrected 14 stale or mismatched symbol/Entrez identities in the legacy
+  cancer-context candidate set, including `LRP1B` (`53353`) instead of `LPA`
+  (`4018`).
+- `gene-profile` no longer calls the first KEGG pathway or disease link “top”
+  without a ranking basis. STRING interaction partners now receive a stable
+  descending-score order with a name tie-breaker.
+
+### Verification
+
+- `npm run validate:cancer-gene-context`: 172/172 identities passed
+- `npm run test:all`: 98 files, 549 tests passed
+- `npm run typecheck`, `npm run build`, `npm run smoke:core`,
+  `npm run verify:conda`, and `npm run check:repo-hygiene` passed
+- all seven live API smoke checks passed
+- the 281,688-byte npm tarball installed in a clean temporary project;
+  `biocli --version` returned `0.9.0` and `verify --smoke` passed all stages
+- `npm audit` remains at the documented baseline: 2 low, 4 moderate, 7 high,
+  and 0 critical findings; no force upgrade was applied
+
 ## [0.8.1] - 2026-08-26
 
 Closes four gaps found by an independent review of `0.8.0`, in each case where

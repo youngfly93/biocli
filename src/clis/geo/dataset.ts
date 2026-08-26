@@ -6,9 +6,8 @@
  */
 
 import { cli, Strategy } from '../../registry.js';
-import { CliError } from '../../errors.js';
-import { buildEutilsUrl } from '../_shared/eutils.js';
 import { truncate } from '../_shared/common.js';
+import { fetchGeoDatasetMetadata } from '../_shared/dataset-metadata.js';
 
 cli({
   site: 'geo',
@@ -21,43 +20,17 @@ cli({
   ],
   columns: ['accession', 'title', 'organism', 'type', 'platform', 'samples', 'summary', 'date'],
   func: async (ctx, args) => {
-    const acc = String(args.accession).toUpperCase();
-
-    // Step 1: esearch by accession
-    const searchResult = await ctx.fetchJson(buildEutilsUrl('esearch.fcgi', {
-      db: 'gds',
-      term: `${acc}[Accession]`,
-      retmode: 'json',
-    }));
-
-    const result = searchResult as Record<string, unknown>;
-    const esearchResult = result?.esearchresult as Record<string, unknown> | undefined;
-    const ids: string[] = (esearchResult?.idlist as string[] | undefined) ?? [];
-
-    if (!ids.length) {
-      throw new CliError('NOT_FOUND', `GEO entry ${acc} not found`, 'Check that the accession is correct (e.g. GSE12345, GDS1234)');
-    }
-
-    // Step 2: esummary for full details
-    const summaryResult = await ctx.fetchJson(buildEutilsUrl('esummary.fcgi', {
-      db: 'gds',
-      id: ids[0],
-      retmode: 'json',
-    }));
-
-    const summary = summaryResult as Record<string, unknown>;
-    const resultObj = summary?.result as Record<string, unknown> | undefined;
-    const item = (resultObj?.[ids[0]] ?? {}) as Record<string, unknown>;
+    const metadata = await fetchGeoDatasetMetadata(ctx, String(args.accession));
 
     return [{
-      accession: String(item.accession ?? acc),
-      title: String(item.title ?? ''),
-      organism: String(item.taxon ?? ''),
-      type: String(item.entrytype ?? ''),
-      platform: String(item.gpl ?? ''),
-      samples: Number(item.n_samples ?? 0),
-      summary: truncate(String(item.summary ?? ''), 300),
-      date: String(item.pdat ?? ''),
+      accession: metadata.accession,
+      title: metadata.title,
+      organism: metadata.organism,
+      type: metadata.type,
+      platform: metadata.platform,
+      samples: metadata.samples,
+      summary: truncate(metadata.summary, 300),
+      date: metadata.date,
     }];
   },
 });

@@ -530,12 +530,24 @@ function shouldRebuildIndex(paths: GdscPaths, meta: GdscDownloadMeta): boolean {
   return GDSC_FILES.some(file => statSync(paths[file.key]).mtimeMs > indexMtime);
 }
 
-async function buildOrReadIndex(ctx: HttpContext): Promise<GdscSensitivityIndex> {
+export interface LoadGdscSensitivityOptions {
+  downloadIfMissing?: boolean;
+}
+
+async function buildOrReadIndex(
+  ctx: HttpContext,
+  opts: LoadGdscSensitivityOptions,
+): Promise<GdscSensitivityIndex> {
   const paths = gdscPaths();
-  ensureDir(paths.dir);
   let meta = readMeta(paths.meta);
   const complete = GDSC_FILES.every(file => existsSync(paths[file.key]));
   if (!complete || !meta) {
+    if (opts.downloadIfMissing === false) {
+      throw new ConfigError(
+        'GDSC sensitivity snapshot is not installed or is incomplete.',
+        'Run `biocli gdsc prewarm` explicitly to download and build the local snapshot.',
+      );
+    }
     meta = await refreshGdscDataset(ctx);
   }
 
@@ -551,9 +563,12 @@ async function buildOrReadIndex(ctx: HttpContext): Promise<GdscSensitivityIndex>
 
 let _loadPromise: Promise<GdscSensitivityIndex> | null = null;
 
-export function loadGdscSensitivityIndex(ctx: HttpContext): Promise<GdscSensitivityIndex> {
+export function loadGdscSensitivityIndex(
+  ctx: HttpContext,
+  opts: LoadGdscSensitivityOptions = {},
+): Promise<GdscSensitivityIndex> {
   if (_loadPromise) return _loadPromise;
-  _loadPromise = buildOrReadIndex(ctx).then((index) => {
+  _loadPromise = buildOrReadIndex(ctx, opts).then((index) => {
     const ageMs = Date.now() - new Date(index.meta.fetchedAt).getTime();
     const ageDays = Math.floor(ageMs / 86_400_000);
     if (ageDays > (index.meta.staleAfterDays ?? DEFAULT_GDSC_STALE_AFTER_DAYS)) {

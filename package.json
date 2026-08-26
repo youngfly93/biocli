@@ -1,6 +1,6 @@
 {
   "name": "@yangfei_93sky/biocli",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "Batch gene scanning, tumor cohort briefing, and target discovery for agent-driven biology workflows",
   "type": "module",
   "main": "dist/main.js",
@@ -30,6 +30,7 @@
     "build-manifest": "node dist/build-manifest.js",
     "clean-dist": "node scripts/clean-dist.cjs",
     "check:repo-hygiene": "node scripts/check-repo-hygiene.cjs",
+    "validate:cancer-gene-context": "tsx src/reference-data/validate-cancer-gene-context.ts",
     "clean-yaml": "node scripts/clean-yaml.cjs",
     "copy-yaml": "node scripts/copy-yaml.cjs",
     "start": "node dist/main.js",

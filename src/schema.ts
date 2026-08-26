@@ -293,6 +293,11 @@ const geneProfileDataSchema = objectSchema({
       name: { type: 'string' },
       source: { type: 'string' },
     }, ['id', 'name', 'source'])),
+    selectionBasis: objectSchema({
+      topPathways: { type: 'string' },
+      topInteractionPartners: { type: 'string' },
+      topDiseaseLinks: { type: 'string' },
+    }, ['topPathways', 'topInteractionPartners', 'topDiseaseLinks']),
     warnings: arraySchema({ type: 'string' }),
     completeness: stringEnum(['complete', 'partial', 'degraded']),
     recommendedNextStep: objectSchema({
@@ -306,6 +311,7 @@ const geneProfileDataSchema = objectSchema({
     'topPathways',
     'topInteractionPartners',
     'topDiseaseLinks',
+    'selectionBasis',
     'warnings',
     'completeness',
     'recommendedNextStep',

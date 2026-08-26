@@ -26,7 +26,7 @@ It stays useful because the outputs are structured, resumable, and pipeline-frie
 </p>
 
 ```
-biocli v0.8.1
+biocli v0.9.0
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · cBioPortal · Open Targets · GDSC · Unimod (local)
 Task-first entrypoints: batch gene scanning · tumor cohort briefing · target discovery
 Platform inventory: 65 commands · 11 database backends · 2 reference datasets · 14 workflow commands · 4 download commands
@@ -34,7 +34,7 @@ Platform inventory: 65 commands · 11 database backends · 2 reference datasets 
 
 ## Install
 
-biocli is published on npm today, and this repository now includes a conda packaging scaffold under [`packaging/conda`](packaging/conda/README.md). The long-term preferred command for research environments will be:
+biocli is published on npm, and this repository includes a conda packaging scaffold under [`packaging/conda`](packaging/conda/README.md). GitHub releases and npm publication are separate steps: `npm install` installs the version shown by the npm badge, while a source checkout reports the repository release version. The long-term preferred command for research environments will be:
 
 ```bash
 conda install -c bioconda -c conda-forge biocli
@@ -79,7 +79,7 @@ If you want the conda route instead, see [`packaging/conda/README.md`](packaging
 These checks confirm biocli is wired up end-to-end. Expected runtime depends on upstream API availability.
 
 ```bash
-biocli --version                              # should print 0.8.1
+biocli --version                              # should match the channel/version you installed
 biocli verify --smoke -f json                 # config + doctor + 6 core smoke tests
 biocli aggregate gene-dossier TP53 -f json    # real query across NCBI / UniProt / KEGG / STRING / PubMed / ClinVar
 biocli aggregate tumor-gene-dossier TP53 --study acc_tcga_pan_can_atlas_2018 -f json
@@ -114,6 +114,11 @@ biocli aggregate drug-target \
 ```
 
 That command gives you a resumable target triage run directory instead of one-off terminal output. The default artifact path is:
+
+On a clean machine it uses Open Targets immediately and reports GDSC as an
+optional missing source. Run `biocli gdsc prewarm` first only when you want the
+local cell-line sensitivity overlay; target queries never trigger that bulk
+download themselves.
 
 ```text
 runs/drug-target/
@@ -206,7 +211,10 @@ biocli cbioportal frequency TP53 --study acc_tcga_pan_can_atlas_2018 -f json
 # Tumor-aware hero workflow
 biocli aggregate tumor-gene-dossier TP53 --study acc_tcga_pan_can_atlas_2018 --co-mutations 5 -f json
 
-# Target tractability + drug candidates with GDSC sensitivity evidence
+# Optional one-time install of local GDSC sensitivity evidence
+biocli gdsc prewarm
+
+# Target tractability + drug candidates (uses GDSC only when prewarmed)
 biocli aggregate drug-target EGFR --disease lung -f json
 
 # Add a tumor-study overlay from cBioPortal with study-aware ranking
@@ -215,16 +223,13 @@ biocli aggregate drug-target EGFR --disease lung --study luad_tcga_pan_can_atlas
 # Tumor co-mutation partners in cBioPortal
 biocli cbioportal co-mutations EGFR --study luad_tcga_pan_can_atlas_2018 --limit 10 -f json
 
-# Prewarm local GDSC sensitivity evidence before first drug-target query
-biocli gdsc prewarm
-
 # Cross-omics: find proteomics datasets reporting a PTM on a specific gene
 biocli aggregate ptm-datasets TP53 --modification phospho --limit 5
 ```
 
 For agent pipelines, treat these as the stable first-pass fields:
 
-- `aggregate gene-profile` -> `data.agentSummary.topPathways`, `topInteractionPartners`, `topDiseaseLinks`, `recommendedNextStep`
+- `aggregate gene-profile` -> `data.agentSummary.topPathways`, `topInteractionPartners`, `topDiseaseLinks`, `selectionBasis`, `recommendedNextStep`
 - `aggregate drug-target` -> `data.agentSummary.topCandidates`, `matchedDisease`, `tumorContext`, `topSensitivitySignals`
 - `aggregate tumor-gene-dossier` -> `data.agentSummary.prevalence`, `topCoMutations`, `exemplarVariants`, `recommendedNextStep`
 
@@ -273,6 +278,12 @@ biocli aggregate workflow-scout "TP53 breast cancer RNA-seq" --gene TP53
 # Prepare a working directory with data + annotations + manifest
 biocli aggregate workflow-prepare GSE315149 --gene TP53 --outdir ./project
 ```
+
+`workflow-prepare` validates an exact GEO/SRA accession before creating the
+output directory and records the resolved NCBI metadata in
+`metadata/dataset.json`. `drug-target` never downloads the local GDSC snapshot
+implicitly; without `gdsc prewarm`, it returns a visible partial-result warning
+and continues with Open Targets evidence.
 
 Pipeline benchmark proof on current hero workflows:
 
@@ -496,7 +507,7 @@ biocli list -f json         # full JSON with per-command schema
 | `aggregate enrichment <genes>` | Enrichr+STRING | Pathway/GO enrichment analysis |
 | `aggregate gene-profile <gene>` | NCBI+UniProt+KEGG+STRING | Gene profile (no literature) |
 | `aggregate workflow-scout <query>` | GEO+SRA | Scout datasets for a research question |
-| `aggregate workflow-prepare <dataset>` | GEO+NCBI+UniProt+KEGG | Prepare research-ready directory with data + annotations |
+| `aggregate workflow-prepare <dataset>` | GEO/SRA+NCBI+UniProt+KEGG | Validate the accession and prepare a directory with source metadata, data staging, and annotations |
 | `aggregate workflow-annotate <genes>` | NCBI+UniProt+KEGG+Enrichr | Annotate gene list → genes.csv + pathways.csv + enrichment.csv + report.md |
 | `aggregate workflow-profile <genes>` | NCBI+UniProt+KEGG+STRING+Enrichr | Gene set functional profile → shared pathways, interactions, GO terms |
 | `aggregate ptm-datasets <gene> --modification <type>` | Unimod + ProteomeXchange | Find proteomics datasets reporting a specific PTM on a gene |

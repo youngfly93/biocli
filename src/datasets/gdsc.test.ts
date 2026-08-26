@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { mkdtempSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import xlsx from 'xlsx';
@@ -169,5 +169,17 @@ describe('gdsc dataset index', () => {
       zScore: -1.11,
     });
   });
-});
 
+  it('does not create or download a snapshot when downloadIfMissing is false', async () => {
+    const paths = gdscPaths();
+    rmSync(paths.dir, { recursive: true, force: true });
+    _resetGdscSingleton();
+
+    await expect(loadGdscSensitivityIndex(DUMMY_CTX, { downloadIfMissing: false }))
+      .rejects.toMatchObject({
+        code: 'CONFIG',
+        message: 'GDSC sensitivity snapshot is not installed or is incomplete.',
+      });
+    expect(existsSync(paths.dir)).toBe(false);
+  });
+});

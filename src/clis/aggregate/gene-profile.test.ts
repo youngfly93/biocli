@@ -179,6 +179,12 @@ describe('aggregate/gene-profile', () => {
       name: 'p53 signaling pathway',
       source: 'KEGG',
     });
+    expect(result.data.agentSummary.topFinding).not.toContain('top pathway');
+    expect(result.data.agentSummary.selectionBasis).toMatchObject({
+      topPathways: expect.stringContaining('upstream order'),
+      topInteractionPartners: expect.stringContaining('descending combined-score'),
+      topDiseaseLinks: expect.stringContaining('upstream order'),
+    });
     expect(result.data.agentSummary.recommendedNextStep.rationale).toContain('pathway');
   });
 

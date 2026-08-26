@@ -359,9 +359,13 @@ async function prepareDrugTargetBatchRun(
       reportProgress('Refreshing GDSC snapshot before batch run…');
       await refreshGdscDataset(gdscCtx, { force: true });
     } else {
+      if (!getGdscDownloadMeta()) {
+        reportProgress('GDSC snapshot is not installed; batch will continue without sensitivity evidence. Run `biocli gdsc prewarm` to enable it.');
+        return;
+      }
       reportProgress('Preloading GDSC snapshot before batch run…');
     }
-    await loadGdscSensitivityIndex(gdscCtx);
+    await loadGdscSensitivityIndex(gdscCtx, { downloadIfMissing: false });
   } catch (error) {
     reportProgress(`GDSC preload unavailable; continuing without upfront refresh: ${error instanceof Error ? error.message : String(error)}`);
     return;
@@ -1462,12 +1466,16 @@ async function buildDrugTargetResult(
 
   const gdscWarnings: string[] = [];
   let gdscIndex: GdscSensitivityIndex | null = null;
-  try {
-    reportProgress('Loading GDSC sensitivity index…');
-    const gdscCtx = createHttpContextForDatabase('gdsc');
-    gdscIndex = await loadGdscSensitivityIndex(gdscCtx);
-  } catch (error) {
-    gdscWarnings.push(`GDSC sensitivity evidence unavailable: ${error instanceof Error ? error.message : String(error)}`);
+  if (!getGdscDownloadMeta()) {
+    gdscWarnings.push('GDSC sensitivity evidence skipped: local snapshot is not installed; run `biocli gdsc prewarm` explicitly to enable it.');
+  } else {
+    try {
+      reportProgress('Loading local GDSC sensitivity index…');
+      const gdscCtx = createHttpContextForDatabase('gdsc');
+      gdscIndex = await loadGdscSensitivityIndex(gdscCtx, { downloadIfMissing: false });
+    } catch (error) {
+      gdscWarnings.push(`GDSC sensitivity evidence unavailable: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   const studyMetaWarnings: string[] = [];

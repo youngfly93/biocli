@@ -19,6 +19,11 @@ import { buildEutilsUrl } from '../../databases/ncbi.js';
 import { buildUniprotUrl } from '../../databases/uniprot.js';
 import { buildKeggUrl, parseKeggTsv } from '../../databases/kegg.js';
 import { getVersion } from '../../version.js';
+import {
+  fetchGeoDatasetMetadata,
+  fetchSraRunMetadata,
+  type DatasetMetadata,
+} from '../_shared/dataset-metadata.js';
 import { mkdirSync, existsSync, writeFileSync, createWriteStream } from 'node:fs';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
@@ -36,6 +41,7 @@ cli({
   sideEffects: ['writes-filesystem', 'downloads-remote-files'],
   artifacts: [
     { path: '<outdir>/data/', kind: 'directory', description: 'Downloaded dataset files or dataset staging area' },
+    { path: '<outdir>/metadata/dataset.json', kind: 'file', description: 'NCBI-validated dataset metadata' },
     { path: '<outdir>/annotations/', kind: 'directory', description: 'Gene and pathway annotation files' },
     { path: '<outdir>/manifest.json', kind: 'file', description: 'Workflow provenance manifest' },
   ],
@@ -74,19 +80,41 @@ cli({
         'Use a GSE accession (GEO) or SRR/ERR/DRR accession (SRA)');
     }
 
-    // Create output directory structure
-    reportProgress('Preparing output directories…');
-    const dataDir = join(outdir, 'data');
-    const annotDir = join(outdir, 'annotations');
-    for (const dir of [outdir, dataDir, annotDir]) {
-      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    }
-
     const sources: string[] = [];
     const warnings: string[] = [];
     const steps: { step: string; status: string; detail: string }[] = [];
-
     const ncbiCtx = createHttpContextForDatabase('ncbi');
+
+    // Validate the accession before creating or modifying the requested path.
+    reportProgress(`Validating ${dataset} against NCBI…`);
+    const datasetMetadata: DatasetMetadata = isGEO
+      ? await fetchGeoDatasetMetadata(ncbiCtx, dataset)
+      : await fetchSraRunMetadata(ncbiCtx, dataset, { requireExactRun: true });
+    const validatedAt = new Date().toISOString();
+    sources.push(datasetMetadata.source);
+    steps.push({
+      step: 'dataset-validation',
+      status: 'done',
+      detail: `${datasetMetadata.source} ${datasetMetadata.accession} resolved as NCBI UID ${datasetMetadata.ncbiUid}`,
+    });
+
+    // Create output directory structure only after exact accession validation.
+    reportProgress('Preparing output directories…');
+    const dataDir = join(outdir, 'data');
+    const metadataDir = join(outdir, 'metadata');
+    const annotDir = join(outdir, 'annotations');
+    for (const dir of [outdir, dataDir, metadataDir, annotDir]) {
+      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    }
+    writeFileSync(join(metadataDir, 'dataset.json'), JSON.stringify({
+      ...datasetMetadata,
+      validatedAt,
+    }, null, 2));
+    steps.push({
+      step: 'dataset-metadata',
+      status: 'done',
+      detail: 'NCBI metadata → metadata/dataset.json',
+    });
 
     // ── Step 1: Download dataset ────────────────────────────────────────
     if (!skipDownload) {
@@ -257,6 +285,8 @@ cli({
     const result = wrapResult({
       outdir,
       dataset,
+      datasetMetadata,
+      artifacts: { datasetMetadata: 'metadata/dataset.json' },
       steps,
     }, {
       ids: { dataset, ...(genes.length === 1 ? { gene: genes[0] } : {}) },
@@ -274,15 +304,18 @@ cli({
       createdAt: result.queriedAt,
       dataset,
       genes,
-      organism: 'Homo sapiens',
+      organism: datasetMetadata.organism || 'unknown',
+      annotationOrganism: genes.length > 0 ? 'Homo sapiens' : undefined,
       sources: result.sources,
       warnings: result.warnings,
       completeness: result.completeness,
       provenance: result.provenance,
       directories: {
         data: 'data/',
+        metadata: 'metadata/',
         annotations: 'annotations/',
       },
+      datasetMetadata: 'metadata/dataset.json',
       steps,
     };
     writeFileSync(join(outdir, 'manifest.json'), JSON.stringify(manifest, null, 2));

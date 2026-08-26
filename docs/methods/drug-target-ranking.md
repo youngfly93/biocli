@@ -113,6 +113,13 @@ These weights express routing priority and source directness in this product; th
 
 ### GDSC sensitivity component
 
+`aggregate drug-target` reads GDSC only from an already-installed local
+snapshot. It does not download bulk workbooks during a target query. Install
+the optional snapshot explicitly with `biocli gdsc prewarm`; when it is absent
+or incomplete, the result carries a warning, omits the sensitivity component,
+and reports partial completeness. This acquisition policy does not change the
+score produced from the same installed snapshot.
+
 When a candidate can be linked to the local GDSC index, the component is:
 
 ```text

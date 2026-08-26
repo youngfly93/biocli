@@ -75,6 +75,11 @@ interface GeneProfileAgentSummary {
   topPathways: GeneProfileAgentSummaryPathway[];
   topInteractionPartners: GeneProfileAgentSummaryInteraction[];
   topDiseaseLinks: GeneProfileAgentSummaryDisease[];
+  selectionBasis: {
+    topPathways: string;
+    topInteractionPartners: string;
+    topDiseaseLinks: string;
+  };
   warnings: string[];
   completeness: BiocliCompleteness;
   recommendedNextStep: GeneProfileRecommendedNextStep;
@@ -115,13 +120,13 @@ function buildGeneProfileTopFinding(
   const leadInteraction = interactions[0];
   const leadDisease = diseases[0];
   const findings: string[] = [];
-  if (leadPathway) findings.push(`top pathway ${leadPathway.name}`);
-  if (leadInteraction) findings.push(`top interaction partner ${leadInteraction.partner}`);
-  if (leadDisease) findings.push(`disease link ${leadDisease.name}`);
+  if (leadPathway) findings.push(`a KEGG pathway association (${leadPathway.name})`);
+  if (leadInteraction) findings.push(`the highest-STRING-score interaction partner (${leadInteraction.partner}, ${leadInteraction.score})`);
+  if (leadDisease) findings.push(`a KEGG disease association (${leadDisease.name})`);
   if (findings.length === 0) {
-    return `${symbol.toUpperCase()} returned a baseline multi-database profile with no strong pathway, interaction, or disease highlights.`;
+    return `${symbol.toUpperCase()} returned a baseline multi-database profile with no pathway, interaction, or disease associations in the queried sources.`;
   }
-  return `${symbol.toUpperCase()} profile highlights ${findings.join(', ')}.`;
+  return `${symbol.toUpperCase()} profile includes ${findings.join(', ')}.`;
 }
 
 function buildGeneProfileAgentSummary(
@@ -141,13 +146,18 @@ function buildGeneProfileAgentSummary(
     topPathways,
     topInteractionPartners,
     topDiseaseLinks,
+    selectionBasis: {
+      topPathways: 'First three KEGG pathway links in upstream order; KEGG does not provide a relevance ranking.',
+      topInteractionPartners: 'First three STRING partners after descending combined-score sorting.',
+      topDiseaseLinks: 'First three KEGG disease links in upstream order; KEGG does not provide a relevance ranking.',
+    },
     warnings: [...warnings],
     completeness: deriveBiocliCompleteness(sources, warnings),
     recommendedNextStep: {
       type: 'inspect-profile',
       command: buildGeneProfileCommandSnippet(symbol, organismName),
       focus: topPathways[0]
-        ? `Review pathway context starting with ${topPathways[0].name}.`
+        ? `Review returned pathway context including ${topPathways[0].name}; pathway order is not a relevance ranking.`
         : 'Review the baseline profile fields and identifier mappings.',
       rationale: topPathways[0] || topInteractionPartners[0] || topDiseaseLinks[0]
         ? `The profile already exposes pathway, interaction, or disease signals worth deeper inspection.`
@@ -352,10 +362,12 @@ async function fetchStringPartners(ctx: HttpContext, symbol: string, taxId: numb
 
   if (!Array.isArray(data)) return [];
 
-  return data.map(item => ({
-    partner: String(item.preferredName_B ?? ''),
-    score: Number(item.score ?? 0),
-  }));
+  return data
+    .map(item => ({
+      partner: String(item.preferredName_B ?? ''),
+      score: Number(item.score ?? 0),
+    }))
+    .sort((a, b) => b.score - a.score || a.partner.localeCompare(b.partner));
 }
 
 // ── Main command ──────────────────────────────────────────────────────────────
