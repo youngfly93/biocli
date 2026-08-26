@@ -59,6 +59,77 @@ const MODALITY_LABELS: Record<string, string> = {
   SM: 'small molecule',
 };
 
+export const DRUG_TARGET_RANKING_METHOD_VERSION = 'biocli-drug-target-ranking-v1';
+
+/**
+ * Versioned product heuristic used to order candidates. The score is a
+ * prioritization aid, not a probability, efficacy estimate, or clinical grade.
+ * Changing any value requires a method-version bump and regression updates.
+ */
+export const DRUG_TARGET_RANKING_CONFIG = {
+  methodVersion: DRUG_TARGET_RANKING_METHOD_VERSION,
+  stageDivisor: 10,
+  phraseMatchScores: {
+    exact: 12,
+    containedMultiToken: 10,
+    reverseContainedMultiToken: 8,
+    multiTokenOverlap: 7,
+    containedSingleToken: 7,
+    reverseContainedSingleToken: 5,
+    singleTokenOverlap: 4,
+    weakSingleTokenOverlap: 3,
+  },
+  matchWeights: {
+    disease: 1.5,
+    diseaseSpecificity: 0.35,
+    study: 1.2,
+    gene: 0.9,
+    approvedIndication: 0.2,
+  },
+  reportCountCap: 3,
+  diseaseSpecificity: {
+    ontologyIdBonus: 1.25,
+    textOnlyBonus: 0.35,
+    tokenWeight: 0.18,
+    tokenCap: 6,
+  },
+  diseaseContextBreadth: {
+    unpenalizedCount: 1,
+    log2Weight: 0.28,
+    cap: 1.1,
+  },
+  approvedIndicationBreadth: {
+    unpenalizedCount: 2,
+    log2Weight: 0.24,
+    cap: 1.35,
+  },
+  clinicalSourceWeights: {
+    FDA: 1.2,
+    'EMA Human Drugs': 1.1,
+    EMA: 1.0,
+    DailyMed: 1.0,
+    PMDA: 0.9,
+    AACT: 0.6,
+    ATC: 0.4,
+  } as Readonly<Record<string, number>>,
+  unknownClinicalSourceWeight: 0.25,
+  clinicalSourceQualityCap: 2.5,
+  recency: {
+    baselineYear: 2021,
+    perYear: 0.15,
+    cap: 0.9,
+  },
+  sensitivity: {
+    zScoreCap: 4,
+    datasetCountCap: 2,
+    datasetWeight: 0.8,
+    measurementCountCap: 10,
+    measurementWeight: 0.1,
+    matchedTissueBonus: 1.5,
+    unfilteredTissueBonus: 0.5,
+  },
+} as const;
+
 interface DrugTargetDiseaseContext {
   id?: string;
   name: string;
@@ -106,8 +177,26 @@ interface DrugTargetSensitivity {
   signals: string[];
 }
 
+interface DrugTargetRankingComponents {
+  clinicalStage: number;
+  diseaseMatch: number;
+  diseaseSpecificity: number;
+  studyMatch: number;
+  geneMatch: number;
+  reportEvidence: number;
+  approvedIndicationMatch: number;
+  sourceQuality: number;
+  recency: number;
+  sensitivity: number;
+  diseaseContextBreadthPenalty: number;
+  approvedIndicationBreadthPenalty: number;
+}
+
 interface DrugTargetRanking {
+  methodVersion: typeof DRUG_TARGET_RANKING_METHOD_VERSION;
   score: number;
+  components: DrugTargetRankingComponents;
+  evidenceReportCount: number;
   matchedDiseaseTerms: string[];
   matchedGeneTerms: string[];
   matchedStudyTerms: string[];
@@ -183,6 +272,7 @@ interface DrugTargetData {
   };
   summary: {
     rankingMode: 'global' | 'disease-aware' | 'study-aware';
+    rankingMethodVersion: typeof DRUG_TARGET_RANKING_METHOD_VERSION;
     diseaseFilter?: string;
     totalCandidates: number;
     matchedCandidates: number;
@@ -216,14 +306,6 @@ interface MutableCandidate {
   drugType: string;
   diseaseContexts: DrugTargetDiseaseContext[];
   clinicalReports: DrugTargetClinicalEvidence[];
-}
-
-interface CandidateRankingComputation {
-  score: number;
-  matchedDiseaseTerms: string[];
-  matchedGeneTerms: string[];
-  matchedStudyTerms: string[];
-  signals: string[];
 }
 
 interface CandidateSensitivityComputation {
@@ -315,6 +397,18 @@ const GENERIC_STUDY_TERMS = new Set([
   'solid tumors',
   'tumor',
   'tumors',
+]);
+
+const CONTEXT_SIGNATURE_STOPWORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'for',
+  'in',
+  'of',
+  'or',
+  'the',
+  'to',
 ]);
 
 function normalizeTerm(value: string): string {
@@ -541,6 +635,137 @@ function uniqueNormalizedTerms(values: string[]): string[] {
   return terms;
 }
 
+function choosePreferredText(current: string, next: string): string {
+  const currentNormalized = normalizePhrase(current);
+  const nextNormalized = normalizePhrase(next);
+  if (!currentNormalized) return next.trim();
+  if (!nextNormalized) return current.trim();
+  if (currentNormalized === nextNormalized) {
+    return current.length <= next.length ? current.trim() : next.trim();
+  }
+
+  const currentTokenCount = tokenize(current).length;
+  const nextTokenCount = tokenize(next).length;
+  if (currentTokenCount !== nextTokenCount) {
+    return currentTokenCount > nextTokenCount ? current.trim() : next.trim();
+  }
+  if (current.length !== next.length) {
+    return current.length > next.length ? current.trim() : next.trim();
+  }
+  return current.localeCompare(next) <= 0 ? current.trim() : next.trim();
+}
+
+function choosePreferredSourceName(
+  diseaseName: string,
+  current: string | undefined,
+  next: string | undefined,
+): string | undefined {
+  const diseaseNormalized = normalizePhrase(diseaseName);
+  const currentNormalized = normalizePhrase(current ?? '');
+  const nextNormalized = normalizePhrase(next ?? '');
+
+  const currentValue = currentNormalized && currentNormalized !== diseaseNormalized ? current?.trim() : undefined;
+  const nextValue = nextNormalized && nextNormalized !== diseaseNormalized ? next?.trim() : undefined;
+  if (!currentValue) return nextValue;
+  if (!nextValue) return currentValue;
+  return choosePreferredText(currentValue, nextValue);
+}
+
+function semanticContextSignature(context: DrugTargetDiseaseContext): string {
+  const tokens = uniqueByKey(
+    tokenize(context.name || context.sourceName || '')
+      .filter(token => !CONTEXT_SIGNATURE_STOPWORDS.has(token)),
+    value => value,
+  ).sort();
+  if (tokens.length > 0) return tokens.join(' ');
+  return normalizePhrase(context.name || context.sourceName || '');
+}
+
+function semanticDisplayLabelScore(value: string): [number, number, number, string] {
+  const tokens = tokenize(value);
+  const stopwordCount = tokens.filter(token => CONTEXT_SIGNATURE_STOPWORDS.has(token)).length;
+  return [stopwordCount, tokens.length, value.trim().length, value.trim().toLowerCase()];
+}
+
+function choosePreferredSemanticLabel(current: string, next: string): string {
+  const currentScore = semanticDisplayLabelScore(current);
+  const nextScore = semanticDisplayLabelScore(next);
+  if (currentScore[0] !== nextScore[0]) return currentScore[0] < nextScore[0] ? current.trim() : next.trim();
+  if (currentScore[1] !== nextScore[1]) return currentScore[1] < nextScore[1] ? current.trim() : next.trim();
+  if (currentScore[2] !== nextScore[2]) return currentScore[2] < nextScore[2] ? current.trim() : next.trim();
+  return currentScore[3] <= nextScore[3] ? current.trim() : next.trim();
+}
+
+function compactDiseaseContexts(contexts: DrugTargetDiseaseContext[]): DrugTargetDiseaseContext[] {
+  const compacted = new Map<string, DrugTargetDiseaseContext>();
+  for (const context of contexts) {
+    const signature = semanticContextSignature(context);
+    const normalizedName = normalizePhrase(context.name);
+    const normalizedSource = normalizePhrase(context.sourceName ?? '');
+    const key = signature || normalizedName || normalizedSource;
+    if (!key) continue;
+
+    const existing = compacted.get(key);
+    if (!existing) {
+      compacted.set(key, { ...context });
+      continue;
+    }
+
+    const nextName = context.name.trim() || context.sourceName?.trim() || existing.name;
+    const mergedName = semanticContextSignature(existing) === signature
+      ? choosePreferredSemanticLabel(existing.name, nextName)
+      : choosePreferredText(existing.name, nextName);
+    compacted.set(key, {
+      id: existing.id ?? context.id,
+      name: mergedName,
+      sourceName: choosePreferredSourceName(
+        mergedName,
+        existing.sourceName,
+        context.sourceName,
+      ),
+    });
+  }
+  return [...compacted.values()];
+}
+
+function mergeDiseaseContexts(contexts: DrugTargetDiseaseContext[]): DrugTargetDiseaseContext[] {
+  const merged = new Map<string, DrugTargetDiseaseContext>();
+  for (const context of contexts) {
+    const normalizedName = normalizePhrase(context.name);
+    const normalizedSourceName = normalizePhrase(context.sourceName ?? '');
+    const key = context.id
+      ? `id:${context.id}`
+      : `term:${normalizedName || normalizedSourceName}`;
+    if (!key || key.endsWith(':')) continue;
+
+    const nextName = context.name.trim() || context.sourceName?.trim() || '';
+    if (!nextName) continue;
+
+    const existing = merged.get(key);
+    if (!existing) {
+      merged.set(key, {
+        id: context.id,
+        name: nextName,
+        sourceName: choosePreferredSourceName(nextName, undefined, context.sourceName),
+      });
+      continue;
+    }
+
+    const mergedName = choosePreferredText(existing.name, nextName);
+    merged.set(key, {
+      id: existing.id ?? context.id,
+      name: mergedName,
+      sourceName: choosePreferredSourceName(
+        mergedName,
+        existing.sourceName,
+        context.sourceName,
+      ),
+    });
+  }
+
+  return compactDiseaseContexts([...merged.values()]);
+}
+
 function mapDiseaseContexts(rows: OpenTargetsClinicalDiseaseRow[]): DrugTargetDiseaseContext[] {
   const contexts: DrugTargetDiseaseContext[] = [];
   for (const row of rows) {
@@ -558,8 +783,7 @@ function mapDiseaseContexts(rows: OpenTargetsClinicalDiseaseRow[]): DrugTargetDi
     contexts.push({ name: sourceName, sourceName });
   }
 
-  return uniqueByKey(contexts, context =>
-    `${context.id ?? ''}::${context.name.toLowerCase()}::${context.sourceName?.toLowerCase() ?? ''}`);
+  return mergeDiseaseContexts(contexts);
 }
 
 function diseaseMatchesFilter(contexts: DrugTargetDiseaseContext[], diseaseFilter: string): boolean {
@@ -599,11 +823,73 @@ function diseaseContextRank(context: DrugTargetDiseaseContext, normalizedFilter:
   return 0;
 }
 
+function bestDiseaseSpecificityScore(
+  contexts: DrugTargetDiseaseContext[],
+  terms: string[],
+): number {
+  if (contexts.length === 0 || terms.length === 0) return 0;
+  let best = 0;
+  for (const context of contexts) {
+    const candidates = [context.name, context.sourceName ?? ''].filter(Boolean);
+    const tokenCount = Math.max(tokenize(context.name).length, tokenize(context.sourceName ?? '').length);
+    const config = DRUG_TARGET_RANKING_CONFIG.diseaseSpecificity;
+    const specificityBoost = (context.id ? config.ontologyIdBonus : config.textOnlyBonus)
+      + Math.min(tokenCount, config.tokenCap) * config.tokenWeight;
+    for (const candidate of candidates) {
+      for (const term of terms) {
+        const phraseScore = phraseMatchScore(candidate, term);
+        if (phraseScore === 0) continue;
+        best = Math.max(best, phraseScore + specificityBoost);
+      }
+    }
+  }
+  return Number(best.toFixed(2));
+}
+
+function diseaseContextBreadthPenalty(
+  contexts: DrugTargetDiseaseContext[],
+): number {
+  const config = DRUG_TARGET_RANKING_CONFIG.diseaseContextBreadth;
+  if (contexts.length <= config.unpenalizedCount) return 0;
+  return Number(Math.min(Math.log2(contexts.length) * config.log2Weight, config.cap).toFixed(2));
+}
+
+function approvedIndicationBreadthPenalty(
+  indications: string[],
+): number {
+  const config = DRUG_TARGET_RANKING_CONFIG.approvedIndicationBreadth;
+  if (indications.length <= config.unpenalizedCount) return 0;
+  return Number(Math.min(Math.log2(indications.length) * config.log2Weight, config.cap).toFixed(2));
+}
+
+function clinicalEvidenceSourceQuality(
+  evidenceSourceCounts: DrugTargetEvidenceSourceCount[],
+): number {
+  const weighted = evidenceSourceCounts.reduce((sum, item) => (
+    sum + (DRUG_TARGET_RANKING_CONFIG.clinicalSourceWeights[item.source]
+      ?? DRUG_TARGET_RANKING_CONFIG.unknownClinicalSourceWeight)
+  ), 0);
+  return Number(Math.min(weighted, DRUG_TARGET_RANKING_CONFIG.clinicalSourceQualityCap).toFixed(2));
+}
+
+function clinicalEvidenceRecency(
+  clinicalReports: DrugTargetClinicalEvidence[],
+): number {
+  const latestYear = clinicalReports.reduce((best, report) => Math.max(best, report.year ?? 0), 0);
+  if (latestYear === 0) return 0;
+  const config = DRUG_TARGET_RANKING_CONFIG.recency;
+  return Number(Math.min(
+    Math.max(latestYear - config.baselineYear, 0) * config.perYear,
+    config.cap,
+  ).toFixed(2));
+}
+
 function phraseMatchScore(text: string, term: string): number {
   const normalizedText = normalizePhrase(text);
   const normalizedTerm = normalizePhrase(term);
   if (!normalizedText || !normalizedTerm) return 0;
-  if (normalizedText === normalizedTerm) return 12;
+  const scores = DRUG_TARGET_RANKING_CONFIG.phraseMatchScores;
+  if (normalizedText === normalizedTerm) return scores.exact;
   const termTokens = tokenize(normalizedTerm);
   const textTokens = tokenize(normalizedText);
   if (termTokens.length === 0) return 0;
@@ -624,14 +910,24 @@ function phraseMatchScore(text: string, term: string): number {
     return false;
   };
 
-  if (containsTokenSequence(textTokens, termTokens)) return termTokens.length >= 2 ? 10 : termTokens[0]!.length >= 4 ? 7 : 0;
-  if (containsTokenSequence(termTokens, textTokens)) return textTokens.length >= 2 ? 8 : textTokens[0]!.length >= 4 ? 5 : 0;
+  if (containsTokenSequence(textTokens, termTokens)) {
+    return termTokens.length >= 2
+      ? scores.containedMultiToken
+      : termTokens[0]!.length >= 4 ? scores.containedSingleToken : 0;
+  }
+  if (containsTokenSequence(termTokens, textTokens)) {
+    return textTokens.length >= 2
+      ? scores.reverseContainedMultiToken
+      : textTokens[0]!.length >= 4 ? scores.reverseContainedSingleToken : 0;
+  }
 
   const overlap = termTokens.filter(token => textTokenSet.has(token)).length;
   if (overlap >= Math.min(2, termTokens.length)) {
-    return termTokens.length >= 2 ? 7 : 4;
+    return termTokens.length >= 2 ? scores.multiTokenOverlap : scores.singleTokenOverlap;
   }
-  if (overlap === 1 && termTokens.length === 1 && normalizedTerm.length >= 4) return 3;
+  if (overlap === 1 && termTokens.length === 1 && normalizedTerm.length >= 4) {
+    return scores.weakSingleTokenOverlap;
+  }
   return 0;
 }
 
@@ -771,11 +1067,14 @@ function buildCandidateSensitivity(
   const matchedMeasurementCount = datasetSummaries.reduce((sum, dataset) => sum + dataset.matchedMeasurementCount, 0);
   const uniqueDatasets = uniqueByKey(datasetSummaries.map(dataset => dataset.dataset), value => value);
   const bestZScore = strongest[0]?.zScore;
+  const sensitivityConfig = DRUG_TARGET_RANKING_CONFIG.sensitivity;
   const rankingScore = Number((
-    (bestZScore !== undefined ? Math.min(Math.max(-bestZScore, 0), 4) : 0)
-    + Math.min(uniqueDatasets.length, 2) * 0.8
-    + Math.min(matchedMeasurementCount, 10) * 0.1
-    + (matchedTissues.size > 0 ? 1.5 : includeAllTissues ? 0.5 : 0)
+    (bestZScore !== undefined ? Math.min(Math.max(-bestZScore, 0), sensitivityConfig.zScoreCap) : 0)
+    + Math.min(uniqueDatasets.length, sensitivityConfig.datasetCountCap) * sensitivityConfig.datasetWeight
+    + Math.min(matchedMeasurementCount, sensitivityConfig.measurementCountCap) * sensitivityConfig.measurementWeight
+    + (matchedTissues.size > 0
+      ? sensitivityConfig.matchedTissueBonus
+      : includeAllTissues ? sensitivityConfig.unfilteredTissueBonus : 0)
   ).toFixed(2));
 
   const signals = [
@@ -842,12 +1141,13 @@ function computeCandidateRanking(
     diseaseContexts: DrugTargetDiseaseContext[];
     clinicalReports: DrugTargetClinicalEvidence[];
     evidenceSourceCounts: DrugTargetEvidenceSourceCount[];
+    approvedIndications: string[];
     sensitivity?: CandidateSensitivityComputation | null;
   },
   diseaseFilter: string,
   studyTerms: string[],
   geneTerms: string[],
-): CandidateRankingComputation {
+): DrugTargetRanking {
   const diseaseTerms = diseaseFilter ? uniqueNormalizedTerms([diseaseFilter]) : [];
   const matchedDiseaseTerms = bestPhraseMatches(candidate.diseaseContexts, diseaseTerms);
   const matchedStudyTerms = bestPhraseMatches(candidate.diseaseContexts, studyTerms);
@@ -855,19 +1155,46 @@ function computeCandidateRanking(
     candidate.clinicalReports.map(report => report.title ?? ''),
     geneTerms,
   );
+  const matchedIndicationTerms = bestPhraseMatchesFromStrings(candidate.approvedIndications, diseaseTerms);
 
-  const stageComponent = stageRank(candidate.maxClinicalStage) / 10;
-  const diseaseComponent = (matchedDiseaseTerms[0]?.score ?? 0) * 1.5;
-  const studyComponent = (matchedStudyTerms[0]?.score ?? 0) * 1.2;
-  const geneComponent = (matchedGeneTerms[0]?.score ?? 0) * 0.9;
-  const reportComponent = Math.min(candidate.clinicalReports.length, 3);
-  const sourceComponent = Math.min(candidate.evidenceSourceCounts.length, 2) * 0.5;
-  const sensitivityComponent = candidate.sensitivity?.rankingScore ?? 0;
-  const score = Number((stageComponent + diseaseComponent + studyComponent + geneComponent + reportComponent + sourceComponent + sensitivityComponent).toFixed(2));
+  const weights = DRUG_TARGET_RANKING_CONFIG.matchWeights;
+  const components: DrugTargetRankingComponents = {
+    clinicalStage: Number((stageRank(candidate.maxClinicalStage) / DRUG_TARGET_RANKING_CONFIG.stageDivisor).toFixed(2)),
+    diseaseMatch: Number(((matchedDiseaseTerms[0]?.score ?? 0) * weights.disease).toFixed(2)),
+    diseaseSpecificity: Number((bestDiseaseSpecificityScore(candidate.diseaseContexts, diseaseTerms)
+      * weights.diseaseSpecificity).toFixed(2)),
+    studyMatch: Number(((matchedStudyTerms[0]?.score ?? 0) * weights.study).toFixed(2)),
+    geneMatch: Number(((matchedGeneTerms[0]?.score ?? 0) * weights.gene).toFixed(2)),
+    reportEvidence: Math.min(candidate.clinicalReports.length, DRUG_TARGET_RANKING_CONFIG.reportCountCap),
+    approvedIndicationMatch: Number(((matchedIndicationTerms[0]?.score ?? 0)
+      * weights.approvedIndication).toFixed(2)),
+    sourceQuality: clinicalEvidenceSourceQuality(candidate.evidenceSourceCounts),
+    recency: clinicalEvidenceRecency(candidate.clinicalReports),
+    sensitivity: candidate.sensitivity?.rankingScore ?? 0,
+    diseaseContextBreadthPenalty: diseaseContextBreadthPenalty(candidate.diseaseContexts),
+    approvedIndicationBreadthPenalty: approvedIndicationBreadthPenalty(candidate.approvedIndications),
+  };
+  const score = Number((
+    components.clinicalStage
+    + components.diseaseMatch
+    + components.diseaseSpecificity
+    + components.studyMatch
+    + components.geneMatch
+    + components.reportEvidence
+    + components.approvedIndicationMatch
+    + components.sourceQuality
+    + components.recency
+    + components.sensitivity
+    - components.diseaseContextBreadthPenalty
+    - components.approvedIndicationBreadthPenalty
+  ).toFixed(2));
 
   const signals = [`clinical stage: ${formatStageLabel(candidate.maxClinicalStage)}`];
   if (matchedDiseaseTerms.length > 0) {
     signals.push(`matched disease filter: ${matchedDiseaseTerms.slice(0, 2).map(item => item.term).join(', ')}`);
+  }
+  if (matchedIndicationTerms.length > 0) {
+    signals.push(`approved indication match: ${matchedIndicationTerms.slice(0, 2).map(item => item.term).join(', ')}`);
   }
   if (matchedGeneTerms.length > 0) {
     signals.push(`matched gene context: ${matchedGeneTerms.slice(0, 2).map(item => item.term).join(', ')}`);
@@ -878,12 +1205,23 @@ function computeCandidateRanking(
   if (candidate.clinicalReports.length > 0) {
     signals.push(`clinical evidence links: ${candidate.clinicalReports.length}`);
   }
+  if (candidate.evidenceSourceCounts.length > 0) {
+    signals.push(`regulatory/supporting sources: ${candidate.evidenceSourceCounts.slice(0, 2).map(item => item.source).join(', ')}`);
+  }
+  if (components.diseaseContextBreadthPenalty > 0 || components.approvedIndicationBreadthPenalty > 0) {
+    signals.push(`disease focus penalty: -${Number((
+      components.diseaseContextBreadthPenalty + components.approvedIndicationBreadthPenalty
+    ).toFixed(2))}`);
+  }
   if (candidate.sensitivity?.rankingSignals.length) {
     signals.push(...candidate.sensitivity.rankingSignals);
   }
 
   return {
+    methodVersion: DRUG_TARGET_RANKING_METHOD_VERSION,
     score,
+    components,
+    evidenceReportCount: candidate.clinicalReports.length,
     matchedDiseaseTerms: matchedDiseaseTerms.slice(0, 3).map(item => item.term),
     matchedGeneTerms: matchedGeneTerms.slice(0, 3).map(item => item.term),
     matchedStudyTerms: matchedStudyTerms.slice(0, 3).map(item => item.term),
@@ -974,7 +1312,9 @@ function aggregateCandidates(
 
     const existing = byDrug.get(drug.id);
     const nextDiseases = mapDiseaseContexts(row.diseases);
-    const nextReports = buildClinicalEvidence(row.clinicalReports, Math.max(reportLimit * 3, reportLimit));
+    // Retain every report returned by Open Targets for ranking. `reportLimit`
+    // controls presentation only and must not change candidate order.
+    const nextReports = buildClinicalEvidence(row.clinicalReports, Number.MAX_SAFE_INTEGER);
 
     if (existing) {
       existing.maxClinicalStage = bestStage(existing.maxClinicalStage, row.maxClinicalStage);
@@ -996,10 +1336,11 @@ function aggregateCandidates(
   const detailMap = new Map(drugDetails.map(detail => [detail.id, detail] as const));
   const allCandidates = [...byDrug.values()].map((candidate) => {
     const detail = detailMap.get(candidate.chemblId);
-    const allDiseaseContexts = uniqueByKey(candidate.diseaseContexts, context =>
-      `${context.id ?? ''}::${context.name.toLowerCase()}::${context.sourceName?.toLowerCase() ?? ''}`);
-    const reports = buildClinicalEvidence(candidate.clinicalReports, reportLimit);
+    const allDiseaseContexts = mergeDiseaseContexts(candidate.diseaseContexts);
+    const rankingReports = buildClinicalEvidence(candidate.clinicalReports, Number.MAX_SAFE_INTEGER);
+    const reports = rankingReports.slice(0, reportLimit);
     const maxClinicalStage = bestStage(candidate.maxClinicalStage, detail?.maximumClinicalStage);
+    const approvedIndications = uniqueByKey((detail?.indications?.rows ?? []).map(r => r.disease.name), value => normalizePhrase(value));
     const diseaseContexts = selectDiseaseContexts(allDiseaseContexts, diseaseFilter, diseaseContextLimit);
     const sensitivity = buildCandidateSensitivity(
       detail?.name ?? candidate.drugName,
@@ -1009,11 +1350,12 @@ function aggregateCandidates(
     const ranking = computeCandidateRanking({
       maxClinicalStage,
       diseaseContexts: allDiseaseContexts,
-      clinicalReports: reports,
-      evidenceSourceCounts: summarizeEvidenceSources(reports),
+      clinicalReports: rankingReports,
+      evidenceSourceCounts: summarizeEvidenceSources(rankingReports),
+      approvedIndications,
       sensitivity,
     }, diseaseFilter, studyTerms, geneTerms);
-    const evidenceSourceCounts = summarizeEvidenceSources(reports);
+    const evidenceSourceCounts = summarizeEvidenceSources(rankingReports);
     return {
       chemblId: candidate.chemblId,
       drugName: detail?.name ?? candidate.drugName,
@@ -1022,7 +1364,7 @@ function aggregateCandidates(
       drugType: detail?.drugType ?? candidate.drugType,
       actionTypes: uniqueByKey(detail?.mechanismsOfAction?.uniqueActionTypes ?? [], value => value),
       description: detail?.description ?? '',
-      approvedIndications: (detail?.indications?.rows ?? []).map(r => r.disease.name),
+      approvedIndications,
       diseaseContexts,
       evidenceSourceCounts,
       clinicalReports: reports,
@@ -1036,8 +1378,11 @@ function aggregateCandidates(
     .sort((a, b) =>
       b.ranking.score - a.ranking.score
       || stageRank(b.maxClinicalStage) - stageRank(a.maxClinicalStage)
+      || (b.approvedIndications.length - a.approvedIndications.length)
+      || (b.evidenceSourceCounts.reduce((sum, item) => sum + item.count, 0)
+        - a.evidenceSourceCounts.reduce((sum, item) => sum + item.count, 0))
       || b.diseaseContexts.length - a.diseaseContexts.length
-      || b.clinicalReports.length - a.clinicalReports.length
+      || b.ranking.evidenceReportCount - a.ranking.evidenceReportCount
       || a.drugName.localeCompare(b.drugName));
 
   const returned = matched.slice(0, limit);
@@ -1212,6 +1557,7 @@ async function buildDrugTargetResult(
     },
     summary: {
       rankingMode: studyId ? 'study-aware' : diseaseFilter ? 'disease-aware' : 'global',
+      rankingMethodVersion: DRUG_TARGET_RANKING_METHOD_VERSION,
       diseaseFilter: diseaseFilter || undefined,
       totalCandidates,
       matchedCandidates: matchedCandidateCount,

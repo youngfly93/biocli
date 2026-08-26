@@ -35,7 +35,10 @@ vi.mock('../../datasets/gdsc.js', () => ({
   refreshGdscDataset: refreshGdscDatasetMock,
 }));
 
-import '../../clis/aggregate/drug-target.js';
+import {
+  DRUG_TARGET_RANKING_CONFIG,
+  DRUG_TARGET_RANKING_METHOD_VERSION,
+} from '../../clis/aggregate/drug-target.js';
 
 const originalHome = process.env.HOME;
 let suiteHome = '';
@@ -155,6 +158,14 @@ function buildOpenTargetsContext(): HttpContext {
                         disease: { id: 'EFO_0003060', name: 'non-small cell lung carcinoma' },
                       },
                       {
+                        diseaseFromSource: 'non - small cell lung cancer',
+                        disease: { id: 'EFO_0003060', name: 'non-small cell lung carcinoma' },
+                      },
+                      {
+                        diseaseFromSource: 'nsclc',
+                        disease: { id: 'EFO_0003060', name: 'non-small cell lung carcinoma' },
+                      },
+                      {
                         diseaseFromSource: 'breast cancer',
                         disease: { id: 'MONDO_0007254', name: 'breast cancer' },
                       },
@@ -192,6 +203,14 @@ function buildOpenTargetsContext(): HttpContext {
                       {
                         diseaseFromSource: 'lung adenocarcinoma',
                         disease: { id: 'EFO_0000571', name: 'lung adenocarcinoma' },
+                      },
+                      {
+                        diseaseFromSource: 'lung neoplasms',
+                        disease: { id: 'MONDO_0021117', name: 'lung neoplasm' },
+                      },
+                      {
+                        diseaseFromSource: 'neoplasms, lung',
+                        disease: { id: 'HP_0100526', name: 'Neoplasm of the lung' },
                       },
                     ],
                     clinicalReports: [
@@ -253,6 +272,12 @@ function buildOpenTargetsContext(): HttpContext {
                 maximumClinicalStage: 'APPROVAL',
                 drugType: 'Small molecule',
                 mechanismsOfAction: { uniqueActionTypes: ['INHIBITOR'] },
+                indications: {
+                  rows: [
+                    { disease: { name: 'non-small cell lung carcinoma' } },
+                    { disease: { name: 'lung adenocarcinoma' } },
+                  ],
+                },
               },
               {
                 id: 'CHEMBL3353410',
@@ -260,6 +285,16 @@ function buildOpenTargetsContext(): HttpContext {
                 maximumClinicalStage: 'APPROVAL',
                 drugType: 'Small molecule',
                 mechanismsOfAction: { uniqueActionTypes: ['INHIBITOR'] },
+                indications: {
+                  rows: [
+                    { disease: { name: 'non-small cell lung carcinoma' } },
+                    { disease: { name: 'lung adenocarcinoma' } },
+                    { disease: { name: 'lung cancer' } },
+                    { disease: { name: 'cancer' } },
+                    { disease: { name: 'solid tumor' } },
+                    { disease: { name: 'brain cancer' } },
+                  ],
+                },
               },
               {
                 id: 'CHEMBL3544983',
@@ -267,6 +302,11 @@ function buildOpenTargetsContext(): HttpContext {
                 maximumClinicalStage: 'PHASE_3',
                 drugType: 'Small molecule',
                 mechanismsOfAction: { uniqueActionTypes: ['INHIBITOR'] },
+                indications: {
+                  rows: [
+                    { disease: { name: 'Polycystic Kidney Disease' } },
+                  ],
+                },
               },
             ],
           },
@@ -617,6 +657,28 @@ describe('aggregate/drug-target', () => {
     });
   });
 
+  it('locks the versioned ranking configuration', () => {
+    expect(DRUG_TARGET_RANKING_CONFIG).toMatchObject({
+      methodVersion: 'biocli-drug-target-ranking-v1',
+      stageDivisor: 10,
+      matchWeights: {
+        disease: 1.5,
+        diseaseSpecificity: 0.35,
+        study: 1.2,
+        gene: 0.9,
+        approvedIndication: 0.2,
+      },
+      reportCountCap: 3,
+      unknownClinicalSourceWeight: 0.25,
+      clinicalSourceQualityCap: 2.5,
+      recency: {
+        baselineYear: 2021,
+        perYear: 0.15,
+        cap: 0.9,
+      },
+    });
+  });
+
   it('builds a lung-focused drug-target summary from Open Targets', async () => {
     const command = getRegistry().get('aggregate/drug-target');
     expect(command?.func).toBeTypeOf('function');
@@ -650,6 +712,7 @@ describe('aggregate/drug-target', () => {
     });
     expect(data.summary).toMatchObject({
       rankingMode: 'disease-aware',
+      rankingMethodVersion: DRUG_TARGET_RANKING_METHOD_VERSION,
       diseaseFilter: 'lung',
       totalCandidates: 3,
       matchedCandidates: 2,
@@ -685,16 +748,84 @@ describe('aggregate/drug-target', () => {
       maxClinicalStage: 'APPROVAL',
       actionTypes: ['INHIBITOR'],
       ranking: {
+        methodVersion: DRUG_TARGET_RANKING_METHOD_VERSION,
+        evidenceReportCount: 2,
         matchedDiseaseTerms: ['lung'],
       },
       sensitivity: {
         source: 'GDSC',
       },
     });
+    expect(Number((candidates[0]?.ranking as Record<string, unknown>).score)).toBeGreaterThan(
+      Number((candidates[1]?.ranking as Record<string, unknown>).score),
+    );
+    expect(candidates[0]?.diseaseContexts).toEqual([
+      {
+        id: 'EFO_0003060',
+        name: 'non-small cell lung carcinoma',
+        sourceName: 'non-small-cell lung cancer',
+      },
+    ]);
+    const osimertinibContexts = candidates[1]?.diseaseContexts as Array<Record<string, unknown>>;
+    expect(osimertinibContexts).toHaveLength(2);
+    expect(osimertinibContexts[0]).toMatchObject({
+      id: 'EFO_0000571',
+      name: 'lung adenocarcinoma',
+    });
+    expect(osimertinibContexts[1]).toMatchObject({
+      id: 'MONDO_0021117',
+      name: 'lung neoplasm',
+    });
     expect((candidates[0]?.sensitivity as Record<string, unknown>).matchedTissues).toEqual(
       expect.arrayContaining(['Lung Adenocarcinoma']),
     );
     expect(candidates[0]?.evidenceSourceCounts).toEqual([
+      { source: 'AACT', count: 1 },
+      { source: 'EMA Human Drugs', count: 1 },
+    ]);
+
+    const ranking = candidates[0]?.ranking as Record<string, unknown>;
+    const components = ranking.components as Record<string, number>;
+    const recomputedScore = Number((
+      components.clinicalStage
+      + components.diseaseMatch
+      + components.diseaseSpecificity
+      + components.studyMatch
+      + components.geneMatch
+      + components.reportEvidence
+      + components.approvedIndicationMatch
+      + components.sourceQuality
+      + components.recency
+      + components.sensitivity
+      - components.diseaseContextBreadthPenalty
+      - components.approvedIndicationBreadthPenalty
+    ).toFixed(2));
+    expect(ranking.score).toBe(recomputedScore);
+  });
+
+  it('keeps ranking independent from the clinical-report presentation limit', async () => {
+    const command = getRegistry().get('aggregate/drug-target');
+    const limited = await command!.func!(
+      {} as HttpContext,
+      { gene: 'EGFR', disease: 'lung', limit: 5, diseaseLimit: 5, reportLimit: 1 },
+    ) as Record<string, unknown>;
+    const expanded = await command!.func!(
+      {} as HttpContext,
+      { gene: 'EGFR', disease: 'lung', limit: 5, diseaseLimit: 5, reportLimit: 2 },
+    ) as Record<string, unknown>;
+
+    const limitedCandidates = (limited.data as Record<string, unknown>).candidates as Array<Record<string, unknown>>;
+    const expandedCandidates = (expanded.data as Record<string, unknown>).candidates as Array<Record<string, unknown>>;
+    expect(limitedCandidates.map(candidate => candidate.drugName)).toEqual(
+      expandedCandidates.map(candidate => candidate.drugName),
+    );
+    expect(limitedCandidates.map(candidate => (candidate.ranking as Record<string, unknown>).score)).toEqual(
+      expandedCandidates.map(candidate => (candidate.ranking as Record<string, unknown>).score),
+    );
+    expect((limitedCandidates[0]?.clinicalReports as unknown[])).toHaveLength(1);
+    expect((expandedCandidates[0]?.clinicalReports as unknown[])).toHaveLength(2);
+    expect((limitedCandidates[0]?.ranking as Record<string, unknown>).evidenceReportCount).toBe(2);
+    expect(limitedCandidates[0]?.evidenceSourceCounts).toEqual([
       { source: 'AACT', count: 1 },
       { source: 'EMA Human Drugs', count: 1 },
     ]);
