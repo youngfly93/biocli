@@ -29,6 +29,7 @@
     "clean-apple-double": "node scripts/clean-apple-double.cjs",
     "build-manifest": "node dist/build-manifest.js",
     "clean-dist": "node scripts/clean-dist.cjs",
+    "check:repo-hygiene": "node scripts/check-repo-hygiene.cjs",
     "clean-yaml": "node scripts/clean-yaml.cjs",
     "copy-yaml": "node scripts/copy-yaml.cjs",
     "start": "node dist/main.js",
@@ -37,6 +38,8 @@
     "bench:pipeline": "tsx benchmarks/pipeline/run.ts",
     "bench:pipeline:resume": "tsx benchmarks/pipeline/resume.ts",
     "bench:pipeline:report": "tsx benchmarks/pipeline/report.ts",
+    "bench:agent-ab:clean": "node scripts/clean-apple-double.cjs benchmarks/agent-ab/results",
+    "bench:agent-ab:validate": "node scripts/validate-agent-ab-results.cjs --clean-appledouble benchmarks/agent-ab/results",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build",
     "test": "vitest run --project unit --passWithNoTests",
@@ -79,8 +82,8 @@
     "cli-table3": "^0.6.5",
     "commander": "^14.0.3",
     "fast-xml-parser": "^4.5.0",
-    "js-yaml": "^4.1.0",
-    "undici": "^8.0.2",
+    "js-yaml": "^4.3.1",
+    "undici": "^6.28.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
