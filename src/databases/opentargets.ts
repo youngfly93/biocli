@@ -151,6 +151,7 @@ async function openTargetsFetch(url: string, opts?: FetchOptions): Promise<Respo
   }
 
   return executeHttpRequestWithRetry({
+    rateLimited: !opts?.skipRateLimit,
     backendId: 'opentargets',
     execute: () => fetchWithIPv4Fallback(finalUrl, {
         method: opts?.method ?? 'POST',

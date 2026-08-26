@@ -112,6 +112,7 @@ export async function ncbiFetch(
   }
 
   return executeHttpRequestWithRetry({
+    rateLimited: !opts?.skipRateLimit,
     backendId: 'ncbi',
     execute: () => fetchWithIPv4Fallback(finalUrl, {
         method: opts?.method ?? 'GET',

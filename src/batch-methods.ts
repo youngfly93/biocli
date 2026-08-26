@@ -116,6 +116,12 @@ export function formatBatchMethodsMarkdown(opts: {
   failures: BatchFailureRecord[];
   startedAt: string;
   finishedAt: string;
+  /**
+   * Items left with no usable result. Defaults to the number of failure
+   * records, but a --retry-degraded run can record a failed recovery attempt
+   * for an item that still has data, so the summary count is passed in.
+   */
+  failedCount?: number;
 }): string {
   const sourceSummary = collectSources(opts.successes);
   const breakdown = summarizeBatchCompleteness(opts.successes);
@@ -153,7 +159,7 @@ export function formatBatchMethodsMarkdown(opts: {
     `- Finished: ${opts.finishedAt}`,
     `- Inputs: ${opts.inputCount}`,
     `- Successes: ${opts.successes.length}`,
-    `- Failures: ${opts.failures.length}`,
+    `- Failures: ${opts.failedCount ?? opts.failures.length}`,
   ];
 
   if (breakdown) {

@@ -142,6 +142,7 @@ async function cbioPortalFetch(url: string, opts?: FetchOptions): Promise<Respon
   }
 
   return executeHttpRequestWithRetry({
+    rateLimited: !opts?.skipRateLimit,
     backendId: 'cbioportal',
     execute: () => fetchWithIPv4Fallback(finalUrl, {
         method: opts?.method ?? 'GET',

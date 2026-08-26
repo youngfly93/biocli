@@ -68,4 +68,62 @@ describe('retry-policy', () => {
     expect(limiter.cooldownRemainingMs).toBe(0);
   });
 
+
+  it('makes a 429 retry consume its own rate-limit slot', async () => {
+    // The backend acquires the first slot before entering the retry loop. A
+    // retry is another request against the same budget, so firing it straight
+    // through put two requests inside a one-request window.
+    const backendId = 'test-retry-consumes-slot';
+    const limiter = getRateLimiterForDatabase(backendId, 1);
+    await limiter.acquire();
+
+    const started = Date.now();
+    let calls = 0;
+    await executeHttpRequestWithRetry({
+      backendId,
+      rateLimited: true,
+      policy: { maxRetries: 1, baseDelayMs: 50, backoffFactor: 1, retryableStatusCodes: [429] },
+      execute: async () => {
+        calls += 1;
+        return calls === 1
+          ? new Response('rate limited', { status: 429 })
+          : new Response('{}', { status: 200 });
+      },
+      onRetryableStatusExhausted: (status, attempts) => new ApiError(`${status} after ${attempts}`),
+      onNonRetryableStatus: res => new ApiError(`HTTP ${res.status}`),
+      onNetworkErrorExhausted: err => new ApiError(err.message),
+    });
+
+    // At 1 req/s the retry cannot go out until the window frees up, so the
+    // whole exchange must take about a second rather than just the backoff.
+    expect(calls).toBe(2);
+    expect(Date.now() - started).toBeGreaterThanOrEqual(900);
+  });
+
+  it('leaves retries unmetered when the caller skipped rate limiting', async () => {
+    const backendId = 'test-retry-skip-rate-limit';
+    const limiter = getRateLimiterForDatabase(backendId, 1);
+    await limiter.acquire();
+
+    const started = Date.now();
+    let calls = 0;
+    await executeHttpRequestWithRetry({
+      backendId,
+      rateLimited: false,
+      policy: { maxRetries: 1, baseDelayMs: 20, backoffFactor: 1, retryableStatusCodes: [503] },
+      execute: async () => {
+        calls += 1;
+        return calls === 1
+          ? new Response('unavailable', { status: 503 })
+          : new Response('{}', { status: 200 });
+      },
+      onRetryableStatusExhausted: (status, attempts) => new ApiError(`${status} after ${attempts}`),
+      onNonRetryableStatus: res => new ApiError(`HTTP ${res.status}`),
+      onNetworkErrorExhausted: err => new ApiError(err.message),
+    });
+
+    expect(calls).toBe(2);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
 });

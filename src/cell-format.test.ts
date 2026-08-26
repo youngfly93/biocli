@@ -67,3 +67,29 @@ describe('toCsv', () => {
     expect(csv).toContain('"KRas proto-oncogene, GTPase"');
   });
 });
+
+describe('render surfaces', () => {
+  it('plain, table, card, csv, and md all share one cell formatter', async () => {
+    // formatCell was originally wired into csv/md only, so `-f plain` still
+    // printed "pathways: [object Object]".
+    const { render } = await import('./output.js');
+    const row = {
+      symbol: 'EGFR',
+      pathways: [{ id: 'hsa04010', name: 'MAPK signaling pathway' }],
+    };
+
+    for (const fmt of ['plain', 'table', 'csv', 'md'] as const) {
+      const lines: string[] = [];
+      const original = console.log;
+      console.log = (...args: unknown[]) => { lines.push(args.map(String).join(' ')); };
+      try {
+        render([row], { fmt, columns: ['symbol', 'pathways'] });
+      } finally {
+        console.log = original;
+      }
+      const out = lines.join('\n');
+      expect(out, `fmt=${fmt}`).not.toContain('[object Object]');
+      expect(out, `fmt=${fmt}`).toContain('MAPK signaling pathway');
+    }
+  });
+});

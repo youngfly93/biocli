@@ -63,16 +63,19 @@ export class RateLimiter {
   }
 
   /**
-   * Hold back every acquisition for `ms`, and drop the current window so the
-   * next requests start from a clean budget. Call this when the upstream
-   * signals rate limiting (HTTP 429), so backoff applies to all in-flight
-   * workers rather than only the rejected request.
+   * Hold back every acquisition for `ms`. Call this when the upstream signals
+   * rate limiting (HTTP 429), so backoff applies to all in-flight workers
+   * rather than only the rejected request.
+   *
+   * The current window is deliberately left intact. The cooldown adds delay;
+   * the window enforces the rate. Clearing it would hand back budget, letting
+   * a burst through the moment the cooldown expires — which is how a retry
+   * ended up firing inside a window it should have waited out.
    */
   penalize(ms: number): void {
     if (!Number.isFinite(ms) || ms <= 0) return;
     const until = Date.now() + ms;
     if (until > this.cooldownUntil) this.cooldownUntil = until;
-    this.timestamps = [];
   }
 
   /** Remaining cooldown in ms (0 when not penalized). Exposed for tests. */

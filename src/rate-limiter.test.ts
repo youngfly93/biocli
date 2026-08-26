@@ -20,19 +20,18 @@ describe('RateLimiter.penalize', () => {
     expect(Date.now() - started).toBeGreaterThanOrEqual(100);
   });
 
-  it('clears the current window so retries start from a clean budget', async () => {
+  it('keeps the rate window intact so a cooldown cannot hand back budget', async () => {
     const limiter = new RateLimiter(2);
     await limiter.acquire();
     await limiter.acquire();
 
-    // Window is now full; penalizing resets it so the wait is the cooldown
-    // rather than the cooldown stacked on top of the old window.
+    // The window is full. A short cooldown must not release the next request
+    // early — otherwise a retry fires inside a window it should have waited
+    // out, which is exactly how two requests landed in a one-request budget.
     limiter.penalize(50);
     const started = Date.now();
     await limiter.acquire();
-    const elapsed = Date.now() - started;
-    expect(elapsed).toBeGreaterThanOrEqual(40);
-    expect(elapsed).toBeLessThan(900);
+    expect(Date.now() - started).toBeGreaterThanOrEqual(900);
   });
 
   it('keeps the longest cooldown when penalized repeatedly', () => {

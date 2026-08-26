@@ -145,6 +145,13 @@ export function computeRetryDelayMs(
 export async function executeHttpRequestWithRetry(opts: {
   backendId: string;
   execute: () => Promise<Response>;
+  /**
+   * Whether this request consumes the backend's rate-limit budget. Backends
+   * acquire their first slot before calling in, so the retry loop needs to know
+   * whether to acquire one for each retry too. Callers that passed
+   * `skipRateLimit` must pass `false` so retries stay unmetered as well.
+   */
+  rateLimited?: boolean;
   policy?: HttpRetryPolicyOverrides;
   onRetryableStatusExhausted: (status: number, attempts: number) => CliError;
   onNonRetryableStatus: (response: Response) => CliError | Promise<CliError>;
@@ -171,6 +178,10 @@ export async function executeHttpRequestWithRetry(opts: {
         if (attempt < policy.maxRetries) {
           try { await response.text(); } catch { /* ignore */ }
           await sleep(delayMs);
+          // The first slot was consumed by the attempt that just failed. A
+          // retry is another request against the same budget, so it has to
+          // acquire its own slot rather than firing straight through.
+          if (opts.rateLimited !== false) await peekRateLimiter(opts.backendId)?.acquire();
           continue;
         }
         throw opts.onRetryableStatusExhausted(response.status, policy.maxRetries + 1);
@@ -187,6 +198,7 @@ export async function executeHttpRequestWithRetry(opts: {
       lastError = error instanceof Error ? error : new Error(String(error));
       if (attempt < policy.maxRetries && isRetryableNetworkError(policy, lastError)) {
         await sleep(computeRetryDelayMs(policy, attempt));
+        if (opts.rateLimited !== false) await peekRateLimiter(opts.backendId)?.acquire();
         continue;
       }
       throw opts.onNetworkErrorExhausted(lastError, policy.maxRetries + 1);

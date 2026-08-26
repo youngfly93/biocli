@@ -56,6 +56,7 @@ async function uniprotFetch(url: string, opts?: FetchOptions): Promise<Response>
   }
 
   return executeHttpRequestWithRetry({
+    rateLimited: !opts?.skipRateLimit,
     backendId: 'uniprot',
     execute: () => fetch(finalUrl, {
         method: opts?.method ?? 'GET',

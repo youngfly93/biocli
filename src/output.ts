@@ -130,8 +130,9 @@ function allocateColumnWidths(
   const natural: number[] = columns.map(col => {
     let maxW = capitalize(col).length;
     for (const row of rows) {
-      const v = row[col];
-      const len = v === null || v === undefined ? 0 : String(v).length;
+      // Must match how renderTable formats the cell, or nested fields would be
+      // measured as "[object Object]" and size the column wrongly.
+      const len = formatCell(row[col]).length;
       if (len > maxW) maxW = len;
     }
     return maxW + 2; // +2 for cell padding → this is the colWidth value
@@ -275,7 +276,7 @@ function renderCard(row: Record<string, unknown>, columns: string[], opts: Rende
 
   for (const col of columns) {
     const raw = row[col];
-    const value = raw === null || raw === undefined ? '' : String(raw);
+    const value = formatCell(raw);
     const label = capitalize(col);
 
     if (!value) continue;
@@ -356,7 +357,7 @@ function renderTable(data: unknown, opts: RenderOptions): void {
     table.push(columns.map((c, i) => {
       const v = (row as Record<string, unknown>)[c];
       if (v === null || v === undefined) return '';
-      let text = String(v);
+      let text = formatCell(v);
       // Truncate plain text to fit column content width FIRST,
       // then apply ANSI formatting. This avoids breaking escape sequences
       // and prevents invisible bytes from inflating width.
@@ -421,9 +422,11 @@ function renderPlain(data: unknown, opts: RenderOptions): void {
   }
 
   rows.forEach((row, index) => {
-    const entries = Object.entries(row).filter(([, value]) => value !== undefined && value !== null && String(value) !== '');
+    const entries = Object.entries(row)
+      .map(([key, value]) => [key, formatCell(value)] as const)
+      .filter(([, value]) => value !== '');
     entries.forEach(([key, value]) => {
-      console.log(`${key}: ${highlightQuery(String(value), opts.query)}`);
+      console.log(`${key}: ${highlightQuery(value, opts.query)}`);
     });
     if (index < rows.length - 1) console.log('');
   });

@@ -231,7 +231,16 @@ git push origin --tags
 
 ### 7. Create GitHub Release
 
-Create a GitHub release for the tag and paste the release notes summary.
+Wait for remote CI on the pushed tag to go green **before** creating the
+release. A release created while CI is still running can end up pointing at a
+commit that fails on a platform the local machine does not cover.
+
+```bash
+gh run list --branch main --limit 1
+gh run watch <run-id> --exit-status
+```
+
+Then create a GitHub release for the tag and paste the release notes summary.
 
 Use [`docs/release-template.md`](docs/release-template.md) so the public release story stays aligned with:
 

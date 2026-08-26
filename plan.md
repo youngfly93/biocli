@@ -2,13 +2,55 @@
 
 Last updated: 2026-08-26
 
+## Current state
+
+- Released: `v0.8.0` on `main` (tag `v0.8.0`, GitHub Release published, CI green).
+- npm `latest` is still `0.7.1`. `0.8.0` was never published to the registry;
+  `0.8.1` is the next npm release.
+- In progress: round 3, closing the review findings against `0.8.0` before the
+  npm publish. See "Round 3" below.
+
 ## Working agreement
 
 - Scope: this repository root only.
-- Writer: Codex primary agent; no parallel writers or sub-agents are active.
-- Baseline: local `main` at `5cd5d24` (`v0.7.1`, matching the current local `origin/main` ref).
-- Existing uncommitted work is preserved. No Git commit, stash, reset, checkout, or broad unrelated cleanup is authorized by this plan.
+- One writer at a time. Review agents are read-only on the deliverable and
+  write only their own audit notes.
+- Do not move or rewrite the public `v0.8.0` tag or its GitHub Release.
 - `opencli/` and the frozen public benchmark bundles outside this repository are reference-only.
+
+## Round 3: post-0.8.0 review findings (current)
+
+An independent review of `0.8.0` confirmed the release is sound but found four
+gaps where the shipped behaviour did not fully match what the docs and commit
+messages claimed. All four were reproduced locally before being fixed.
+
+| # | Finding | Severity | Status |
+|---|---|---|---|
+| 1 | A 429 retry did not consume a rate-limit slot, so two requests could land inside a one-request window | P1 | Fixed |
+| 2 | `--strict` only checked degraded items, so a run with hard failures passed the coverage gate | P1 | Fixed |
+| 3 | A failed `--retry-degraded` attempt was erased from `failures.jsonl` by the retained earlier success | P2 | Fixed |
+| 4 | `-f plain` / table / card still rendered nested fields as `[object Object]` | P2 | Fixed |
+
+Notes carried forward:
+
+- `penalize()` originally cleared the rate window. That handed budget back and
+  let a burst through the moment the cooldown expired. The cooldown adds delay;
+  the window enforces the rate. It no longer clears.
+- `failures.jsonl` is the audit log of attempts that failed. `summary.json`
+  `failed` counts items left with no usable result. A retained partial result
+  means the two can differ.
+- Root cause of the whole class: concurrency crossed with failure state had no
+  regression coverage. Each fix landed with one.
+
+## Round 2 history: 0.7.1 baseline (complete)
+
+The section below records the `0.7.1` baseline and the seven-step pass that
+produced `0.8.0`. It is history; do not read it as current state.
+
+- Writer at the time: Codex primary agent.
+- Baseline at the time: local `main` at `5cd5d24` (`v0.7.1`).
+- Existing uncommitted work was preserved; no commit or history rewrite was
+  performed during that pass.
 
 ## Pre-existing worktree baseline
 

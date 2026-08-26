@@ -162,6 +162,8 @@ export function createBatchArtifactSession<T = unknown>(opts: {
       const mergedSuccesses = sortByIndex([...successByKey.values()]);
       const successfulKeys = new Set(mergedSuccesses.map(record => checkpointKey(record.index, record.input)));
 
+      const newSuccessKeys = new Set(newSuccesses.map(record => checkpointKey(record.index, record.input)));
+
       const failureByKey = new Map<string, BatchFailureRecord>();
       for (const record of previousFailures) {
         const key = checkpointKey(record.index, record.input);
@@ -169,9 +171,20 @@ export function createBatchArtifactSession<T = unknown>(opts: {
       }
       for (const record of newFailures) {
         const key = checkpointKey(record.index, record.input);
-        if (!successfulKeys.has(key)) failureByKey.set(key, record);
+        // Only a success from *this* run supersedes a failure from this run.
+        // Filtering against retained earlier results erased the record of a
+        // --retry-degraded attempt that failed, leaving no way to see why the
+        // recovery did not help.
+        if (!newSuccessKeys.has(key)) failureByKey.set(key, record);
       }
       const mergedFailures = sortByIndex([...failureByKey.values()]);
+
+      // An item that still has a retained result is not an item without data,
+      // even when a recovery attempt for it failed. failures.jsonl is the audit
+      // log of failed attempts; summary.failed counts items left with no result.
+      const unrecoveredFailures = mergedFailures.filter(
+        record => !successfulKeys.has(checkpointKey(record.index, record.input)),
+      );
 
       const manifest = writeBatchArtifacts({
         outdir: resolved.outdir,
@@ -180,7 +193,7 @@ export function createBatchArtifactSession<T = unknown>(opts: {
           command: finalizeOpts.command,
           totalItems: finalizeOpts.totalItems,
           succeeded: mergedSuccesses.length,
-          failed: mergedFailures.length,
+          failed: unrecoveredFailures.length,
           startedAt: finalizeOpts.startedAt,
           finishedAt: finalizeOpts.finishedAt,
           durationSeconds: Number((((Date.parse(finalizeOpts.finishedAt) - Date.parse(finalizeOpts.startedAt)) / 1000)).toFixed(3)),

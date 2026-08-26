@@ -67,6 +67,7 @@ async function keggFetch(url: string, opts?: FetchOptions): Promise<Response> {
   }
 
   return executeHttpRequestWithRetry({
+    rateLimited: !opts?.skipRateLimit,
     backendId: 'kegg',
     execute: () => fetch(url, {
         method: opts?.method ?? 'GET',

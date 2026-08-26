@@ -274,15 +274,24 @@ export async function runBatchExecution<T>(opts: BatchExecutionOptions<T>): Prom
       `⚠ ${degradedInputs.length}/${opts.items.length} item(s) returned incomplete data${counts}: ${shown}${more}\n`
       + '  Inspect the completeness column in summary.csv, or rerun with --retry-degraded.\n',
     );
+  }
 
-    if (opts.strict) {
-      throw new CliError(
-        'INCOMPLETE_DATA',
-        `${degradedInputs.length} of ${opts.items.length} batch item(s) returned incomplete data.`,
-        'Rerun with --retry-degraded, or drop --strict to accept partial coverage.',
-        EXIT_CODES.INCOMPLETE_DATA,
-      );
-    }
+  // --strict gates a delivery pipeline on coverage, so it has to account for
+  // both ways coverage can be lost: an item that hard-failed, and an item that
+  // succeeded with incomplete data. Checking only the latter let a run with
+  // terminal failures pass the gate.
+  if (opts.strict && (finalized.failures.length > 0 || degradedInputs.length > 0)) {
+    const parts: string[] = [];
+    if (finalized.failures.length > 0) parts.push(`${finalized.failures.length} failed`);
+    if (degradedInputs.length > 0) parts.push(`${degradedInputs.length} returned incomplete data`);
+    throw new CliError(
+      'INCOMPLETE_DATA',
+      `${parts.join(' and ')} out of ${opts.items.length} batch item(s).`,
+      degradedInputs.length > 0
+        ? 'Inspect failures.jsonl and summary.csv, rerun with --retry-degraded, or drop --strict to accept partial coverage.'
+        : 'Inspect failures.jsonl, or drop --strict to accept partial coverage.',
+      EXIT_CODES.INCOMPLETE_DATA,
+    );
   }
 
   return {

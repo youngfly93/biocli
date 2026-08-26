@@ -48,6 +48,7 @@ async function stringFetch(url: string, opts?: FetchOptions): Promise<Response> 
   }
 
   return executeHttpRequestWithRetry({
+    rateLimited: !opts?.skipRateLimit,
     backendId: 'string',
     execute: () => fetch(url, {
         method: opts?.method ?? 'GET',

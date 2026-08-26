@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-08-26
+
+Closes four gaps found by an independent review of `0.8.0`, in each case where
+the shipped behaviour did not fully match what the docs and commit messages
+claimed. `0.8.0` was never published to npm; this is the first npm release of
+the 0.8 line.
+
+### Fixed
+
+- **A 429 retry now consumes a rate-limit slot.** `0.8.0` made a 429 back off
+  the whole backend, but the retry itself still fired without acquiring a slot,
+  so two requests could land inside a one-request window. Measured at 1 req/s,
+  a 429 exchange went out at `0ms` and `108ms`; it now goes out at `0ms` and
+  `2006ms` with a competing worker served at `1003ms`. Backends pass
+  `rateLimited` through so callers using `skipRateLimit` keep unmetered retries.
+- **`RateLimiter.penalize()` no longer clears the rate window.** Clearing it
+  handed budget back and let a burst through the moment the cooldown expired.
+  The cooldown adds delay; the window enforces the rate.
+- **`--strict` now fails on hard failures too.** It only checked items that
+  succeeded with incomplete data, so a run with terminal failures passed the
+  coverage gate it was written to enforce.
+- **A failed `--retry-degraded` attempt stays auditable.** The new failure
+  record was filtered out by the retained earlier success, leaving
+  `failures.jsonl` empty with no way to see why the recovery did not help. It is
+  now kept. `failures.jsonl` is the audit log of attempts that failed;
+  `summary.json` `failed` counts items left with no usable result, so the two
+  can differ when a partial result is retained.
+- **`-f plain`, table, and card no longer render nested fields as
+  `[object Object]`.** `0.8.0` wired the shared cell formatter into CSV and
+  Markdown only. Table column widths are measured with the same formatter, so
+  nested fields no longer size their column against `[object Object]`.
+
+### Changed
+
+- `RELEASE_CHECKLIST.md` requires remote CI to pass before a GitHub Release is
+  created. The `0.8.0` release was created about 12 seconds before CI finished.
+- `plan.md` records current state; the `0.7.1` baseline is kept as history.
+
 ## [0.8.0] - 2026-08-26
 
 This release is about trust in batch output. The per-item `completeness` field

@@ -92,6 +92,7 @@ export function writeBatchArtifacts<T>(opts: {
     failures: opts.failures,
     startedAt: opts.summary.startedAt,
     finishedAt: opts.summary.finishedAt,
+    failedCount: summary.failed,
   })}\n`);
 
   const manifest: BatchManifest = {

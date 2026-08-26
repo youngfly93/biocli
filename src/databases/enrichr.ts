@@ -34,6 +34,7 @@ async function enrichrFetch(url: string, opts?: EnrichrFetchOptions): Promise<Re
   }
 
   return executeHttpRequestWithRetry({
+    rateLimited: !opts?.skipRateLimit,
     backendId: 'enrichr',
     execute: () => fetch(url, {
         method: opts?.method ?? 'GET',

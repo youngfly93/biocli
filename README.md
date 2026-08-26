@@ -26,7 +26,7 @@ It stays useful because the outputs are structured, resumable, and pipeline-frie
 </p>
 
 ```
-biocli v0.8.0
+biocli v0.8.1
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · cBioPortal · Open Targets · GDSC · Unimod (local)
 Task-first entrypoints: batch gene scanning · tumor cohort briefing · target discovery
 Platform inventory: 65 commands · 11 database backends · 2 reference datasets · 14 workflow commands · 4 download commands
@@ -79,7 +79,7 @@ If you want the conda route instead, see [`packaging/conda/README.md`](packaging
 These checks confirm biocli is wired up end-to-end. Expected runtime depends on upstream API availability.
 
 ```bash
-biocli --version                              # should print 0.8.0
+biocli --version                              # should print 0.8.1
 biocli verify --smoke -f json                 # config + doctor + 6 core smoke tests
 biocli aggregate gene-dossier TP53 -f json    # real query across NCBI / UniProt / KEGG / STRING / PubMed / ClinVar
 biocli aggregate tumor-gene-dossier TP53 --study acc_tcga_pan_can_atlas_2018 -f json

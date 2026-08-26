@@ -226,12 +226,20 @@ A rerun that improves an item overwrites its checkpoint record. A rerun that
 does not improve it leaves the previous record in place, and the run-end warning
 fires again.
 
+If a recovery attempt hard-fails, its failure record is kept in
+`failures.jsonl` even though the earlier result is retained, so the attempt
+stays auditable. This is why the two counts can differ:
+
+- `failures.jsonl` is the audit log of attempts that failed
+- `summary.json` `failed` counts items left with no usable result
+
 ### Failing On Incomplete Coverage
 
-`--strict` exits with `65` (`EX_DATAERR`) when any item returned incomplete
-data. Use it to gate a delivery pipeline on coverage rather than only on hard
-errors. Without it, incomplete items are reported on stderr and in
-`summary.json` but do not change the exit code.
+`--strict` exits with `65` (`EX_DATAERR`) when coverage is incomplete for either
+reason: an item hard-failed, or an item succeeded with `partial` / `degraded`
+data. Use it to gate a delivery pipeline on coverage. Without it, incomplete
+items are reported on stderr and in `summary.json` but do not change the exit
+code.
 
 ## Cache And Snapshot Metadata
 
