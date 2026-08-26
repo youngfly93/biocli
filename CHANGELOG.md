@@ -50,6 +50,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   source counts
 - `manifest.json` `resume.skippedCompleted` now reports what the rerun actually
   skipped instead of the size of the previous success list
+- **Batch `methods.md` no longer fabricates provenance.** Sources were deduped
+  by backend name across the whole run, so the first item to contribute a
+  backend lent its accession numbers to every other item — a 12-gene run could
+  state EGFR's UniProt record and KRAS's NCBI/KEGG records as one provenance
+  sentence. Record identifiers are no longer carried to batch level (they stay
+  per-item in `results.jsonl`), and a URL survives only when it is a backend
+  root rather than a record landing page
+- Batch `methods.md` completeness was derived from hard failures alone, so a run
+  of partial results described itself as `complete`. It now reflects per-item
+  completeness, and the block lists complete/incomplete counts and names the
+  incomplete inputs
 
 ## [0.7.1] - 2026-04-14
 

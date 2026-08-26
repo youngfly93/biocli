@@ -1,3 +1,4 @@
+import { countDegraded, listDegradedInputs, summarizeBatchCompleteness } from './batch-completeness.js';
 import { formatMethodsMarkdown } from './methods.js';
 import type { BatchFailureRecord, BatchSuccessRecord } from './batch-types.js';
 import { buildBiocliProvenance, type BiocliProvenanceSource } from './types.js';
@@ -19,6 +20,43 @@ function isProvenanceSource(value: unknown): value is BiocliProvenanceSource {
   return isRecord(value) && typeof value.source === 'string';
 }
 
+/**
+ * Fields that identify a single record rather than the backend as a whole.
+ * They are meaningless — and actively misleading — once merged across a batch,
+ * because the first contributor of each backend would lend its accession
+ * numbers to every other item.
+ */
+function mergeBatchSource(
+  contributions: BiocliProvenanceSource[],
+): BiocliProvenanceSource {
+  const [first] = contributions;
+  const consistent = <K extends keyof BiocliProvenanceSource>(key: K) => {
+    const values = new Set(contributions.map(source => source[key]).filter(Boolean));
+    return values.size === 1 ? first[key] : undefined;
+  };
+
+  // A contribution that names recordIds also has a record-scoped URL, which is
+  // meaningless for the batch as a whole. Only URLs from contributions without
+  // recordIds are backend roots, and only a consistent one survives the merge.
+  const rootUrls = new Set(
+    contributions
+      .filter(source => !source.recordIds || source.recordIds.length === 0)
+      .map(source => source.url)
+      .filter((url): url is string => Boolean(url)),
+  );
+  const url = rootUrls.size === 1 ? [...rootUrls][0] : undefined;
+
+  // recordIds are inherently per-item and are never carried to batch level;
+  // per-item provenance stays in results.jsonl.
+  return {
+    source: first.source,
+    ...(url ? { url } : {}),
+    ...(consistent('apiVersion') ? { apiVersion: consistent('apiVersion') } : {}),
+    ...(consistent('databaseRelease') ? { databaseRelease: consistent('databaseRelease') } : {}),
+    ...(consistent('doi') ? { doi: consistent('doi') } : {}),
+  };
+}
+
 function collectSources(successes: BatchSuccessRecord[]): BiocliProvenanceSource[] {
   const inline = successes.flatMap((entry) => {
     const result = entry.result;
@@ -28,7 +66,13 @@ function collectSources(successes: BatchSuccessRecord[]): BiocliProvenanceSource
   });
 
   if (inline.length > 0) {
-    return uniqueByKey(inline, (source) => source.source);
+    const byBackend = new Map<string, BiocliProvenanceSource[]>();
+    for (const source of inline) {
+      const bucket = byBackend.get(source.source);
+      if (bucket) bucket.push(source);
+      else byBackend.set(source.source, [source]);
+    }
+    return [...byBackend.values()].map(mergeBatchSource);
   }
 
   const sourceNames = uniqueByKey(
@@ -74,11 +118,18 @@ export function formatBatchMethodsMarkdown(opts: {
   finishedAt: string;
 }): string {
   const sourceSummary = collectSources(opts.successes);
-  const completeness = opts.failures.length === 0
-    ? 'complete'
-    : opts.successes.length === 0
-      ? 'degraded'
-      : 'partial';
+  const breakdown = summarizeBatchCompleteness(opts.successes);
+  const degradedInputs = listDegradedInputs(opts.successes);
+  const degradedCount = breakdown ? countDegraded(breakdown) : 0;
+
+  // A batch is only "complete" when nothing hard-failed AND every item that
+  // reports completeness came back complete. Counting hard failures alone
+  // let a run of partial results describe itself as complete.
+  const completeness = opts.successes.length === 0
+    ? 'degraded'
+    : opts.failures.length > 0 || degradedCount > 0
+      ? 'partial'
+      : 'complete';
   const base = formatMethodsMarkdown({
     biocliVersion: inferVersion(opts.successes),
     query: `${opts.command} batch (${opts.inputCount} items)`,
@@ -104,6 +155,18 @@ export function formatBatchMethodsMarkdown(opts: {
     `- Successes: ${opts.successes.length}`,
     `- Failures: ${opts.failures.length}`,
   ];
+
+  if (breakdown) {
+    lines.push(
+      `- Complete: ${breakdown.complete}`,
+      `- Incomplete: ${degradedCount} (${breakdown.partial} partial, ${breakdown.degraded} degraded)`,
+    );
+    if (degradedInputs.length > 0) {
+      lines.push('', '## Incomplete Items', '', 'These inputs returned successfully but with incomplete data. Per-item sources and warnings are in `results.jsonl`; coverage per item is in the `completeness` column of `summary.csv`.', '');
+      for (const input of degradedInputs.slice(0, 20)) lines.push(`- ${input}`);
+      if (degradedInputs.length > 20) lines.push(`- …and ${degradedInputs.length - 20} more`);
+    }
+  }
 
   if (opts.failures.length > 0) {
     lines.push('', '## Failure Summary');
