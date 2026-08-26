@@ -1,156 +1,192 @@
 # Architecture
 
-## System Overview
+This document describes the `v0.7.1` runtime and the current unreleased development baseline.
 
-```
-bin/biocli (CLI entry)
-  │
-  ├─ Discovery (discovery.ts)
-  │    Finds YAML/TS adapters in src/clis/ + plugins in ~/.biocli/plugins/
-  │    Fast path: pre-built manifest (build-manifest.ts)
-  │    Fallback: filesystem scan + YAML parse
-  │
-  ├─ Commander Adapter (commander-adapter.ts)
-  │    Bridges command registry → Commander.js subcommands
-  │    Handles arg parsing, format selection, output rendering
-  │
-  ├─ Execution (execution.ts)
-  │    Validates/coerces args → creates HttpContext → runs command
-  │    Supports timeout enforcement and lifecycle hooks
-  │
-  ├─ Database Backends (databases/*.ts)
-  │    Per-database HTTP clients with rate limiting and retry
-  │    NCBI | UniProt | KEGG | STRING | Ensembl | Enrichr
-  │
-  ├─ Pipeline Engine (pipeline/*.ts)
-  │    Executes YAML adapter pipelines (fetch → map → filter → sort)
-  │
-  └─ Output (output.ts)
-       Formats results as table, JSON, CSV, YAML, Markdown, or card view
-```
+## Runtime map
 
-## Database Backend Pattern
-
-Each backend in `src/databases/` implements the `DatabaseBackend` interface:
-
-```ts
-interface DatabaseBackend {
-  readonly id: string;        // e.g. 'ncbi', 'uniprot'
-  readonly name: string;      // e.g. 'NCBI', 'UniProt'
-  readonly baseUrl: string;   // API base URL
-  readonly rateLimit: number; // max requests per second
-  createContext(): HttpContext;
-}
+```text
+biocli CLI                         optional biocli-mcp companion
+    │                                         │
+    └──────────────┬──────────────────────────┘
+                   ▼
+            initializeBiocli()
+       dispatcher · backends · discovery · hooks
+                   │
+                   ▼
+             command registry
+      prebuilt manifest or filesystem fallback
+                   │
+          ┌────────┴────────┐
+          ▼                 ▼
+  Commander adapter      MCP tools
+          └────────┬────────┘
+                   ▼
+            executeCommand()
+ validation · env · cache · timeout · lifecycle hooks
+                   │
+          ┌────────┴──────────┐
+          ▼                   ▼
+ TypeScript command       YAML pipeline
+          │                   │
+          └────────┬──────────┘
+                   ▼
+     HTTP backends / local reference datasets
+                   │
+                   ▼
+  rows · ResultWithMeta · BiocliResult · batch artifacts
 ```
 
-**To add a new database backend:**
+## Bootstrap and discovery
 
-1. Create `src/databases/<name>.ts`
-2. Export `buildXxxUrl()` (pure URL builder, easily testable)
-3. Export the `DatabaseBackend` object and call `registerBackend()` at module level
-4. Add a side-effect import in `src/main.ts`
+[`src/main.ts`](src/main.ts) is the CLI entrypoint. It prints the legacy-name deprecation notice, calls `initializeBiocli()`, and hands control to Commander.
 
-## Command Registration
+[`src/bootstrap.ts`](src/bootstrap.ts) is shared by CLI and MCP consumers. It:
 
-Two modes for defining commands:
+1. installs the Undici dispatcher before other runtime modules;
+2. registers all built-in database backends;
+3. discovers built-in commands and optional user plugins;
+4. emits the startup lifecycle hook once per process.
 
-### YAML Adapters (declarative)
+[`src/discovery.ts`](src/discovery.ts) has two paths:
 
-For simple single-fetch commands. Place in `src/clis/<db>/<command>.yaml`:
+- Production fast path: load `dist/cli-manifest.json`. YAML pipelines are already embedded and TypeScript command modules are lazy-loaded on first use.
+- Development fallback: scan `src/clis/`, parse YAML, and import TypeScript modules from the filesystem.
 
-```yaml
-site: pubmed
-name: info
-database: pubmed
-strategy: public
-pipeline:
-  - fetch: { url: '...', params: { ... } }
-  - select: einforesult.dbinfo
-  - map: { field: '${{ item.value }}' }
-columns: [field1, field2]
-```
+User extensions live under `~/.biocli/clis/` and `~/.biocli/plugins/`.
 
-### TypeScript Adapters (programmatic)
+## Command model
 
-For multi-step or complex logic. Place in `src/clis/<db>/<command>.ts`:
+[`src/registry.ts`](src/registry.ts) owns the global command registry and `CliCommand` contract. Command metadata includes:
 
-```ts
-import { cli, Strategy } from '../../registry.js';
+- arguments, defaults, types, and output columns;
+- database and execution strategy;
+- timeout and required environment variables;
+- agent examples and routing hints;
+- `readOnly`, side effects, and expected artifacts;
+- `noContext` for aggregate or local-dataset commands that manage their own data access.
 
-cli({
-  site: 'gene',
-  name: 'search',
-  database: 'gene',
-  strategy: Strategy.PUBLIC,
-  args: [{ name: 'query', positional: true, required: true }],
-  columns: ['geneId', 'symbol', 'name'],
-  func: async (ctx, args) => {
-    const data = await ctx.fetchJson(url);
-    return [{ geneId: '...', symbol: '...', name: '...' }];
-  },
-});
-```
+Simple single-source commands can be YAML pipelines. Multi-request, aggregate, local-dataset, or file-writing commands are TypeScript modules. Most current commands are TypeScript; YAML remains a supported adapter format rather than the dominant implementation path.
 
-## HttpContext (Dependency Injection)
+## Execution boundary
 
-Commands receive an `HttpContext` with database-aware fetch methods:
+[`src/execution.ts`](src/execution.ts) is the single command execution boundary for CLI and MCP. It:
 
-```ts
-interface HttpContext {
-  databaseId: string;
-  fetch(url: string, opts?: FetchOptions): Promise<Response>;
-  fetchJson(url: string, opts?: FetchOptions): Promise<unknown>;
-  fetchXml(url: string, opts?: FetchOptions): Promise<unknown>;
-  fetchText(url: string, opts?: FetchOptions): Promise<string>;
-}
-```
+1. lazy-loads a TypeScript module when required;
+2. coerces and validates arguments;
+3. validates required environment variables;
+4. creates a database-specific `HttpContext` unless `noContext` is set;
+5. applies the result cache and command timeout;
+6. executes a TypeScript function or YAML pipeline;
+7. emits before/after lifecycle hooks.
 
-This is the DI mechanism that makes commands testable — tests mock `HttpContext` without touching the network.
+Aggregate workflows create multiple database contexts explicitly and decide how partial upstream failures affect warnings and completeness.
 
-## Agent-First Result Envelope
+## Data access
 
-Aggregation commands return `BiocliResult<T>`:
+[`src/databases/index.ts`](src/databases/index.ts) contains the backend registry and factory. Bootstrap currently registers 11 backends:
+
+- NCBI
+- UniProt
+- KEGG
+- STRING
+- Ensembl
+- Enrichr
+- ProteomeXchange
+- PRIDE
+- cBioPortal
+- Open Targets
+- GDSC
+
+NCBI sub-sites such as PubMed, Gene, GEO, SRA, ClinVar, dbSNP, and Taxonomy share the NCBI backend.
+
+Each backend creates an `HttpContext` with `fetch`, `fetchJson`, `fetchXml`, and `fetchText`. Backend clients use the shared retry policy and rate limiter while retaining backend-specific retry/rate settings. The Undici dispatcher implements dual-stack connection handling and explicit IPv4 fallback.
+
+Local reference datasets are implemented under [`src/datasets/`](src/datasets/):
+
+- Unimod: local XML snapshot with integrity and freshness metadata.
+- GDSC: downloaded release files plus a derived sensitivity index. GDSC also has a registered backend for download/refresh operations.
+
+Regenerable downloads and indexes belong in the user's dataset/cache directory, not in command source or result contracts.
+
+## Result contracts
+
+Atomic commands return raw rows or `ResultWithMeta` when pagination context is needed. Aggregate workflows return `BiocliResult<T>` with:
 
 ```ts
 interface BiocliResult<T> {
-  data: T;                       // Primary payload
-  ids: Record<string, string>;   // Cross-database identifiers
-  sources: string[];             // Which backends contributed
-  warnings: string[];            // Non-fatal issues
-  queriedAt: string;             // ISO timestamp
-  organism?: string;             // Scientific name
-  query: string;                 // Original query
+  biocliVersion: string;
+  data: T;
+  ids: Record<string, string>;
+  sources: string[];
+  warnings: string[];
+  queriedAt: string;
+  organism?: string;
+  query: string;
+  completeness: 'complete' | 'partial' | 'empty';
+  provenance: BiocliProvenance;
 }
 ```
 
-Atomic commands use `ResultWithMeta` for pagination context (`totalCount`, `query`).
+The summary-first hero workflows (`gene-profile`, `drug-target`, and `tumor-gene-dossier`) additionally expose `data.agentSummary`. The stable consumer rules are documented in [`docs/contracts/hero-summary.md`](docs/contracts/hero-summary.md).
 
-## Rate Limiting
+The `drug-target` candidate ranking is explicitly versioned and auditable; see [`docs/methods/drug-target-ranking.md`](docs/methods/drug-target-ranking.md).
 
-Per-database `RateLimiter` instances stored in `globalThis`:
-- Sliding window algorithm
-- NCBI: 3 req/s (anonymous), 10 req/s (with API key)
-- UniProt: 50 req/s, KEGG: 10 req/s, STRING: 1 req/s, Ensembl: 15 req/s, Enrichr: 5 req/s
-- All backends implement exponential backoff retry on HTTP 429
+## Batch execution
 
-## Manifest Fast Path
+[`src/batch-execution.ts`](src/batch-execution.ts) is the common batch execution core used by:
 
-`npm run build` generates `dist/manifest.json` via `build-manifest.ts`:
-- Pre-parses YAML adapter definitions at build time
-- At runtime, `discovery.ts` loads the manifest for instant startup
-- Falls back to filesystem scan in development (`npm run dev`)
+- generic non-aggregate commands through [`src/commander-adapter.ts`](src/commander-adapter.ts);
+- hero aggregate commands through [`src/clis/aggregate/batch-runtime.ts`](src/clis/aggregate/batch-runtime.ts).
 
-## Key Files
+The shared core owns indexing, bounded concurrency, retry limits, cache reads/writes, resume checkpoint selection, success/failure records, snapshot metadata, and artifact finalization. Wrappers retain command-specific preparation, cache-read policy, progress wording, and all-failed behavior.
 
-| File | Purpose |
-|------|---------|
-| `src/main.ts` | Entry point, backend registration, discovery |
-| `src/cli.ts` | Built-in commands (list, validate, config, schema, doctor, completion) |
-| `src/registry.ts` | Command registry (CliCommand interface, global Map) |
-| `src/commander-adapter.ts` | Commander.js bridge, output rendering |
-| `src/execution.ts` | Arg validation, context creation, command execution |
-| `src/databases/index.ts` | Backend interface, registry, factory |
-| `src/types.ts` | HttpContext, BiocliResult, ResultWithMeta |
-| `src/output.ts` | Multi-format output rendering |
-| `src/doctor.ts` | Diagnostic checks |
-| `src/schema.ts` | JSON Schema definitions |
+A run directory uses the stable artifact contract:
+
+```text
+results.jsonl
+failures.jsonl
+summary.json
+summary.csv       # when a command flattener is available
+manifest.json
+methods.md
+```
+
+See [`docs/contracts/run-artifacts.md`](docs/contracts/run-artifacts.md) for schemas and recovery semantics.
+
+## MCP companion
+
+[`packages/biocli-mcp/`](packages/biocli-mcp/) is an optional companion that loads the built core package and exposes either a small hero scope or the full command registry. It uses the same bootstrap, registry, execution, result normalization, and command metadata as the CLI.
+
+MCP read-only annotations derive from `CliCommand.readOnly`; file-writing commands must set `readOnly: false` at command registration rather than being maintained in a second list.
+
+## Build and verification
+
+`npm run build` performs a clean TypeScript build, copies YAML adapters, generates `dist/cli-manifest.json`, and removes AppleDouble files from build output.
+
+Vitest is split into four projects:
+
+- `unit`: core logic without adapter modules;
+- `adapter`: command and backend tests, normally with mocked `HttpContext`/upstream responses;
+- `e2e`: end-to-end tests;
+- `smoke`: packaged command smoke tests.
+
+CI runs Node 20 and Node 22, then checks repository hygiene, executes typecheck and all Vitest projects, builds the package, and runs core smoke tests. Live upstream checks are separate because network and service availability are external variables.
+
+## Key files
+
+| File | Responsibility |
+|---|---|
+| `src/main.ts` | CLI entrypoint |
+| `src/bootstrap.ts` | Shared runtime initialization |
+| `src/discovery.ts` | Manifest/filesystem command discovery |
+| `src/registry.ts` | Command and metadata registry |
+| `src/commander-adapter.ts` | Commander argument collection and rendering |
+| `src/mcp-core.ts` | MCP command selection, descriptions, annotations, result normalization |
+| `src/execution.ts` | Validation, context, cache, timeout, hooks, execution |
+| `src/batch-execution.ts` | Shared batch runtime |
+| `src/batch-resume.ts` | Checkpoints and artifact-session merge |
+| `src/databases/index.ts` | HTTP backend registry/factory |
+| `src/datasets/` | Local reference dataset loaders |
+| `src/types.ts` | HTTP and result contracts |
+| `src/output.ts` | Interactive/stdout formats |
+| `src/doctor.ts` | Runtime, network, and dataset diagnostics |

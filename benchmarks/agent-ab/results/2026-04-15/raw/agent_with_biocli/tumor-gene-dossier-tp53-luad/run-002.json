@@ -1,0 +1,111 @@
+{
+  "task_id": "tumor-gene-dossier-tp53-luad",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Resolved the hinted LUAD cBioPortal study and returned TP53 mutation prevalence plus exemplar variants and co-mutation context.",
+    "result": {
+      "study_id_used": "luad_tcga_pan_can_atlas_2018",
+      "study_name": "Lung Adenocarcinoma (TCGA, PanCancer Atlas)",
+      "gene": "TP53",
+      "cohort": {
+        "total_samples": 566,
+        "altered_samples": 295,
+        "unique_patients": 295
+      },
+      "mutation_prevalence_pct": 52.12,
+      "mutation_events": 314,
+      "top_mutation_types": [
+        {
+          "mutation_type": "Missense_Mutation",
+          "count": 195
+        },
+        {
+          "mutation_type": "Nonsense_Mutation",
+          "count": 55
+        },
+        {
+          "mutation_type": "Frame_Shift_Del",
+          "count": 24
+        },
+        {
+          "mutation_type": "Splice_Site",
+          "count": 23
+        }
+      ],
+      "exemplar_protein_changes": [
+        {
+          "protein_change": "X125_splice",
+          "mutation_type": "Splice_Region",
+          "sample_count": 8
+        },
+        {
+          "protein_change": "R158L",
+          "mutation_type": "Missense_Mutation",
+          "sample_count": 6
+        },
+        {
+          "protein_change": "R273L",
+          "mutation_type": "Missense_Mutation",
+          "sample_count": 6
+        },
+        {
+          "protein_change": "G245V",
+          "mutation_type": "Missense_Mutation",
+          "sample_count": 5
+        }
+      ],
+      "co_mutation_clues": [
+        {
+          "partner_gene": "TTN",
+          "co_mutated_samples": 181,
+          "co_mutation_rate_in_tp53_altered_pct": 61.36,
+          "context": "tmb_indicator"
+        },
+        {
+          "partner_gene": "KRAS",
+          "co_mutated_samples": 62,
+          "co_mutation_rate_in_tp53_altered_pct": 21.02,
+          "context": "known_driver"
+        }
+      ],
+      "brief_interpretation": "TP53 is altered in just over half of LUAD cases in this cohort, with truncating/splice events plus recurrent hotspot missense changes; large-gene co-mutations like TTN suggest high mutation burden, while KRAS provides a driver-level co-mutation example."
+    }
+  },
+  "sources": [
+    "https://www.cbioportal.org/study/summary?id=luad_tcga_pan_can_atlas_2018",
+    "biocli cbioportal studies luad_tcga_pan_can_atlas_2018 --limit 5 --format json",
+    "biocli aggregate tumor-gene-dossier TP53 --study luad_tcga_pan_can_atlas_2018 --format json",
+    "biocli cbioportal frequency TP53 --study luad_tcga_pan_can_atlas_2018 --format json"
+  ],
+  "commands_used": [
+    "./biocli --help",
+    "node dist/main.js --help",
+    "node dist/main.js workflows --json",
+    "node dist/main.js cbioportal --help",
+    "node dist/main.js cbioportal studies --help",
+    "node dist/main.js cbioportal frequency --help",
+    "node dist/main.js aggregate --help",
+    "node dist/main.js aggregate tumor-gene-dossier --help",
+    "node dist/main.js schema aggregate/tumor-gene-dossier",
+    "node dist/main.js cbioportal studies luad_tcga_pan_can_atlas_2018 --limit 5 --format json",
+    "node dist/main.js cbioportal studies LUAD --limit 5 --format json",
+    "node dist/main.js aggregate tumor-gene-dossier TP53 --study luad_tcga_pan_can_atlas_2018 --format json",
+    "node dist/main.js cbioportal frequency TP53 --study luad_tcga_pan_can_atlas_2018 --format json"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [
+    {
+      "attempt": "./biocli --help",
+      "failure": "Executable not found at repository root."
+    }
+  ],
+  "recovery_actions": [
+    "Used the packaged CLI entrypoint at `dist/main.js` after the root-level executable was missing."
+  ],
+  "runtime": {
+    "wall_clock_ms": 0,
+    "tool_calls": 19
+  }
+}

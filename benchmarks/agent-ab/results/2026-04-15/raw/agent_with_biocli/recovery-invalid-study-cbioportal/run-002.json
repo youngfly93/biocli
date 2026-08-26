@@ -1,0 +1,67 @@
+{
+  "task_id": "recovery-invalid-study-cbioportal",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "The provided study id `bogus_study` was invalid and returned a cBioPortal 404. I recovered by searching cBioPortal for a real lung adenocarcinoma cohort, selected `luad_tcga_pan_can_atlas_2018`, and reran the TP53 analysis successfully.",
+    "result": {
+      "invalid_study_id": "bogus_study",
+      "recovered_study_id": "luad_tcga_pan_can_atlas_2018",
+      "cohort_name": "Lung Adenocarcinoma (TCGA, PanCancer Atlas)",
+      "gene": "TP53",
+      "prevalence": {
+        "mutated_samples": 295,
+        "total_samples": 566,
+        "mutation_frequency_pct": 52.12
+      },
+      "mutation_clue": {
+        "top_mutation_type": "Missense_Mutation",
+        "top_mutation_type_count": 195,
+        "top_protein_changes": [
+          "X125_splice",
+          "R158L",
+          "R273L"
+        ]
+      },
+      "co_mutation_clue": {
+        "partner_gene": "KRAS",
+        "co_mutated_samples": 62,
+        "co_mutation_rate_in_anchor_pct": 21.02,
+        "study_frequency_pct": 10.95,
+        "context": "known cancer driver co-mutation"
+      }
+    }
+  },
+  "sources": [
+    {
+      "label": "cBioPortal",
+      "url": "https://www.cbioportal.org/study/summary?id=luad_tcga_pan_can_atlas_2018",
+      "record_ids": [
+        "bogus_study",
+        "luad_tcga_pan_can_atlas_2018",
+        "TP53"
+      ]
+    }
+  ],
+  "commands_used": [
+    "BIOCLI_NO_DEPRECATION=1 biocli cbioportal frequency TP53 --study bogus_study -f json",
+    "BIOCLI_NO_DEPRECATION=1 biocli cbioportal studies lung -f json --limit 50",
+    "BIOCLI_NO_DEPRECATION=1 biocli cbioportal frequency TP53 --study luad_tcga_pan_can_atlas_2018 -f json",
+    "BIOCLI_NO_DEPRECATION=1 biocli cbioportal co-mutations TP53 --study luad_tcga_pan_can_atlas_2018 -f json --limit 10 --min-samples 2"
+  ],
+  "web_queries": [],
+  "warnings": [
+    "TP53 co-mutation hits include large-gene/TMB-associated partners in the cBioPortal output; KRAS was chosen as the clearest driver-like clue."
+  ],
+  "errors": [
+    "cBioPortal returned HTTP 404 for study id `bogus_study`."
+  ],
+  "recovery_actions": [
+    "Used `biocli cbioportal studies lung -f json --limit 50` to find a valid lung adenocarcinoma study id.",
+    "Reran the TP53 frequency and co-mutation analysis with `luad_tcga_pan_can_atlas_2018`."
+  ],
+  "runtime": {
+    "wall_clock_ms": 120000,
+    "tool_calls": 17
+  }
+}

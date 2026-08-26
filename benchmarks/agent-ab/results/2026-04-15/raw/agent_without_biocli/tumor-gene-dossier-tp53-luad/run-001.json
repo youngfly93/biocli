@@ -1,0 +1,106 @@
+{
+  "task_id": "tumor-gene-dossier-tp53-luad",
+  "arm": "agent_without_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "TP53 is altered in 52.12% of samples in luad_tcga_pan_can_atlas_2018, with recurrent hotspot and splice-site variants and strong overlap with TTN/MUC16.",
+    "result": {
+      "study_used": "luad_tcga_pan_can_atlas_2018",
+      "study_name": "Lung Adenocarcinoma (TCGA, PanCancer Atlas)",
+      "cohort": {
+        "sample_count": 566,
+        "tp53_altered_samples": 295,
+        "mutation_frequency_pct": 52.12
+      },
+      "representative_alterations": [
+        {
+          "protein_change": "X125_splice",
+          "mutation_type": "Splice_Region",
+          "sample_count": 10
+        },
+        {
+          "protein_change": "R273L",
+          "mutation_type": "Missense_Mutation",
+          "sample_count": 6
+        },
+        {
+          "protein_change": "R158L",
+          "mutation_type": "Missense_Mutation",
+          "sample_count": 6
+        },
+        {
+          "protein_change": "G245V",
+          "mutation_type": "Missense_Mutation",
+          "sample_count": 5
+        }
+      ],
+      "co_mutation_clues": [
+        {
+          "partner_gene": "TTN",
+          "tp53_co_mutated_samples": 181,
+          "tp53_co_mutation_rate_pct": 61.36,
+          "cohort_overlap_pct": 31.98,
+          "note": "Frequent overlap among TP53-mutant LUAD samples; consistent with a high-mutation-burden signal."
+        },
+        {
+          "partner_gene": "MUC16",
+          "tp53_co_mutated_samples": 160,
+          "tp53_co_mutation_rate_pct": 54.24,
+          "cohort_overlap_pct": 28.27,
+          "note": "Frequent overlap among TP53-mutant LUAD samples; consistent with a high-mutation-burden signal."
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "source": "cBioPortal study API",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018"
+      ],
+      "url": "https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018"
+    },
+    {
+      "source": "cBioPortal study page",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018"
+      ],
+      "url": "https://www.cbioportal.org/study/summary?id=luad_tcga_pan_can_atlas_2018"
+    },
+    {
+      "source": "cBioPortal TP53 mutations API",
+      "record_ids": [
+        "7157"
+      ],
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7157"
+    },
+    {
+      "source": "cBioPortal TTN mutations API",
+      "record_ids": [
+        "7273"
+      ],
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7273"
+    },
+    {
+      "source": "cBioPortal MUC16 mutations API",
+      "record_ids": [
+        "94025"
+      ],
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=94025"
+    }
+  ],
+  "commands_used": [
+    "curl -s 'https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018' -H 'accept: application/json' | head -c 500",
+    "python - <<'PY' ... requests.get('/studies/luad_tcga_pan_can_atlas_2018') /sample-lists /molecular-profiles ... PY",
+    "python - <<'PY' ... requests.get('/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations', params={'sampleListId':'luad_tcga_pan_can_atlas_2018_sequenced','entrezGeneId':7157}) ... PY",
+    "python - <<'PY' ... mutation prevalence, exemplar protein changes, and TTN/MUC16 overlaps ... PY"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 60000,
+    "tool_calls": 4
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "task_id": "tumor-gene-dossier-tp53-luad",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "TP53 is altered in the LUAD TCGA PanCancer Atlas 2018 cohort at 52.12% prevalence (295/566 sequenced samples). The cohort shows the expected TP53 hotspot/missense and truncating spectrum, with KRAS as a notable co-mutated driver and TTN/MUC16/RYR2 as high-frequency co-mutation partners likely reflecting high mutation burden.",
+    "result": {
+      "gene": "TP53",
+      "study_id": "luad_tcga_pan_can_atlas_2018",
+      "molecular_profile_id": "luad_tcga_pan_can_atlas_2018_mutations",
+      "sample_list_id": "luad_tcga_pan_can_atlas_2018_sequenced",
+      "cohort": {
+        "total_samples": 566,
+        "altered_samples": 295,
+        "unique_patients": 295,
+        "mutation_events": 314,
+        "mutation_frequency_pct": 52.12
+      },
+      "representative_alterations": {
+        "top_mutation_types": [
+          {
+            "mutation_type": "Missense_Mutation",
+            "count": 195
+          },
+          {
+            "mutation_type": "Nonsense_Mutation",
+            "count": 55
+          },
+          {
+            "mutation_type": "Frame_Shift_Del",
+            "count": 24
+          },
+          {
+            "mutation_type": "Splice_Site",
+            "count": 23
+          },
+          {
+            "mutation_type": "Splice_Region",
+            "count": 9
+          }
+        ],
+        "top_protein_changes": [
+          {
+            "protein_change": "X125_splice",
+            "count": 10
+          },
+          {
+            "protein_change": "R158L",
+            "count": 6
+          },
+          {
+            "protein_change": "R273L",
+            "count": 6
+          },
+          {
+            "protein_change": "G245V",
+            "count": 5
+          },
+          {
+            "protein_change": "X126_splice",
+            "count": 5
+          }
+        ],
+        "exemplar_variants": [
+          {
+            "sample_id": "TCGA-05-4382-01",
+            "protein_change": "V272G",
+            "mutation_type": "Missense_Mutation"
+          },
+          {
+            "sample_id": "TCGA-05-4396-01",
+            "protein_change": "K139Rfs*31",
+            "mutation_type": "Frame_Shift_Del"
+          },
+          {
+            "sample_id": "TCGA-05-4405-01",
+            "protein_change": "R175H",
+            "mutation_type": "Missense_Mutation"
+          }
+        ]
+      },
+      "co_mutation_clue": {
+        "partner_gene": "KRAS",
+        "co_mutated_samples": 62,
+        "co_mutation_rate_in_anchor_pct": 21.02,
+        "co_mutation_frequency_in_study_pct": 10.95,
+        "context": "known_driver"
+      },
+      "additional_co_mutation_context": [
+        {
+          "partner_gene": "TTN",
+          "co_mutated_samples": 181,
+          "co_mutation_rate_in_anchor_pct": 61.36,
+          "context": "tmb_indicator"
+        },
+        {
+          "partner_gene": "MUC16",
+          "co_mutated_samples": 160,
+          "co_mutation_rate_in_anchor_pct": 54.24,
+          "context": "tmb_indicator"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "label": "cBioPortal LUAD PanCancer Atlas 2018 study",
+      "url": "https://www.cbioportal.org/study/summary?id=luad_tcga_pan_can_atlas_2018",
+      "record_ids": [
+        "study:luad_tcga_pan_can_atlas_2018",
+        "profile:luad_tcga_pan_can_atlas_2018_mutations",
+        "sampleList:luad_tcga_pan_can_atlas_2018_sequenced",
+        "gene:TP53"
+      ]
+    }
+  ],
+  "commands_used": [
+    "biocli --help",
+    "biocli cbioportal studies luad_tcga_pan_can_atlas_2018 -f json",
+    "biocli cbioportal frequency TP53 --study luad_tcga_pan_can_atlas_2018 -f json",
+    "biocli cbioportal co-mutations TP53 --study luad_tcga_pan_can_atlas_2018 -f json --limit 10 --min-samples 2",
+    "biocli cbioportal mutations TP53 --study luad_tcga_pan_can_atlas_2018 -f json --limit 10",
+    "biocli aggregate tumor-gene-dossier TP53 --study luad_tcga_pan_can_atlas_2018 -f json --papers 0 --co-mutations 5 --variants 5"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 13000,
+    "tool_calls": 6
+  }
+}

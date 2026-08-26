@@ -1,5 +1,5 @@
 {% set name = "biocli" %}
-{% set version = "0.7.0" %}
+{% set version = "0.7.1" %}
 
 package:
   name: {{ name|lower }}
@@ -31,7 +31,8 @@ about:
   description: |
     biocli is a Node.js CLI for biological data retrieval, aggregation, and
     workflow preparation across NCBI, UniProt, KEGG, STRING, Ensembl,
-    Enrichr, ProteomeXchange, PRIDE, and a local Unimod snapshot.
+    Enrichr, ProteomeXchange, PRIDE, cBioPortal, and Open Targets, with
+    local Unimod and GDSC reference snapshots.
   license: MIT
   license_file: LICENSE
   doc_url: https://github.com/youngfly93/biocli#readme

@@ -1,0 +1,161 @@
+{
+  "task_id": "drug-target-egfr",
+  "arm": "agent_without_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "EGFR is a highly viable, clinically validated target in lung cancer, especially EGFR-mutant NSCLC; it is not a general all-comers lung-cancer target.",
+    "result": {
+      "target_entity": {
+        "name": "EGFR",
+        "entity_type": "human protein-coding gene / receptor tyrosine kinase",
+        "ids": {
+          "ncbi_gene": "1956",
+          "uniprot": "P00533",
+          "hgnc": "HGNC:3236"
+        }
+      },
+      "disease_links": [
+        {
+          "disease": "non-small cell lung cancer (NSCLC)",
+          "link_type": "actionable somatic alteration",
+          "evidence": "EGFR exon 19 deletions, exon 21 L858R, and T790M define treatment-relevant NSCLC subgroups in FDA/NCI sources."
+        }
+      ],
+      "tractability": {
+        "assessment": "high / clinically validated",
+        "why": [
+          "Multiple FDA-approved EGFR-directed therapies exist in NSCLC.",
+          "FDA-approved companion diagnostics select EGFR-mutant patients.",
+          "Best evidence is for EGFR Ex19del and L858R; additional activity exists for T790M."
+        ]
+      },
+      "candidate_drugs": [
+        {
+          "name": "osimertinib",
+          "priority": "top",
+          "fit": "preferred EGFR TKI for EGFR-mutant NSCLC",
+          "relevance": "Approved for adjuvant, first-line, and T790M-positive metastatic NSCLC; strongest fit for Ex19del/L858R and acquired resistance T790M.",
+          "support": [
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-adjuvant-therapy-non-small-cell-lung-cancer-egfr-mutations",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/osimertinib-tagrisso",
+            "https://www.cancer.gov/about-cancer/treatment/drugs/osimertinib"
+          ]
+        },
+        {
+          "name": "amivantamab + lazertinib",
+          "priority": "top",
+          "fit": "first-line targeted regimen for common EGFR-mutant advanced NSCLC",
+          "relevance": "FDA approved for locally advanced or metastatic NSCLC with EGFR Ex19del or L858R; relevant when targeting EGFR-driven disease with a combination strategy.",
+          "support": [
+            "https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/761433s000lbl.pdf",
+            "https://www.cancer.gov/about-cancer/treatment/drugs/amivantamab-vmjw"
+          ]
+        },
+        {
+          "name": "amivantamab + carboplatin/pemetrexed",
+          "priority": "high",
+          "fit": "post-TKI regimen for EGFR-mutant NSCLC",
+          "relevance": "FDA approved for EGFR Ex19del/L858R NSCLC after progression on an EGFR TKI; this is a strong option once resistance emerges.",
+          "support": [
+            "https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/761210s010lbl.pdf"
+          ]
+        },
+        {
+          "name": "erlotinib / gefitinib / afatinib",
+          "priority": "secondary",
+          "fit": "legacy EGFR TKIs",
+          "relevance": "Still evidence of tractability and historical clinical validation in EGFR-mutant metastatic NSCLC; generally less preferred than osimertinib.",
+          "support": [
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/erlotinib-tarceva",
+            "https://www.cancer.gov/about-cancer/treatment/drugs/gefitinib",
+            "https://www.cancer.gov/publications/dictionaries/cancer-drug/def/afatinib-dimaleate",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/cobas-egfr-mutation-test-v2"
+          ]
+        }
+      ],
+      "bottom_line": "Yes. EGFR is a viable and highly targetable lung-cancer driver when NSCLC carries actionable EGFR mutations; the strongest evidence is for Ex19del, L858R, and T790M."
+    }
+  },
+  "sources": [
+    {
+      "title": "NCBI Gene: EGFR epidermal growth factor receptor [Homo sapiens]",
+      "url": "https://www.ncbi.nlm.nih.gov/gene/1956"
+    },
+    {
+      "title": "PubChem Protein: Epidermal growth factor receptor (human) | P00533",
+      "url": "https://pubchem.ncbi.nlm.nih.gov/protein/P00533"
+    },
+    {
+      "title": "FDA: Osimertinib (TAGRISSO)",
+      "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/osimertinib-tagrisso"
+    },
+    {
+      "title": "FDA: Osimertinib adjuvant therapy for NSCLC with EGFR mutations",
+      "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-adjuvant-therapy-non-small-cell-lung-cancer-egfr-mutations"
+    },
+    {
+      "title": "NCI Drug Page: Osimertinib Mesylate",
+      "url": "https://www.cancer.gov/about-cancer/treatment/drugs/osimertinib"
+    },
+    {
+      "title": "FDA: Amivantamab + carboplatin + pemetrexed for EGFR-mutant NSCLC",
+      "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-carboplatin-and-pemetrexed-non-small-cell-lung-cancer-egfr-exon-19"
+    },
+    {
+      "title": "FDA: Lazertinib with amivantamab-vmjw for NSCLC",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/761433s000lbl.pdf"
+    },
+    {
+      "title": "NCI Drug Page: Amivantamab-vmjw",
+      "url": "https://www.cancer.gov/about-cancer/treatment/drugs/amivantamab-vmjw"
+    },
+    {
+      "title": "FDA: Erlotinib (Tarceva)",
+      "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/erlotinib-tarceva"
+    },
+    {
+      "title": "NCI Drug Page: Gefitinib",
+      "url": "https://www.cancer.gov/about-cancer/treatment/drugs/gefitinib"
+    },
+    {
+      "title": "NCI Drug Dictionary: Afatinib dimaleate",
+      "url": "https://www.cancer.gov/publications/dictionaries/cancer-drug/def/afatinib-dimaleate"
+    },
+    {
+      "title": "FDA: cobas EGFR Mutation Test v2",
+      "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/cobas-egfr-mutation-test-v2"
+    },
+    {
+      "title": "FDA label: Amivantamab with carboplatin and pemetrexed for EGFR Ex19del/L858R NSCLC",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2025/761210s010lbl.pdf"
+    },
+    {
+      "title": "NCI NSCLC Treatment PDQ",
+      "url": "https://www.cancer.gov/types/lung/hp/non-small-cell-lung-treatment-pdq"
+    }
+  ],
+  "commands_used": [
+    "pwd",
+    "rg --files /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_without_biocli/drug-target-egfr"
+  ],
+  "web_queries": [
+    "site:nih.gov EGFR lung cancer target approved osimertinib FDA label NSCLC",
+    "site:ncbi.nlm.nih.gov gene EGFR Homo sapiens lung cancer",
+    "site:fda.gov osimertinib EGFR mutation non-small cell lung cancer label",
+    "site:cancer.gov EGFR targeted therapy lung cancer",
+    "site:accessdata.fda.gov cobas EGFR Mutation Test v2 NSCLC erlotinib",
+    "site:cancer.gov osimertinib NSCLC EGFR mutation NCI",
+    "site:cancer.gov amivantamab NSCLC EGFR mutation NCI",
+    "site:fda.gov amivantamab lazertinib NSCLC EGFR exon 19 deletions L858R",
+    "site:fda.gov amivantamab carboplatin pemetrexed NSCLC EGFR exon 19 deletions L858R",
+    "site:cancer.gov gefitinib NSCLC EGFR mutation NCI",
+    "site:cancer.gov afatinib NSCLC EGFR mutation NCI"
+  ],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 90000,
+    "tool_calls": 21
+  }
+}

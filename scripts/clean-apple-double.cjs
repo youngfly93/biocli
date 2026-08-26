@@ -1,13 +1,16 @@
 /**
- * Remove AppleDouble/resource-fork files (._*) from dist/.
+ * Remove AppleDouble/resource-fork files (._*) from one or more directories.
  *
  * These appear automatically on exFAT / FAT32 volumes used on macOS.
- * They are binary garbage that breaks YAML parsing and bloats the build.
+ * They are binary garbage that breaks parsing, pollutes benchmark trees,
+ * and should never be treated as real artifacts.
  */
 const { readdirSync, rmSync, existsSync, statSync } = require('fs');
 const path = require('path');
 
 let removed = 0;
+const roots = process.argv.slice(2);
+if (roots.length === 0) roots.push('dist');
 
 function walk(dir) {
   if (!existsSync(dir)) return;
@@ -22,7 +25,7 @@ function walk(dir) {
   }
 }
 
-walk('dist');
+for (const root of roots) walk(root);
 if (removed > 0) {
-  process.stdout.write(`Cleaned ${removed} AppleDouble files from dist/\n`);
+  process.stdout.write(`Cleaned ${removed} AppleDouble files from ${roots.join(', ')}\n`);
 }

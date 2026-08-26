@@ -1,0 +1,152 @@
+{
+  "final_answer": {
+    "result": {
+      "target": {
+        "symbol": "EGFR",
+        "name": "epidermal growth factor receptor",
+        "entity_resolution": {
+          "ncbi_gene_id": "1956",
+          "uniprot_accession": "P00533"
+        }
+      },
+      "verdict": {
+        "viable_in_lung_cancer": true,
+        "confidence": "high",
+        "summary": "EGFR is a clinically validated drug target in lung cancer, especially EGFR-mutant non-small cell lung cancer. There are multiple approved EGFR-directed therapies, including kinase inhibitors and an EGFR-directed antibody."
+      },
+      "disease_links": [
+        {
+          "disease": "non-small cell lung cancer",
+          "relationship": "clinically actionable",
+          "evidence": "FDA-approved EGFR-directed therapies exist for EGFR-mutated NSCLC.",
+          "sources": [
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-chemotherapy-egfr-mutated-non-small-cell-lung-cancer",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-broadens-afatinib-indication-previously-untreated-metastatic-nsclc-other-non-resistant-egfr"
+          ]
+        },
+        {
+          "disease": "EGFR exon 19 deletion / exon 21 L858R NSCLC",
+          "relationship": "high-confidence targetable subgroup",
+          "evidence": "Osimertinib is FDA-approved for EGFR-mutated NSCLC with these sensitizing alterations.",
+          "sources": [
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-chemotherapy-egfr-mutated-non-small-cell-lung-cancer"
+          ]
+        },
+        {
+          "disease": "EGFR exon 20 insertion NSCLC",
+          "relationship": "targetable subgroup",
+          "evidence": "Amivantamab is FDA-approved for EGFR exon 20 insertion-mutated NSCLC.",
+          "sources": [
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-egfr-exon-20-insertion-mutated-non-small-cell-lung-cancer-indications"
+          ]
+        }
+      ],
+      "tractability": {
+        "level": "high",
+        "classification": "clinically validated",
+        "modalities": [
+          "small-molecule kinase inhibitor",
+          "monoclonal / bispecific antibody"
+        ],
+        "why": [
+          "Multiple FDA-approved EGFR inhibitors exist for lung cancer.",
+          "EGFR is directly druggable at the kinase domain.",
+          "EGFR-directed antibody therapy is also available for specific NSCLC subgroups."
+        ]
+      },
+      "candidate_drugs": [
+        {
+          "name": "osimertinib",
+          "class": "EGFR TKI",
+          "rank": 1,
+          "relevance": "Best-supported EGFR target therapy for sensitizing EGFR-mutant NSCLC; strongest top-line evidence for first-line lung cancer use.",
+          "evidence": [
+            "FDA-approved for EGFR-mutated non-small cell lung cancer with exon 19 deletion or exon 21 L858R, in combination with chemotherapy.",
+            "Directly maps to the canonical actionable EGFR-mutant lung cancer subgroup."
+          ],
+          "sources": [
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-chemotherapy-egfr-mutated-non-small-cell-lung-cancer"
+          ]
+        },
+        {
+          "name": "amivantamab",
+          "class": "EGFR/MET-directed bispecific antibody",
+          "rank": 2,
+          "relevance": "Highly relevant for EGFR exon 20 insertion NSCLC and other EGFR-driven lung cancer settings.",
+          "evidence": [
+            "FDA-approved for EGFR exon 20 insertion-mutated non-small cell lung cancer indications.",
+            "Targets the EGFR-driven subset that is less responsive to older TKIs."
+          ],
+          "sources": [
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-egfr-exon-20-insertion-mutated-non-small-cell-lung-cancer-indications"
+          ]
+        },
+        {
+          "name": "afatinib",
+          "class": "EGFR TKI",
+          "rank": 3,
+          "relevance": "Established EGFR inhibitor for previously untreated metastatic NSCLC with non-resistant EGFR mutations.",
+          "evidence": [
+            "FDA broadened the indication for previously untreated metastatic NSCLC with non-resistant EGFR mutations.",
+            "Supports EGFR as a clinically validated lung cancer target."
+          ],
+          "sources": [
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-broadens-afatinib-indication-previously-untreated-metastatic-nsclc-other-non-resistant-egfr"
+          ]
+        },
+        {
+          "name": "dacomitinib",
+          "class": "EGFR TKI",
+          "rank": 4,
+          "relevance": "Approved EGFR inhibitor for EGFR-mutant metastatic NSCLC; useful confirmation of tractability.",
+          "evidence": [
+            "Approved as a lung-cancer therapy in the EGFR-mutant NSCLC setting."
+          ],
+          "sources": [
+            "https://www.cancer.gov/about-cancer/treatment/drugs/dacomitinib"
+          ]
+        },
+        {
+          "name": "erlotinib",
+          "class": "EGFR TKI",
+          "rank": 5,
+          "relevance": "Historical EGFR-targeted therapy for NSCLC, still relevant as evidence that EGFR is a druggable lung cancer target.",
+          "evidence": [
+            "FDA-approved for NSCLC; commonly cited as an EGFR-targeted lung cancer therapy."
+          ],
+          "sources": [
+            "https://ichgcp.net/clinical-trials-registry/NCT01026844"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "name": "NCBI Gene",
+          "identifier": "1956",
+          "url": "https://www.ncbi.nlm.nih.gov/gene/1956"
+        },
+        {
+          "name": "UniProt",
+          "identifier": "P00533",
+          "url": "https://www.uniprot.org/uniprotkb/P00533"
+        },
+        {
+          "name": "FDA osimertinib approval",
+          "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-chemotherapy-egfr-mutated-non-small-cell-lung-cancer"
+        },
+        {
+          "name": "FDA amivantamab approval",
+          "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-egfr-exon-20-insertion-mutated-non-small-cell-lung-cancer-indications"
+        },
+        {
+          "name": "FDA afatinib indication expansion",
+          "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-broadens-afatinib-indication-previously-untreated-metastatic-nsclc-other-non-resistant-egfr"
+        },
+        {
+          "name": "NCI dacomitinib",
+          "url": "https://www.cancer.gov/about-cancer/treatment/drugs/dacomitinib"
+        }
+      ]
+    }
+  }
+}

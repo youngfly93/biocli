@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This backlog turns [003-batch-pipeline-prd.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/docs/decisions/003-batch-pipeline-prd.md) into an execution plan that can be converted into issues, milestones, and implementation PRs.
+This backlog turns [003-batch-pipeline-prd.md](../../docs/decisions/003-batch-pipeline-prd.md) into an execution plan that can be converted into issues, milestones, and implementation PRs.
 
 The goal is not to add one more batch flag to one more command. The goal is to build a shared runtime for batch biological workflows and then attach the highest-value aggregate commands to it.
 
@@ -86,10 +86,10 @@ Deliverables:
 
 Suggested file touch points:
 
-- [commander-adapter.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/commander-adapter.ts)
-- [batch.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/batch.ts)
-- [errors.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/errors.ts)
-- [README.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/README.md)
+- [commander-adapter.ts](../../src/commander-adapter.ts)
+- [batch.ts](../../src/batch.ts)
+- [errors.ts](../../src/errors.ts)
+- [README.md](../../README.md)
 
 Definition of done:
 
@@ -120,9 +120,9 @@ Deliverables:
 Suggested file touch points:
 
 - New: `src/batch-runner.ts`
-- [batch.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/batch.ts)
-- [utils.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/utils.ts)
-- [progress.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/progress.ts)
+- [batch.ts](../../src/batch.ts)
+- [utils.ts](../../src/utils.ts)
+- [progress.ts](../../src/progress.ts)
 
 Definition of done:
 
@@ -156,8 +156,8 @@ Suggested file touch points:
 
 - New: `src/batch-output.ts`
 - New: `src/batch-types.ts`
-- [types.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/types.ts)
-- [schema.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/schema.ts)
+- [types.ts](../../src/types.ts)
+- [schema.ts](../../src/schema.ts)
 
 Definition of done:
 
@@ -194,8 +194,8 @@ Deliverables:
 Suggested file touch points:
 
 - New: `src/batch-failures.ts`
-- [errors.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/errors.ts)
-- [execution.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/execution.ts)
+- [errors.ts](../../src/errors.ts)
+- [execution.ts](../../src/execution.ts)
 
 Definition of done:
 
@@ -226,8 +226,8 @@ Deliverables:
 
 Suggested file touch points:
 
-- [progress.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/progress.ts)
-- [commander-adapter.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/commander-adapter.ts)
+- [progress.ts](../../src/progress.ts)
+- [commander-adapter.ts](../../src/commander-adapter.ts)
 - New: `src/batch-progress.ts`
 
 Definition of done:
@@ -257,7 +257,7 @@ Deliverables:
 
 Suggested file touch points:
 
-- [gene-profile.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/gene-profile.ts)
+- [gene-profile.ts](../../src/clis/aggregate/gene-profile.ts)
 - Tests in `src/clis/aggregate/gene-profile*.test.ts`
 - Smoke coverage in `tests/smoke/`
 
@@ -281,7 +281,7 @@ Goal:
 
 Suggested file touch points:
 
-- [gene-dossier.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/gene-dossier.ts)
+- [gene-dossier.ts](../../src/clis/aggregate/gene-dossier.ts)
 - Related tests under `src/clis/aggregate/`
 
 Definition of done:
@@ -308,9 +308,9 @@ Specific concerns:
 
 Suggested file touch points:
 
-- [drug-target.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/drug-target.ts)
-- [opentargets.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/databases/opentargets.ts)
-- [gdsc.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/databases/gdsc.ts)
+- [drug-target.ts](../../src/clis/aggregate/drug-target.ts)
+- [opentargets.ts](../../src/databases/opentargets.ts)
+- [gdsc.ts](../../src/databases/gdsc.ts)
 
 Definition of done:
 
@@ -337,9 +337,9 @@ Specific concerns:
 
 Suggested file touch points:
 
-- [tumor-gene-dossier.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/tumor-gene-dossier.ts)
-- [cbioportal.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/databases/cbioportal.ts)
-- [common.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/cbioportal/common.ts)
+- [tumor-gene-dossier.ts](../../src/clis/aggregate/tumor-gene-dossier.ts)
+- [cbioportal.ts](../../src/databases/cbioportal.ts)
+- [common.ts](../../src/clis/cbioportal/common.ts)
 
 Definition of done:
 
@@ -398,7 +398,7 @@ Deliverables:
 
 Suggested file touch points:
 
-- [methods.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/methods.ts)
+- [methods.ts](../../src/methods.ts)
 - New: `src/batch-methods.ts`
 
 Definition of done:
@@ -455,7 +455,7 @@ Deliverables:
 
 Suggested file touch points:
 
-- [execution.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/execution.ts)
+- [execution.ts](../../src/execution.ts)
 - Database adapters under `src/databases/`
 
 Definition of done:
@@ -483,7 +483,7 @@ Deliverables:
 
 Suggested file touch points:
 
-- [gdsc.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/datasets/gdsc.ts)
+- [gdsc.ts](../../src/datasets/gdsc.ts)
 - Existing cache-related utilities
 - `manifest.json` generation path
 
@@ -521,7 +521,7 @@ Deliverables:
 
 Suggested file touch points:
 
-- [benchmarks/README.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/README.md)
+- [benchmarks/README.md](../../benchmarks/README.md)
 - New benchmark scenario files under `benchmarks/`
 
 Definition of done:

@@ -26,6 +26,7 @@ Use biocli especially for:
 
 Before falling back to generic search, first consider whether biocli exposes a direct or near-direct command.
 When biocli returns structured output, preserve that structure in your final result.
+Use the `biocli` entrypoint directly. Do not use `ncbicli`, even if it exists as a deprecated alias.
 ```
 
 ## Arm B: Agent Without biocli
@@ -65,3 +66,12 @@ If the task becomes hard without a dedicated tool, do not invent unsupported fac
   }
 }
 ```
+
+Source entry rules:
+
+- `sources` must be an array of objects, not strings
+- each source object should use:
+  - `label`: short source name
+  - `url`: concrete page or API endpoint when available
+  - `record_ids`: array of stable IDs when available
+- do not use `name`, `title`, `source`, `id`, `identifier`, `note`, or `used_for` as top-level source keys

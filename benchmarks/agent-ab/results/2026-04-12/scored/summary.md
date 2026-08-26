@@ -1,5 +1,7 @@
 # Agent A/B Benchmark Report — biocli v0.5.0
 
+> Historical methodology notice: this pilot used the retired `0-100 × 6` rubric that preceded `agent-ab-v1`. Preserve it as historical evidence, but do not combine or directly compare these scores with current `0-2 × 5` scorecards.
+
 **Date:** 2026-04-12  
 **Tasks:** 5 of 8 (pilot run, 1 repeat per arm)  
 **Model:** Claude Opus 4.6 (both arms)  
@@ -90,6 +92,6 @@ biocli's empirically demonstrated value:
 - biocli arm had access to Bash tool only (no WebSearch)
 - web arm had access to WebSearch + WebFetch only (no Bash/biocli)
 - Ground truth established from live API calls before experiment
-- Scoring applied per `benchmarks/agent-ab/rubric.md`
+- Scoring used the legacy pre-`agent-ab-v1` rubric in effect on 2026-04-12
 - Tasks skipped: literature-brief (predicted tie), workflow-scout (low delta), workflow-prepare-preview (no --dry-run flag)
 - Full agent transcripts available in raw/ subdirectories

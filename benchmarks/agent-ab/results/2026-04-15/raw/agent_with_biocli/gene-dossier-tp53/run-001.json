@@ -1,0 +1,159 @@
+{
+  "task_id": "gene-dossier-tp53",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "TP53 was resolved to the canonical human gene TP53 (NCBI Gene 7157 / UniProt P04637) and summarized with pathway, network, and clinical variant context.",
+    "result": {
+      "canonical_entity": {
+        "symbol": "TP53",
+        "gene_id": "7157",
+        "name": "tumor protein p53",
+        "organism": "Homo sapiens",
+        "chromosome": "17",
+        "location": "17p13.1"
+      },
+      "functional_summary": "Multifunctional transcription factor that responds to cellular stress by regulating gene expression to drive cell cycle arrest, DNA repair, apoptosis, and senescence.",
+      "pathways": [
+        {
+          "id": "hsa04115",
+          "name": "p53 signaling pathway"
+        },
+        {
+          "id": "hsa04110",
+          "name": "Cell cycle"
+        },
+        {
+          "id": "hsa04210",
+          "name": "Apoptosis"
+        },
+        {
+          "id": "hsa05200",
+          "name": "Pathways in cancer"
+        }
+      ],
+      "network_clue": {
+        "top_interactors": [
+          {
+            "partner": "SFN",
+            "score": 0.999
+          },
+          {
+            "partner": "EP300",
+            "score": 0.999
+          },
+          {
+            "partner": "ATM",
+            "score": 0.999
+          },
+          {
+            "partner": "MDM4",
+            "score": 0.999
+          }
+        ],
+        "note": "STRING links TP53 to DNA-damage response and transcriptional control machinery."
+      },
+      "clinical_variant_context": {
+        "clinvar_examples": [
+          {
+            "title": "NM_000546.6(TP53):c.44G>T (p.Ser15Ile)",
+            "accession": "VCV004800662",
+            "significance": "Uncertain significance",
+            "condition": "Li-Fraumeni syndrome"
+          },
+          {
+            "title": "NM_000546.6(TP53):c.274C>A (p.Pro92Thr)",
+            "accession": "VCV004811916",
+            "significance": "Uncertain significance",
+            "condition": "Li-Fraumeni syndrome"
+          },
+          {
+            "title": "NM_000546.6(TP53):c.991_993+64dup",
+            "accession": "VCV004812286",
+            "significance": "Uncertain significance",
+            "condition": "Li-Fraumeni syndrome"
+          }
+        ],
+        "literature_context": [
+          {
+            "pmid": "36766853",
+            "title": "The Role of TP53 in Adaptation and Evolution."
+          },
+          {
+            "pmid": "35332311",
+            "title": "Should mutant TP53 be targeted for cancer therapy?"
+          },
+          {
+            "pmid": "39450536",
+            "title": "TP53 mutations in cancer: Molecular features and therapeutic opportunities (Review)."
+          }
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "source": "NCBI Gene",
+      "record_ids": [
+        "7157"
+      ],
+      "url": "https://www.ncbi.nlm.nih.gov/gene/7157"
+    },
+    {
+      "source": "UniProt",
+      "record_ids": [
+        "P04637"
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P04637"
+    },
+    {
+      "source": "KEGG",
+      "record_ids": [
+        "hsa:7157"
+      ],
+      "url": "https://www.kegg.jp/entry/hsa%3A7157"
+    },
+    {
+      "source": "STRING",
+      "url": "https://string-db.org/api"
+    },
+    {
+      "source": "PubMed",
+      "record_ids": [
+        "36766853",
+        "35332311",
+        "39450536"
+      ],
+      "url": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "source": "ClinVar",
+      "record_ids": [
+        "VCV004800662",
+        "VCV004811916",
+        "VCV004812286"
+      ],
+      "url": "https://www.ncbi.nlm.nih.gov/clinvar/"
+    }
+  ],
+  "commands_used": [
+    "rg -n \"final_answer|benchmark contract|result|notes\" benchmarks/agent-ab/first-run.prompts.md benchmarks/agent-ab/README.md benchmarks/agent-ab/results/2026-04-15/README.md",
+    "ls -la benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/gene-dossier-tp53 && sed -n '1,220p' benchmarks/agent-ab/first-run.prompts.md",
+    "biocli --help",
+    "biocli gene --help",
+    "biocli aggregate --help",
+    "biocli workflows --help",
+    "date -u +%Y-%m-%dT%H:%M:%SZ",
+    "git status --short -- benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/gene-dossier-tp53",
+    "biocli aggregate gene-dossier TP53 -f json",
+    "biocli gene search TP53 -f json"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 35000,
+    "tool_calls": 9
+  }
+}

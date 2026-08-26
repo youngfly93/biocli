@@ -1,0 +1,93 @@
+version: "1.0"
+date: "2026-04-14"
+purpose: "First lightweight A/B pilot for agent capability with and without biocli."
+
+evaluation:
+  repeats_per_arm: 3
+  target_model_count: 1
+  arms:
+    - agent_with_biocli
+    - agent_without_biocli
+
+tasks:
+  - id: gene-dossier-tp53
+    track: retrieval
+    weight: 10
+    title: "TP53 multi-source gene dossier"
+    prompt: "Find a structured TP53 dossier covering stable identifiers, function, pathways, interaction evidence, and clinically relevant variant context."
+    expected_outputs:
+      - "Canonical gene symbol and at least one stable identifier"
+      - "Functional summary"
+      - "Pathway information"
+      - "At least one interaction or network clue"
+      - "Variant or clinical context"
+
+  - id: drug-target-egfr
+    track: aggregation
+    weight: 14
+    title: "EGFR drug-target brief"
+    prompt: "Find whether EGFR is a viable drug target in lung cancer and return a concise machine-readable summary of disease links, targetability, and candidate drugs."
+    expected_outputs:
+      - "Resolved target identifier"
+      - "Disease association context"
+      - "Drug or clinical candidate evidence"
+      - "Tractability or targetability signal"
+
+  - id: tumor-gene-dossier-tp53-luad
+    track: cohort
+    weight: 14
+    title: "Tumor cohort dossier for TP53 in LUAD"
+    prompt: "Find TP53 mutation/prevalence context in a real LUAD study and return mutation frequency, representative alterations, and co-mutation clues."
+    provided_inputs:
+      gene: "TP53"
+      study_hint: "luad_tcga_pan_can_atlas_2018"
+    expected_outputs:
+      - "Study identifier"
+      - "Mutation or alteration prevalence"
+      - "Representative protein changes or exemplar variants"
+      - "At least one co-mutation clue"
+
+  - id: recovery-invalid-study-cbioportal
+    track: recovery
+    weight: 12
+    title: "Recover from invalid cBioPortal study"
+    prompt: "You are first given the invalid study id 'bogus_study'. Recover and produce a valid TP53 tumor-cohort result for a real lung adenocarcinoma study."
+    expected_outputs:
+      - "Acknowledges invalid study id"
+      - "Performs a repair step to find valid studies"
+      - "Re-runs the analysis with a valid study"
+      - "Returns a structured final result"
+
+  - id: batch-drug-target-lung-panel
+    track: batch
+    weight: 16
+    title: "Batch drug-target scan for a lung-focused gene panel"
+    prompt: "Given a small gene panel, run a lung-focused target triage and return outputs suitable for downstream ranking and filtering."
+    provided_inputs:
+      genes:
+        - "EGFR"
+        - "ERBB2"
+        - "PIK3CA"
+        - "MET"
+        - "ALK"
+    expected_outputs:
+      - "A machine-readable multi-gene result"
+      - "A shortlist of top candidates or top targets"
+      - "Artifacts suitable for downstream filtering or ranking"
+
+  - id: batch-gene-profile-panel
+    track: batch
+    weight: 14
+    title: "Batch gene-profile scan for a candidate panel"
+    prompt: "Given a small gene panel, produce a machine-readable batch profile suitable for downstream pathway or interaction triage."
+    provided_inputs:
+      genes:
+        - "TP53"
+        - "BRCA1"
+        - "EGFR"
+        - "PIK3CA"
+        - "NF1"
+    expected_outputs:
+      - "A machine-readable multi-gene result"
+      - "At least one reusable artifact or structured summary"
+      - "Enough output to rank or filter genes downstream"

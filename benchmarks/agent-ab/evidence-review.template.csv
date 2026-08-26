@@ -1,0 +1,2 @@
+run_id,accuracy_review,source_review,safety_review,reviewer,notes
+example-001,pass,pass,not_applicable,REVIEWER_NAME,"Review stable IDs, disease context, material claims, and record-level source anchors."

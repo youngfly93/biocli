@@ -1,0 +1,19 @@
+{
+  "rubricVersion": "agent-ab-v1",
+  "operationalScale": {
+    "min": 0,
+    "max": 2
+  },
+  "operationalDimensions": [
+    "completion",
+    "structure",
+    "parseability",
+    "recovery",
+    "efficiency"
+  ],
+  "scorecard": "scorecard.csv",
+  "evidenceReview": {
+    "status": "not_completed",
+    "file": null
+  }
+}

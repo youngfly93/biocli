@@ -1,0 +1,6 @@
+input,query,symbol,name,organism,completeness,sources,warningsCount,pathwayCount,goTermCount,interactionCount,diseaseCount,ncbiGeneId,uniprotAccession,ensemblGeneId,queriedAt
+TP53,TP53,TP53,tumor protein p53,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,51,173,10,48,7157,P04637,ENSG00000141510.20,2026-04-15T06:42:21.452Z
+BRCA1,BRCA1,BRCA1,BRCA1 DNA repair associated,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,7,77,10,7,672,P38398,ENSG00000012048.27,2026-04-15T06:42:19.353Z
+EGFR,EGFR,EGFR,epidermal growth factor receptor,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,51,104,10,12,1956,P00533,ENSG00000146648.22,2026-04-15T06:42:19.815Z
+PIK3CA,PIK3CA,PIK3CA,"phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha",Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,109,66,10,15,5290,P42336,ENSG00000121879.7,2026-04-15T06:42:19.999Z
+NF1,NF1,NF1,neurofibromin 1,Homo sapiens,complete,NCBI Gene;UniProt;STRING;KEGG,0,3,110,10,7,4763,P21359,ENSG00000196712.20,2026-04-15T06:42:22.504Z

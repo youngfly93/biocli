@@ -5,6 +5,7 @@ import {
   cliCommand,
   countJsonlRows,
   parseResumeArgs,
+  pipelineWorkRoot,
   type ResumeArgs,
 } from './lib.js';
 
@@ -59,7 +60,7 @@ const resultRoot = join('benchmarks', 'pipeline', 'results', args.date, 'resume'
 const scenarioRoot = join(resultRoot, 'gene-profile-interruption');
 const outdir = join(scenarioRoot, 'gene-profile-run');
 const logDir = join(scenarioRoot, 'logs');
-const homeDir = join('benchmarks', 'pipeline', 'results', args.date, '.cache-home', 'gene-profile-resume');
+const homeDir = join(pipelineWorkRoot(args.date), 'cache-home', 'gene-profile-resume');
 const resultsJsonl = join(outdir, 'results.jsonl');
 const interruptedStdoutPath = join(logDir, 'interrupted.stdout.txt');
 const interruptedStderrPath = join(logDir, 'interrupted.stderr.txt');

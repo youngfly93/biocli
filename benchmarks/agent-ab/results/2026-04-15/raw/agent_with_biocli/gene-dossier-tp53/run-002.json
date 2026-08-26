@@ -1,0 +1,171 @@
+{
+  "task_id": "gene-dossier-tp53",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Resolved TP53 to the human NCBI Gene/UniProt/KEGG canonical entity and assembled a compact dossier covering function, pathways, interactions, and ClinVar context from biocli gene-dossier.",
+    "result": {
+      "gene": {
+        "symbol": "TP53",
+        "name": "tumor protein p53",
+        "organism": "Homo sapiens",
+        "identifiers": {
+          "ncbiGeneId": "7157",
+          "uniprotAccession": "P04637",
+          "keggId": "hsa:7157"
+        },
+        "canonical_resolution": {
+          "source": "NCBI Gene",
+          "url": "https://www.ncbi.nlm.nih.gov/gene/7157",
+          "record_id": "7157"
+        }
+      },
+      "functional_summary": "Multifunctional tumor suppressor transcription factor that coordinates DNA damage response, cell-cycle arrest, apoptosis, DNA repair, and senescence.",
+      "pathway_context": [
+        {
+          "id": "hsa04115",
+          "name": "p53 signaling pathway"
+        },
+        {
+          "id": "hsa04110",
+          "name": "Cell cycle"
+        },
+        {
+          "id": "hsa04210",
+          "name": "Apoptosis"
+        },
+        {
+          "id": "hsa04218",
+          "name": "Cellular senescence"
+        },
+        {
+          "id": "hsa05200",
+          "name": "Pathways in cancer"
+        }
+      ],
+      "interaction_or_network_clue": {
+        "clue": "STRING network partners include MDM4, ATM, EP300, SFN, and CHEK2 at very high scores, consistent with TP53’s core DNA-damage/tumor-suppressor network.",
+        "example_partners": [
+          {
+            "partner": "MDM4",
+            "score": 0.999
+          },
+          {
+            "partner": "ATM",
+            "score": 0.999
+          },
+          {
+            "partner": "EP300",
+            "score": 0.999
+          }
+        ],
+        "source": "STRING"
+      },
+      "clinical_variant_context": {
+        "summary": "ClinVar contains multiple TP53 variants reported in Li-Fraumeni syndrome; the dossier surfaced several current entries, all labeled uncertain significance in this run.",
+        "examples": [
+          {
+            "title": "NM_000546.6(TP53):c.44G>T (p.Ser15Ile)",
+            "significance": "Uncertain significance",
+            "condition": "Li-Fraumeni syndrome",
+            "accession": "VCV004800662"
+          },
+          {
+            "title": "NM_000546.6(TP53):c.436T>C (p.Trp146Arg)",
+            "significance": "Uncertain significance",
+            "condition": "Li-Fraumeni syndrome",
+            "accession": "VCV004800656"
+          }
+        ],
+        "source": "ClinVar"
+      },
+      "literature_context": [
+        {
+          "pmid": "36766853",
+          "title": "The Role of TP53 in Adaptation and Evolution.",
+          "year": "2023",
+          "doi": "10.3390/cells12030512"
+        },
+        {
+          "pmid": "35332311",
+          "title": "Should mutant TP53 be targeted for cancer therapy?",
+          "year": "2022",
+          "doi": "10.1038/s41418-022-00962-9"
+        }
+      ],
+      "evidence": [
+        {
+          "source": "NCBI Gene",
+          "url": "https://www.ncbi.nlm.nih.gov/gene/7157",
+          "record_ids": ["7157"]
+        },
+        {
+          "source": "UniProt",
+          "url": "https://www.uniprot.org/uniprotkb/P04637",
+          "record_ids": ["P04637"]
+        },
+        {
+          "source": "KEGG",
+          "url": "https://www.kegg.jp/entry/hsa%3A7157",
+          "record_ids": ["hsa:7157"]
+        },
+        {
+          "source": "PubMed",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/",
+          "record_ids": ["36766853", "35332311"]
+        },
+        {
+          "source": "ClinVar",
+          "url": "https://www.ncbi.nlm.nih.gov/clinvar/",
+          "record_ids": ["VCV004800662", "VCV004800656"]
+        },
+        {
+          "source": "STRING",
+          "url": "https://string-db.org/api"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "source": "NCBI Gene",
+      "url": "https://www.ncbi.nlm.nih.gov/gene/7157",
+      "record_ids": ["7157"]
+    },
+    {
+      "source": "UniProt",
+      "url": "https://www.uniprot.org/uniprotkb/P04637",
+      "record_ids": ["P04637"]
+    },
+    {
+      "source": "KEGG",
+      "url": "https://www.kegg.jp/entry/hsa%3A7157",
+      "record_ids": ["hsa:7157"]
+    },
+    {
+      "source": "STRING",
+      "url": "https://string-db.org/api"
+    },
+    {
+      "source": "PubMed",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/",
+      "record_ids": ["36766853", "35332311"]
+    },
+    {
+      "source": "ClinVar",
+      "url": "https://www.ncbi.nlm.nih.gov/clinvar/",
+      "record_ids": ["VCV004800662", "VCV004800656"]
+    }
+  ],
+  "commands_used": [
+    "BIOCLI_NO_DEPRECATION=1 biocli aggregate gene-dossier TP53 --organism human -f json"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 15000,
+    "tool_calls": 11
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "task_id": "drug-target-egfr",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "short human-readable answer",
+    "result": {}
+  },
+  "sources": [],
+  "commands_used": [],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 0,
+    "tool_calls": 0
+  }
+}

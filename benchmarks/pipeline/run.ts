@@ -5,6 +5,7 @@ import {
   PIPELINE_TASKS,
   cliCommand,
   parseRunArgs,
+  pipelineWorkRoot,
   readManifestSummary,
   type TaskSpec,
   type RunArgs,
@@ -39,7 +40,7 @@ for (const task of PIPELINE_TASKS) {
   const taskRoot = join(resultRoot, task.id);
   const outdir = join(taskRoot, task.outdirName);
   const logDir = join(taskRoot, 'logs');
-  const homeDir = join('benchmarks', 'pipeline', 'results', args.date, '.cache-home', task.id);
+  const homeDir = join(pipelineWorkRoot(args.date), 'cache-home', task.id);
   if (args.cacheMode === 'cold') {
     rmSync(homeDir, { recursive: true, force: true });
   }

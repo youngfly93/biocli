@@ -1,0 +1,125 @@
+{
+  "task_id": "recovery-invalid-study-cbioportal",
+  "arm": "agent_without_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "The provided study id bogus_study was invalid; I recovered by selecting the real LUAD study luad_tcga_pan_can_atlas_2018 and returned a TP53 cohort result with prevalence and mutation/co-mutation clues.",
+    "result": {
+      "recovered_from_invalid_study": "bogus_study",
+      "study_id": "luad_tcga_pan_can_atlas_2018",
+      "study_name": "Lung Adenocarcinoma (TCGA, PanCancer Atlas)",
+      "cohort": {
+        "disease": "lung adenocarcinoma",
+        "sample_count": 566,
+        "tp53_altered_samples": 295,
+        "mutation_frequency_pct": 52.12
+      },
+      "mutation_clue": {
+        "top_mutation_types": [
+          {
+            "mutation_type": "Missense_Mutation",
+            "count": 195
+          },
+          {
+            "mutation_type": "Nonsense_Mutation",
+            "count": 55
+          },
+          {
+            "mutation_type": "Frame_Shift_Del",
+            "count": 24
+          }
+        ],
+        "exemplar_alterations": [
+          {
+            "protein_change": "X125_splice",
+            "mutation_type": "Splice_Region",
+            "sample_count": 10
+          },
+          {
+            "protein_change": "R273L",
+            "mutation_type": "Missense_Mutation",
+            "sample_count": 6
+          },
+          {
+            "protein_change": "R158L",
+            "mutation_type": "Missense_Mutation",
+            "sample_count": 6
+          }
+        ]
+      },
+      "co_mutation_clue": {
+        "top_partner_genes": [
+          {
+            "partner_gene": "TTN",
+            "tp53_co_mutated_samples": 181,
+            "tp53_co_mutation_rate_pct": 61.36,
+            "cohort_overlap_pct": 31.98,
+            "note": "Frequent overlap among TP53-mutant LUAD samples; consistent with a high-mutation-burden signal."
+          },
+          {
+            "partner_gene": "MUC16",
+            "tp53_co_mutated_samples": 160,
+            "tp53_co_mutation_rate_pct": 54.24,
+            "cohort_overlap_pct": 28.27,
+            "note": "Frequent overlap among TP53-mutant LUAD samples; consistent with a high-mutation-burden signal."
+          }
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "source": "cBioPortal study API",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018"
+      ],
+      "url": "https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018"
+    },
+    {
+      "source": "cBioPortal study page",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018"
+      ],
+      "url": "https://www.cbioportal.org/study/summary?id=luad_tcga_pan_can_atlas_2018"
+    },
+    {
+      "source": "cBioPortal TP53 mutations API",
+      "record_ids": [
+        "7157"
+      ],
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7157"
+    },
+    {
+      "source": "cBioPortal TTN mutations API",
+      "record_ids": [
+        "7273"
+      ],
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7273"
+    },
+    {
+      "source": "cBioPortal MUC16 mutations API",
+      "record_ids": [
+        "94025"
+      ],
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=94025"
+    }
+  ],
+  "commands_used": [
+    "python - <<'PY' requests.get('https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018'), requests.get('https://www.cbioportal.org/api/sample-lists/luad_tcga_pan_can_atlas_2018_sequenced'), requests.get('https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7157') PY",
+    "python - <<'PY' requests.get('https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7273') and requests.get('https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=94025') PY"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [
+    "Provided study id bogus_study is invalid",
+    "Recovered by selecting the real LUAD study luad_tcga_pan_can_atlas_2018"
+  ],
+  "recovery_actions": [
+    "Queried the cBioPortal study API to identify the real lung adenocarcinoma study luad_tcga_pan_can_atlas_2018.",
+    "Reran the TP53 cohort analysis against luad_tcga_pan_can_atlas_2018 and computed prevalence plus mutation/co-mutation clues."
+  ],
+  "runtime": {
+    "wall_clock_ms": 8000,
+    "tool_calls": 3
+  }
+}

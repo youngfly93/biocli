@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "benchmarkDate": "2026-04-13",
+  "externalization": {
+    "reason": "Downloaded GDSC source files and derived sensitivity indexes are regenerable benchmark runtime state, not result evidence.",
+    "removedRuntimeHomes": 10,
+    "removedDatasetFiles": 15,
+    "removedDatasetBytes": 229879113,
+    "localRecoveryPath": ".work/legacy-benchmark-cache/2026-04-13/"
+  },
+  "dataset": {
+    "name": "GDSC",
+    "source": "GDSC bulk downloads",
+    "release": "8.5",
+    "staleAfterDays": 90,
+    "indexVersion": 1
+  },
+  "sourceFiles": [
+    {
+      "filename": "screened_compounds_rel_8.5.csv",
+      "url": "https://cog.sanger.ac.uk/cancerrxgene/GDSC_release8.5/screened_compounds_rel_8.5.csv",
+      "sizeBytes": 46414,
+      "sha256": "d3cbb8b595980b36bf92d54af1da1dd995d2e2ce624c7cc70aacf2a754dce782",
+      "copiesRemoved": 3
+    },
+    {
+      "filename": "GDSC1_fitted_dose_response_27Oct23.xlsx",
+      "url": "https://cog.sanger.ac.uk/cancerrxgene/GDSC_release8.5/GDSC1_fitted_dose_response_27Oct23.xlsx",
+      "sizeBytes": 29353210,
+      "sha256": "837b0686500fde75179e490de08f034abd9f882d8b0253d637bafe83e156dafd",
+      "copiesRemoved": 3
+    },
+    {
+      "filename": "GDSC2_fitted_dose_response_27Oct23.xlsx",
+      "url": "https://cog.sanger.ac.uk/cancerrxgene/GDSC_release8.5/GDSC2_fitted_dose_response_27Oct23.xlsx",
+      "sizeBytes": 21330376,
+      "sha256": "f950a7027be265f8a7a74220a27fd18cbd368485349bd8c2048e88bb1cd07560",
+      "copiesRemoved": 3
+    }
+  ],
+  "derivedIndexes": [
+    {
+      "origin": "shared-cache-home",
+      "sizeBytes": 25895260,
+      "sha256": "15b2330576eb4891d17777b3421e798d7971686911cf01d7c201ae4f800ad404"
+    },
+    {
+      "origin": "legacy-cold-home",
+      "sizeBytes": 25895260,
+      "sha256": "456ab43573d3f3af951a2b25605fd367df97711fac981e98d6125fd332b6b49a"
+    },
+    {
+      "origin": "legacy-warm-home",
+      "sizeBytes": 25895260,
+      "sha256": "ccc642d22b2f6c5e2b2a3c1928779645016e439b365be98ef173fcc8a2d0c57f"
+    }
+  ],
+  "retainedEvidence": [
+    "report.json",
+    "report.md",
+    "cold/summary.json",
+    "warm/summary.json",
+    "resume/gene-profile-interruption/summary.json",
+    "command run directories and logs"
+  ]
+}

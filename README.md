@@ -26,7 +26,7 @@ It stays useful because the outputs are structured, resumable, and pipeline-frie
 </p>
 
 ```
-biocli v0.6.0
+biocli v0.7.1
 NCBI · UniProt · KEGG · STRING · Ensembl · Enrichr · ProteomeXchange · PRIDE · cBioPortal · Open Targets · GDSC · Unimod (local)
 Task-first entrypoints: batch gene scanning · tumor cohort briefing · target discovery
 Platform inventory: 65 commands · 11 database backends · 2 reference datasets · 14 workflow commands · 4 download commands
@@ -76,17 +76,31 @@ If you want the conda route instead, see [`packaging/conda/README.md`](packaging
 
 ### 4. Verify the install
 
-Three commands that confirm biocli is wired up end-to-end. Expected runtime: under 15 seconds.
+These checks confirm biocli is wired up end-to-end. Expected runtime depends on upstream API availability.
 
 ```bash
-biocli --version                              # should print 0.6.0
+biocli --version                              # should print 0.7.1
 biocli verify --smoke -f json                 # config + doctor + 6 core smoke tests
 biocli aggregate gene-dossier TP53 -f json    # real query across NCBI / UniProt / KEGG / STRING / PubMed / ClinVar
 biocli aggregate tumor-gene-dossier TP53 --study acc_tcga_pan_can_atlas_2018 -f json
 biocli aggregate drug-target EGFR --disease lung -f json
 ```
 
-If all three return without error, biocli is installed and every upstream API is reachable from your network.
+If the live-query commands return without error, biocli is installed and the upstream APIs used by those workflows are reachable from your network.
+
+### Agent environment note
+
+biocli is validated in ordinary terminal environments with outbound network access, including local shells where `biocli verify --smoke`, `aggregate drug-target`, and `aggregate tumor-gene-dossier` can reach their upstream APIs normally.
+
+Some agent or sandbox environments restrict Node/CLI outbound networking even when browser-style web tools still work. In those environments you may see `doctor` failures or hero workflow errors caused by:
+
+- execution-environment network restrictions
+- DNS resolution failures such as `ENOTFOUND`
+- normal upstream timeouts or service issues
+
+Current `doctor` output now distinguishes these cases in JSON via `failureType`, and Open Targets / cBioPortal network failures now return more explicit hints when the execution environment appears to block Node/CLI networking.
+
+If you are running inside a restricted agent sandbox, make sure outbound network access is enabled for the CLI process itself, not just for browser or web-search tools.
 
 ## Quick start
 
@@ -458,7 +472,7 @@ Four tools (biocli, BioMCP, gget, EDirect), **n=3 cold runs per cell**, coverage
 
 ## Command reference
 
-biocli ships **65 commands** across 13 agent-optimized workflows. For the live, machine-readable catalog (including args, types, defaults, and columns):
+biocli ships **65 commands** across 14 agent-optimized workflows. For the live, machine-readable catalog (including args, types, defaults, and columns):
 
 ```bash
 biocli list                 # human-readable table
@@ -486,6 +500,8 @@ biocli list -f json         # full JSON with per-command schema
 | `aggregate workflow-annotate <genes>` | NCBI+UniProt+KEGG+Enrichr | Annotate gene list → genes.csv + pathways.csv + enrichment.csv + report.md |
 | `aggregate workflow-profile <genes>` | NCBI+UniProt+KEGG+STRING+Enrichr | Gene set functional profile → shared pathways, interactions, GO terms |
 | `aggregate ptm-datasets <gene> --modification <type>` | Unimod + ProteomeXchange | Find proteomics datasets reporting a specific PTM on a gene |
+
+The `aggregate drug-target` score is a versioned prioritization heuristic rather than a calibrated clinical score. Its formula, weights, evidence-selection rules, and limitations are documented in [`docs/methods/drug-target-ranking.md`](docs/methods/drug-target-ranking.md).
 
 ### Database commands (atomic)
 

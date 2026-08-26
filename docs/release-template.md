@@ -71,7 +71,8 @@ Include one small table only when you have real updated data.
 
 Preferred source:
 
-- reuse [`docs/benchmarks/hero-pipeline-block.md`](docs/benchmarks/hero-pipeline-block.md)
+- reuse [`docs/benchmarks/hero-pipeline-block.md`](benchmarks/hero-pipeline-block.md)
+- when the release narrative is about agent capability rather than cold/warm runtime, reuse [`docs/benchmarks/agent-ab-proof-block.md`](benchmarks/agent-ab-proof-block.md)
 - only diverge if the underlying benchmark date or workflow set changed
 
 Recommended format:

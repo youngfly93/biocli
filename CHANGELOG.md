@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Versioned `aggregate drug-target` ranking method
+  (`biocli-drug-target-ranking-v1`) with auditable score components and a
+  methods document covering weights, evidence selection, and limitations
+- Canonical `agent-ab-v1` operational scoring contract, scoring manifests,
+  evidence-review templates, and hash-pinned handling for known historical
+  raw-result failures
+- Repository-hygiene validation for benchmark runtime homes, oversized result
+  artifacts, and machine-local documentation links
+
+### Changed
+
+- Generic CLI batch commands and aggregate hero workflows now share one batch
+  execution core for caching, retries, resume checkpoints, failure records, and
+  run-artifact finalization
+- Undici moved to the Node-20-compatible 6.x line so the installed dependency matches
+  biocli's declared Node.js >=20 compatibility and CI matrix
+- js-yaml's minimum version moved to the patched 4.3.1 release
+- Pipeline benchmark runtime homes now live under ignored `.work/` storage;
+  retained dataset evidence is described by checksummed snapshot metadata
+
+### Fixed
+
+- MCP `readOnlyHint` now follows each command's `readOnly` metadata instead of a
+  separate hard-coded list that omitted some file-writing commands
+- `aggregate drug-target --report-limit` now controls presentation only; all
+  unique reports returned by Open Targets are used consistently for ranking and
+  source counts
+
+## [0.7.1] - 2026-04-14
+
+### Fixed
+
+- Unified hero-workflow `agentSummary.completeness` with the top-level
+  `BiocliResult.completeness` derivation
+
+## [0.7.0] - 2026-04-14
+
+### Added
+
+- Stable, summary-first `data.agentSummary` contracts for `gene-profile`,
+  `drug-target`, and `tumor-gene-dossier`
+- Task-first documentation for batch gene scanning, tumor cohort briefing, and
+  target discovery, including run-artifact and hero-summary contracts
+- Cache-aware hero batch examples and MCP descriptions that route agents to
+  `agentSummary` before full-report drill-down
+
 ## [0.6.0] - 2026-04-14
 
 ### Added

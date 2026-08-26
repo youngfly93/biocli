@@ -10,6 +10,7 @@ dist/
 ._*
 .claude
 CLAUDE.local.md
+.work/
 
 # Fair benchmark v2: public-lite artifacts ARE checked in (rubric, capability
 # matrix, headline plots, scorecards, manifests). The heavy per-task evidence
@@ -31,3 +32,10 @@ benchmarks/v2/scripts/*
 .tmp-tmp/
 benchmarks/agent-comparison/
 coverage/
+
+# Pipeline benchmark runtime state is regenerable and must not be committed.
+# Keep reports, summaries, logs, manifests, and command artifacts under results/;
+# keep HOME/cache/dataset payloads under .work/.
+benchmarks/pipeline/results/**/.cache-home/
+benchmarks/pipeline/results/**/.home-*/
+benchmarks/pipeline/results/**/.biocli/

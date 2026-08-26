@@ -1,0 +1,84 @@
+{
+  "task_id": "tumor-gene-dossier-tp53-luad",
+  "arm": "agent_without_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Using cBioPortal study luad_tcga_pan_can_atlas_2018, TP53 is altered in 295 of 566 sequenced LUAD samples (52.1%). The cohort includes both missense and truncating TP53 events, and TP53 co-mutates with KRAS in a subset of tumors.",
+    "result": {
+      "study_id": "luad_tcga_pan_can_atlas_2018",
+      "study_name": "Lung Adenocarcinoma (TCGA, PanCancer Atlas)",
+      "sample_list_id_used": "luad_tcga_pan_can_atlas_2018_all",
+      "tp53": {
+        "mutated_samples": 295,
+        "sequenced_samples": 566,
+        "mutation_prevalence_pct": 52.1,
+        "mutation_records_returned": 314,
+        "representative_alterations": [
+          "C176Y (missense)",
+          "V272G (missense)",
+          "Y205C (missense)",
+          "K139Rfs*31 (frameshift)",
+          "G266* (nonsense)"
+        ]
+      },
+      "co_mutation_clue": {
+        "partner_gene": "KRAS",
+        "co_mutated_samples": 62,
+        "co_mutated_sample_prevalence_pct_of_cohort": 11.0,
+        "example_co_mutant_sample": "TCGA-05-4395-01",
+        "example_pair": [
+          "KRAS G12V",
+          "TP53 C176Y"
+        ]
+      },
+      "interpretation": "This is a TP53-high LUAD cohort with classic DNA-binding-domain missense changes plus truncating events; KRAS co-mutation is present in a meaningful minority of TP53-mutant cases."
+    }
+  },
+  "sources": [
+    {
+      "url": "https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018",
+      "note": "Study metadata confirming the LUAD TCGA PanCancer Atlas cohort and 566 sequenced samples."
+    },
+    {
+      "url": "https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018/sample-lists",
+      "note": "Sample list metadata confirming luad_tcga_pan_can_atlas_2018_all."
+    },
+    {
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations/fetch",
+      "note": "TP53 mutation fetch against sampleListId=luad_tcga_pan_can_atlas_2018_all and entrezGeneId=7157."
+    },
+    {
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations/fetch",
+      "note": "TP53/KRAS overlap and exemplar co-mutant sample TCGA-05-4395-01."
+    }
+  ],
+  "commands_used": [
+    "curl -s https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018",
+    "curl -s https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018/sample-lists | jq -r '.[] | {sampleListId,name,description,sampleCount}'",
+    "curl -s -X POST 'https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations/fetch?projection=SUMMARY&pageSize=10000000' -H 'Content-Type: application/json' -d '{\"sampleListId\":\"luad_tcga_pan_can_atlas_2018_all\",\"entrezGeneIds\":[7157]}' | jq '[.[].sampleId] | unique | length'",
+    "curl -s -X POST 'https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations/fetch?projection=SUMMARY&pageSize=10000000' -H 'Content-Type: application/json' -d '{\"sampleListId\":\"luad_tcga_pan_can_atlas_2018_all\",\"entrezGeneIds\":[7157]}' | jq 'length'",
+    "curl -s -X POST 'https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations/fetch?projection=SUMMARY&pageSize=10000000' -H 'Content-Type: application/json' -d '{\"sampleListId\":\"luad_tcga_pan_can_atlas_2018_all\",\"entrezGeneIds\":[3845]}' | jq -r '.[].sampleId' | sort -u",
+    "curl -s -X POST 'https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations/fetch?projection=DETAILED&pageSize=10000000' -H 'Content-Type: application/json' -d '{\"sampleIds\":[\"TCGA-05-4395-01\"],\"entrezGeneIds\":[7157,3845]}' | jq -r '.[] | [.sampleId,.gene.hugoGeneSymbol,.proteinChange,.mutationType] | @tsv'"
+  ],
+  "web_queries": [
+    "luad_tcga_pan_can_atlas_2018 TP53 mutation prevalence cBioPortal",
+    "cBioPortal LUAD TCGA PanCan Atlas 2018 TP53 alterations",
+    "TCGA LUAD TP53 co-mutation KRAS"
+  ],
+  "warnings": [
+    "A direct GET attempt to /api/cancer-studies/luad_tcga_pan_can_atlas_2018 returned 404, so I switched to the documented /api/studies/{studyId} endpoint.",
+    "An initial variant-counts/fetch request returned an empty array for the simple TP53 keyword query, so prevalence was computed from unique sample IDs returned by the mutation fetch."
+  ],
+  "errors": [
+    "One shell attempt used an unquoted URL containing '&', which triggered zsh globbing; the request was retried with a quoted URL and POST body."
+  ],
+  "recovery_actions": [
+    "Replaced the failed study lookup with /api/studies/luad_tcga_pan_can_atlas_2018.",
+    "Computed TP53 prevalence from unique mutated sample IDs (295/566) instead of relying on variant-counts/fetch.",
+    "Derived the co-mutation clue by intersecting TP53 and KRAS mutant sample lists and then fetching exemplar per-sample mutation detail."
+  ],
+  "runtime": {
+    "wall_clock_ms": 0,
+    "tool_calls": 14
+  }
+}

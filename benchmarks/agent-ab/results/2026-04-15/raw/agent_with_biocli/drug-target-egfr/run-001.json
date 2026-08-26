@@ -1,0 +1,238 @@
+{
+  "task_id": "drug-target-egfr",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "EGFR is targetable in lung cancer, with multiple approval-stage candidates led by afatinib dimaleate.",
+    "result": {
+      "target": {
+        "input": "EGFR",
+        "symbol": "EGFR",
+        "name": "epidermal growth factor receptor",
+        "ensemblId": "ENSG00000146648",
+        "biotype": "protein_coding"
+      },
+      "verdict": "viable",
+      "diseaseLinks": [
+        {
+          "id": "EFO_0003060",
+          "name": "non-small cell lung carcinoma",
+          "score": 0.8524327529356227
+        },
+        {
+          "id": "MONDO_0008903",
+          "name": "lung cancer",
+          "score": 0.7662576881594817
+        },
+        {
+          "id": "EFO_0000571",
+          "name": "lung adenocarcinoma",
+          "score": 0.7639445728170198
+        },
+        {
+          "id": "MONDO_0004992",
+          "name": "cancer",
+          "score": 0.7458734707707243
+        },
+        {
+          "id": "MONDO_0007254",
+          "name": "breast cancer",
+          "score": 0.6782430238168734
+        }
+      ],
+      "targetability": {
+        "assessment": "strong",
+        "rankingMode": "disease-aware",
+        "diseaseFilter": "lung",
+        "totalCandidates": 79,
+        "matchedCandidates": 45,
+        "approvedDrugs": 25,
+        "clinicalCandidates": 44,
+        "explanation": "Open Targets returns multiple lung-linked approval-stage candidates for EGFR, with a large approved and clinical evidence surface."
+      },
+      "shortlist": [
+        {
+          "drugName": "AFATINIB DIMALEATE",
+          "maxClinicalStage": "APPROVAL",
+          "description": "Small molecule drug with a maximum clinical stage of Approval (across all indications), with an approval for non-small cell lung carcinoma and 3 investigational indications.",
+          "approvedIndications": [
+            "non-small cell lung carcinoma",
+            "squamous cell carcinoma",
+            "breast cancer",
+            "glioma"
+          ],
+          "ranking": {
+            "score": 20.5,
+            "matchedDiseaseTerms": [
+              "lung"
+            ],
+            "matchedGeneTerms": [],
+            "matchedStudyTerms": [],
+            "signals": [
+              "clinical stage: Approval",
+              "matched disease filter: lung",
+              "clinical evidence links: 3"
+            ]
+          },
+          "evidence": [
+            {
+              "source": "DailyMed",
+              "id": "fd638e5e-8032-e7ca-0179-95e96ab5d387",
+              "clinicalStage": "APPROVAL",
+              "title": "Report in Approval stage for Afatinib Dimaleate and Non-Small Cell Lung Carcinoma",
+              "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=fd638e5e-8032-e7ca-0179-95e96ab5d387"
+            },
+            {
+              "source": "PMDA",
+              "id": "1011b2db411a8cf1195b8a398f971f76c6885f02332ac89846ab4c16d5e027dd",
+              "clinicalStage": "APPROVAL",
+              "title": "Report in Approval stage for Afatinib Maleate and Non - Small Cell Lung Cancer",
+              "url": "https://www.pmda.go.jp/english/review-services/reviews/approved-information/drugs/0001.html"
+            },
+            {
+              "source": "AACT",
+              "id": "nct04814056",
+              "clinicalStage": "PHASE_4",
+              "title": "An Open-Labeled, Single-Arm Clinical Study to Evaluate the Efficacy of Afatinib in Treatment of Locally Advanced or Metastatic Non-Small Cell Lung Cancer With NRG1-Fusion",
+              "url": "https://clinicaltrials.gov/study/NCT04814056"
+            }
+          ]
+        },
+        {
+          "drugName": "AMIVANTAMAB",
+          "maxClinicalStage": "APPROVAL",
+          "description": "Antibody drug with a maximum clinical stage of Approval (across all indications), with an approval for neoplasm and non-small cell lung carcinoma and 4 investigational indications.",
+          "approvedIndications": [
+            "hepatocellular carcinoma",
+            "non-small cell lung carcinoma",
+            "lung cancer",
+            "neoplasm",
+            "gastric cancer",
+            "salivary gland cancer"
+          ],
+          "ranking": {
+            "score": 20.5,
+            "matchedDiseaseTerms": [
+              "lung"
+            ],
+            "matchedGeneTerms": [],
+            "matchedStudyTerms": [],
+            "signals": [
+              "clinical stage: Approval",
+              "matched disease filter: lung",
+              "clinical evidence links: 3"
+            ]
+          },
+          "evidence": [
+            {
+              "source": "AACT",
+              "id": "nct04599712",
+              "clinicalStage": "APPROVAL",
+              "title": "Pre-Approval Access With Amivantamab in Patients With Metastatic Non-Small Cell Lung Cancer With EGFR Exon 20 Insertion Mutations Who Have Failed Platinum-Based Chemotherapy",
+              "url": "https://clinicaltrials.gov/study/NCT04599712"
+            },
+            {
+              "source": "ATC",
+              "id": "l01fx18",
+              "clinicalStage": "APPROVAL",
+              "title": "Report in Approval stage for Amivantamab and Neoplasm",
+              "url": "https://www.whocc.no/atc_ddd_index/?code=L01FX18"
+            },
+            {
+              "source": "EMA Human Drugs",
+              "id": "emea/h/c/005454",
+              "clinicalStage": "APPROVAL",
+              "title": "Report in Approval stage for Amivantamab and Carcinoma, Non-Small-Cell Lung",
+              "url": "https://www.ema.europa.eu/en/medicines/human/EPAR/rybrevant"
+            }
+          ]
+        },
+        {
+          "drugName": "AUMOLERTINIB",
+          "maxClinicalStage": "APPROVAL",
+          "description": "Small molecule drug with a maximum clinical stage of Approval (across all indications), with an approval for neoplasm and 5 investigational indications.",
+          "approvedIndications": [
+            "liver disease",
+            "squamous cell carcinoma",
+            "lung cancer",
+            "non-small cell lung carcinoma",
+            "neoplasm",
+            "cancer"
+          ],
+          "ranking": {
+            "score": 20.5,
+            "matchedDiseaseTerms": [
+              "lung"
+            ],
+            "matchedGeneTerms": [],
+            "matchedStudyTerms": [],
+            "signals": [
+              "clinical stage: Approval",
+              "matched disease filter: lung",
+              "clinical evidence links: 3"
+            ]
+          },
+          "evidence": [
+            {
+              "source": "ATC",
+              "id": "l01eb11",
+              "clinicalStage": "APPROVAL",
+              "title": "Report in Approval stage for Aumolertinib and Neoplasm",
+              "url": "https://www.whocc.no/atc_ddd_index/?code=L01EB11"
+            },
+            {
+              "source": "AACT",
+              "id": "nct03849768",
+              "clinicalStage": "PHASE_3",
+              "title": "A Phase III Randomized, Controlled, Double-Blind, Multicenter Clinical Trial to Evaluate the Efficacy and Safety of HS-10296 Versus Gefitinib as First-Line Therapy for Locally Advanced or Metastatic NSCLC With EGFR Sensitizing Mutations",
+              "url": "https://clinicaltrials.gov/study/NCT03849768"
+            },
+            {
+              "source": "AACT",
+              "id": "nct04500704",
+              "clinicalStage": "PHASE_3",
+              "title": "Almonertinib Alone Versus Almonertinib Plus Chemotherapy as First-line Treatment in Patients With Epidermal Growth Factor Receptor (EGFR) Mutation Positive With Concomitant Non-EGFR Driver Gene Mutation Positive, Locally Advanced or Metastatic Non-Small Cell Lung Cancer: A Multicenter, Open-label, Randomized, Control Phase III Study (ACROSS 1)",
+              "url": "https://clinicaltrials.gov/study/NCT04500704"
+            }
+          ]
+        }
+      ],
+      "supportingEvidence": {
+        "topFinding": "EGFR has approval candidates aligned with lung, led by AFATINIB DIMALEATE.",
+        "provenance": {
+          "retrievedAt": "2026-04-15T03:36:14.892Z",
+          "sources": [
+            {
+              "source": "Open Targets",
+              "url": "https://platform.opentargets.org/target/ENSG00000146648",
+              "apiVersion": "GraphQL API v4",
+              "recordIds": [
+                "ENSG00000146648"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "sources": [
+    "https://platform.opentargets.org/target/ENSG00000146648",
+    "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=fd638e5e-8032-e7ca-0179-95e96ab5d387",
+    "https://www.pmda.go.jp/english/review-services/reviews/approved-information/drugs/0001.html",
+    "https://clinicaltrials.gov/study/NCT04814056",
+    "https://clinicaltrials.gov/study/NCT04599712",
+    "https://www.ema.europa.eu/en/medicines/human/EPAR/rybrevant"
+  ],
+  "commands_used": [
+    "biocli --version",
+    "biocli aggregate drug-target EGFR --disease lung -f json"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 2770,
+    "tool_calls": 2
+  }
+}

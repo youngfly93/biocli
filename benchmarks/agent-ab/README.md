@@ -2,6 +2,8 @@
 
 This benchmark measures whether `biocli` improves agent performance on real bioinformatics tasks.
 
+It is the execution layer for [007-agent-ab-evaluation-prd.md](../../docs/decisions/007-agent-ab-evaluation-prd.md) and [008-agent-ab-evaluation-backlog.md](../../docs/decisions/008-agent-ab-evaluation-backlog.md).
+
 It is intentionally different from `benchmarks/v2`:
 
 - `v2` compares tool surfaces
@@ -21,16 +23,15 @@ The goal is not to prove that one arm always wins. The goal is to learn:
 
 ## What To Measure
 
-Score each run on six dimensions:
+Score each run with the canonical [`agent-ab-v1` rubric](rubric.md):
 
-1. Factual accuracy
-2. Source verifiability
-3. Structural usability
-4. Task completion
-5. Recovery behavior
-6. Efficiency
+1. Task completion (`0-2`)
+2. Structural usability (`0-2`)
+3. Downstream parseability (`0-2`)
+4. Recovery behavior (`0-2`)
+5. Efficiency (`0-2`)
 
-Safety should be logged separately for write-capable tasks.
+Factual accuracy, source verifiability, and safety are reviewed separately with [evidence-review.template.csv](evidence-review.template.csv). Do not publish accuracy/source/safety rates while those reviews are `unreviewed` or the scored-set manifest says `not_completed`.
 
 ## Output Contract
 
@@ -94,13 +95,44 @@ benchmarks/agent-ab/results/YYYY-MM-DD/
   scored/
 ```
 
+Validation helpers:
+
+- `npm run bench:agent-ab:clean`
+- `npm run bench:agent-ab:validate`
+
+`bench:agent-ab:validate` enforces a core benchmark contract and reports stricter source-shape drift as warnings. Use it before scoring.
+It also validates `scorecard.csv`, `scoring-manifest.json`, rubric version, score ranges, and optional evidence-review linkage. Known malformed repeat-001 artifacts are reported from [known-core-failures.json](known-core-failures.json) without allowing new contract failures.
+
+## First Pilot
+
+Use [first-run.tasks.yaml](first-run.tasks.yaml) for the first lightweight evaluation.
+Use [first-run.prompts.md](first-run.prompts.md) for the standardized task prompt text.
+Use [first-run.execution.md](first-run.execution.md) and [results/2026-04-15/run-matrix.csv](results/2026-04-15/run-matrix.csv) as the concrete operator checklist and file-naming plan.
+
+Pilot size:
+
+- `6` tasks
+- `3` repeats per arm
+- one model
+- one environment
+
+Recommended first pilot tracks:
+
+- retrieval
+- aggregation
+- cohort
+- recovery
+- batch
+
+Use [scorecard.template.csv](scorecard.template.csv) and [scoring-manifest.template.json](scoring-manifest.template.json) as the operational scoring seed. Use [evidence-review.template.csv](evidence-review.template.csv) for the independent biological/source/safety review.
+
 ## Recommended Headline Metrics
 
 Report these first:
 
 - task completion rate
-- factual accuracy on completed runs
-- source-backed answer rate
+- factual accuracy on completed runs, only after independent review
+- source-backed answer rate, only after independent review
 - median time to first correct result
 - recovery success rate after initial failure
 

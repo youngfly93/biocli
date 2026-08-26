@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This backlog turns [005-hero-batch-narrative-prd.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/docs/decisions/005-hero-batch-narrative-prd.md) into an execution plan.
+This backlog turns [005-hero-batch-narrative-prd.md](../../docs/decisions/005-hero-batch-narrative-prd.md) into an execution plan.
 
-Unlike [004-batch-pipeline-engineering-backlog.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/docs/decisions/004-batch-pipeline-engineering-backlog.md), this backlog does not build batch infrastructure from scratch. That work already exists.
+Unlike [004-batch-pipeline-engineering-backlog.md](../../docs/decisions/004-batch-pipeline-engineering-backlog.md), this backlog does not build batch infrastructure from scratch. That work already exists.
 
 This phase focuses on the next strategic delta:
 
@@ -95,10 +95,10 @@ Deliverables:
 
 Suggested file touch points:
 
-- [005-hero-batch-narrative-prd.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/docs/decisions/005-hero-batch-narrative-prd.md)
+- [005-hero-batch-narrative-prd.md](../../docs/decisions/005-hero-batch-narrative-prd.md)
 - New: `docs/contracts/hero-summary.md`
-- [schema.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/schema.ts)
-- [types.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/types.ts)
+- [schema.ts](../../src/schema.ts)
+- [types.ts](../../src/types.ts)
 
 Definition of done:
 
@@ -137,10 +137,10 @@ Deliverables:
 
 Suggested file touch points:
 
-- [drug-target.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/drug-target.ts)
-- [types.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/types.ts)
-- [schema.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/schema.ts)
-- [drug-target.test.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/drug-target.test.ts)
+- [drug-target.ts](../../src/clis/aggregate/drug-target.ts)
+- [types.ts](../../src/types.ts)
+- [schema.ts](../../src/schema.ts)
+- [drug-target.test.ts](../../src/clis/aggregate/drug-target.test.ts)
 
 Definition of done:
 
@@ -179,10 +179,10 @@ Deliverables:
 
 Suggested file touch points:
 
-- [tumor-gene-dossier.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/tumor-gene-dossier.ts)
-- [types.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/types.ts)
-- [schema.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/schema.ts)
-- [tumor-gene-dossier.test.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/tumor-gene-dossier.test.ts)
+- [tumor-gene-dossier.ts](../../src/clis/aggregate/tumor-gene-dossier.ts)
+- [types.ts](../../src/types.ts)
+- [schema.ts](../../src/schema.ts)
+- [tumor-gene-dossier.test.ts](../../src/clis/aggregate/tumor-gene-dossier.test.ts)
 
 Definition of done:
 
@@ -210,9 +210,9 @@ Deliverables:
 
 Suggested file touch points:
 
-- [README.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/README.md)
-- [mcp-core.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/mcp-core.ts)
-- [schema.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/schema.ts)
+- [README.md](../../README.md)
+- [mcp-core.ts](../../src/mcp-core.ts)
+- [schema.ts](../../src/schema.ts)
 
 Definition of done:
 
@@ -241,10 +241,10 @@ Deliverables:
 
 Suggested file touch points:
 
-- [commander-adapter.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/commander-adapter.ts)
-- [gene-profile.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/gene-profile.ts)
-- [drug-target.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/drug-target.ts)
-- [tumor-gene-dossier.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/tumor-gene-dossier.ts)
+- [commander-adapter.ts](../../src/commander-adapter.ts)
+- [gene-profile.ts](../../src/clis/aggregate/gene-profile.ts)
+- [drug-target.ts](../../src/clis/aggregate/drug-target.ts)
+- [tumor-gene-dossier.ts](../../src/clis/aggregate/tumor-gene-dossier.ts)
 
 Definition of done:
 
@@ -274,9 +274,9 @@ Deliverables:
 Suggested file touch points:
 
 - New: `docs/contracts/run-artifacts.md`
-- [README.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/README.md)
-- [batch-types.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/batch-types.ts)
-- [batch-output.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/batch-output.ts)
+- [README.md](../../README.md)
+- [batch-types.ts](../../src/batch-types.ts)
+- [batch-output.ts](../../src/batch-output.ts)
 
 Definition of done:
 
@@ -306,7 +306,7 @@ Deliverables:
 
 Suggested file touch points:
 
-- [README.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/README.md)
+- [README.md](../../README.md)
 
 Definition of done:
 
@@ -332,8 +332,8 @@ Deliverables:
 
 Suggested file touch points:
 
-- [CHANGELOG.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/CHANGELOG.md)
-- [RELEASE_CHECKLIST.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/RELEASE_CHECKLIST.md)
+- [CHANGELOG.md](../../CHANGELOG.md)
+- [RELEASE_CHECKLIST.md](../../RELEASE_CHECKLIST.md)
 - New: `docs/release-template.md`
 
 Definition of done:
@@ -356,8 +356,8 @@ Deliverables:
 
 Suggested file touch points:
 
-- [package.json](/Volumes/KINGSTON/work/research/biocli/ncbicli/package.json)
-- [README.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/README.md)
+- [package.json](../../package.json)
+- [README.md](../../README.md)
 
 Definition of done:
 
@@ -382,8 +382,8 @@ Deliverables:
 
 Suggested file touch points:
 
-- [benchmarks/pipeline/results/2026-04-13/report.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/pipeline/results/2026-04-13/report.md)
-- [README.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/README.md)
+- [benchmarks/pipeline/results/2026-04-13/report.md](../../benchmarks/pipeline/results/2026-04-13/report.md)
+- [README.md](../../README.md)
 
 Definition of done:
 

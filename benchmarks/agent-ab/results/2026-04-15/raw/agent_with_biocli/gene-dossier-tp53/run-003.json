@@ -1,0 +1,176 @@
+{
+  "task_id": "gene-dossier-tp53",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Resolved TP53 to the canonical human gene entity and assembled a compact dossier from biocli's aggregated gene-dossier workflow.",
+    "result": {
+      "entity": {
+        "symbol": "TP53",
+        "canonical_name": "tumor protein p53",
+        "organism": "Homo sapiens",
+        "location": "17p13.1"
+      },
+      "stable_identifiers": {
+        "ncbi_gene_id": "7157",
+        "uniprot_accession": "P04637",
+        "kegg_id": "hsa:7157"
+      },
+      "functional_summary": "Sequence-specific DNA-binding tumor suppressor that coordinates cell-cycle arrest, apoptosis, senescence, and DNA repair in response to cellular stress and DNA damage.",
+      "pathway_context": [
+        {
+          "id": "hsa04115",
+          "name": "p53 signaling pathway"
+        },
+        {
+          "id": "hsa04110",
+          "name": "Cell cycle"
+        },
+        {
+          "id": "hsa04210",
+          "name": "Apoptosis"
+        },
+        {
+          "id": "hsa04151",
+          "name": "PI3K-Akt signaling pathway"
+        },
+        {
+          "id": "hsa04218",
+          "name": "Cellular senescence"
+        }
+      ],
+      "interaction_clue": {
+        "network_source": "STRING",
+        "top_partners": [
+          {
+            "partner": "SFN",
+            "score": 0.999
+          },
+          {
+            "partner": "EP300",
+            "score": 0.999
+          },
+          {
+            "partner": "HIF1A",
+            "score": 0.999
+          },
+          {
+            "partner": "HDAC1",
+            "score": 0.999
+          },
+          {
+            "partner": "HSP90AA1",
+            "score": 0.999
+          },
+          {
+            "partner": "ATM",
+            "score": 0.999
+          },
+          {
+            "partner": "MDM4",
+            "score": 0.999
+          },
+          {
+            "partner": "CHEK2",
+            "score": 0.999
+          }
+        ],
+        "note": "High-confidence interaction network centered on DNA-damage response and p53 regulation."
+      },
+      "clinical_variant_context": {
+        "disease_link": "Li-Fraumeni syndrome",
+        "interpretation": "ClinVar returned multiple TP53 variants in this context, mostly reported here as uncertain significance.",
+        "examples": [
+          {
+            "variant": "NM_000546.6(TP53):c.44G>T (p.Ser15Ile)",
+            "accession": "VCV004800662",
+            "significance": "Uncertain significance"
+          },
+          {
+            "variant": "NM_000546.6(TP53):c.274C>A (p.Pro92Thr)",
+            "accession": "VCV004811916",
+            "significance": "Uncertain significance"
+          },
+          {
+            "variant": "NM_000546.6(TP53):c.436T>C (p.Trp146Arg)",
+            "accession": "VCV004800656",
+            "significance": "Uncertain significance"
+          }
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "label": "NCBI Gene",
+      "url": "https://www.ncbi.nlm.nih.gov/gene/7157",
+      "record_ids": [
+        "7157"
+      ]
+    },
+    {
+      "label": "UniProt",
+      "url": "https://www.uniprot.org/uniprotkb/P04637",
+      "record_ids": [
+        "P04637"
+      ]
+    },
+    {
+      "label": "KEGG",
+      "url": "https://www.kegg.jp/entry/hsa%3A7157",
+      "record_ids": [
+        "hsa:7157"
+      ]
+    },
+    {
+      "label": "STRING",
+      "url": "https://string-db.org/api"
+    },
+    {
+      "label": "ClinVar",
+      "url": "https://www.ncbi.nlm.nih.gov/clinvar/",
+      "record_ids": [
+        "VCV004812286",
+        "VCV004811916",
+        "VCV004805346",
+        "VCV004800662",
+        "VCV004800661",
+        "VCV004800660",
+        "VCV004800659",
+        "VCV004800658",
+        "VCV004800657",
+        "VCV004800656"
+      ]
+    },
+    {
+      "label": "PubMed",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/",
+      "record_ids": [
+        "36766853",
+        "39644062",
+        "35332311",
+        "39450536",
+        "39562552"
+      ]
+    }
+  ],
+  "commands_used": [
+    "which biocli && biocli --help",
+    "biocli gene --help",
+    "biocli clinvar --help",
+    "biocli kegg --help",
+    "biocli string --help",
+    "biocli aggregate --help",
+    "biocli aggregate gene-dossier --help",
+    "biocli schema aggregate/gene-dossier",
+    "biocli aggregate gene-dossier TP53 --organism human -f json --no-cache"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 9000,
+    "tool_calls": 9
+  }
+}

@@ -1,0 +1,317 @@
+{
+  "task_id": "batch-drug-target-lung-panel",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Completed a multi-gene compare-genes run plus a batched lung-aware drug-target triage. The panel resolves to a shared receptor tyrosine kinase cluster, and the ranked shortlist is ready for downstream filtering.",
+    "result": {
+      "panel_genes": [
+        "EGFR",
+        "ERBB2",
+        "PIK3CA",
+        "MET",
+        "ALK"
+      ],
+      "panel_comparison": {
+        "summary": {
+          "gene_count": 5,
+          "shared_pathway_count": 10,
+          "shared_go_term_count": 10,
+          "interaction_count": 9,
+          "pairwise_comparisons": 10,
+          "go_enrichment_terms": 10
+        },
+        "top_go_enrichment": [
+          {
+            "rank": 1,
+            "term": "Transmembrane Receptor Protein Tyrosine Kinase Signaling Pathway (GO:0007169)",
+            "adjusted_p_value": "1.32e-7",
+            "genes": [
+              "ALK",
+              "PIK3CA",
+              "ERBB2",
+              "MET",
+              "EGFR"
+            ]
+          },
+          {
+            "rank": 2,
+            "term": "Positive Regulation Of Kinase Activity (GO:0033674)",
+            "adjusted_p_value": "4.05e-7",
+            "genes": [
+              "ALK",
+              "ERBB2",
+              "MET",
+              "EGFR"
+            ]
+          },
+          {
+            "rank": 3,
+            "term": "Enzyme-Linked Receptor Protein Signaling Pathway (GO:0007167)",
+            "adjusted_p_value": "5.51e-7",
+            "genes": [
+              "ALK",
+              "ERBB2",
+              "MET",
+              "EGFR"
+            ]
+          }
+        ],
+        "top_network_edges": [
+          {
+            "gene_a": "ERBB2",
+            "gene_b": "EGFR",
+            "score": 0.999
+          },
+          {
+            "gene_a": "PIK3CA",
+            "gene_b": "EGFR",
+            "score": 0.999
+          },
+          {
+            "gene_a": "EGFR",
+            "gene_b": "MET",
+            "score": 0.996
+          },
+          {
+            "gene_a": "PIK3CA",
+            "gene_b": "ERBB2",
+            "score": 0.992
+          },
+          {
+            "gene_a": "PIK3CA",
+            "gene_b": "ALK",
+            "score": 0.979
+          }
+        ],
+        "interpretation": "All five genes map to a shared RTK signaling cluster. EGFR, ERBB2, PIK3CA, and MET are the tightest networked block; ALK remains lung-relevant but is more separable in the shared-network view."
+      },
+      "ranked_shortlist": [
+        {
+          "rank": 1,
+          "gene": "MET",
+          "ensembl_id": "ENSG00000105976",
+          "top_candidate": {
+            "drug_name": "CAPMATINIB HYDROCHLORIDE",
+            "chembl_id": "CHEMBL3989937",
+            "clinical_stage": "APPROVAL",
+            "clinical_stage_label": "Approval",
+            "score": 26.6,
+            "approved_indications": [
+              "non-small cell lung carcinoma"
+            ]
+          },
+          "disease_context": "lung",
+          "total_candidates": 36,
+          "matched_candidates": 17,
+          "approved_drugs": 8,
+          "tractability_positive_features": 16,
+          "direct_lung_approved_match": true,
+          "evidence_reasons": [
+            "clinical stage: Approval",
+            "matched disease filter: lung",
+            "approved indication match: lung"
+          ]
+        },
+        {
+          "rank": 2,
+          "gene": "EGFR",
+          "ensembl_id": "ENSG00000146648",
+          "top_candidate": {
+            "drug_name": "LAZERTINIB MESYLATE",
+            "chembl_id": "CHEMBL6068478",
+            "clinical_stage": "APPROVAL",
+            "clinical_stage_label": "Approval",
+            "score": 26.17,
+            "approved_indications": [
+              "neoplasm",
+              "non-small cell lung carcinoma"
+            ]
+          },
+          "disease_context": "lung",
+          "total_candidates": 79,
+          "matched_candidates": 45,
+          "approved_drugs": 25,
+          "tractability_positive_features": 17,
+          "direct_lung_approved_match": true,
+          "evidence_reasons": [
+            "clinical stage: Approval",
+            "matched disease filter: lung",
+            "approved indication match: lung"
+          ]
+        },
+        {
+          "rank": 3,
+          "gene": "ERBB2",
+          "ensembl_id": "ENSG00000141736",
+          "top_candidate": {
+            "drug_name": "AFATINIB DIMALEATE",
+            "chembl_id": "CHEMBL2105712",
+            "clinical_stage": "APPROVAL",
+            "clinical_stage_label": "Approval",
+            "score": 25.54,
+            "approved_indications": [
+              "non-small cell lung carcinoma",
+              "squamous cell carcinoma",
+              "breast cancer",
+              "glioma"
+            ]
+          },
+          "disease_context": "lung",
+          "total_candidates": 47,
+          "matched_candidates": 19,
+          "approved_drugs": 11,
+          "tractability_positive_features": 15,
+          "direct_lung_approved_match": true,
+          "evidence_reasons": [
+            "clinical stage: Approval",
+            "matched disease filter: lung",
+            "approved indication match: lung"
+          ]
+        },
+        {
+          "rank": 4,
+          "gene": "ALK",
+          "ensembl_id": "ENSG00000171094",
+          "top_candidate": {
+            "drug_name": "BRIGATINIB",
+            "chembl_id": "CHEMBL3545311",
+            "clinical_stage": "APPROVAL",
+            "clinical_stage_label": "Approval",
+            "score": 25.04,
+            "approved_indications": [
+              "carcinoma",
+              "anaplastic large cell lymphoma",
+              "lung cancer",
+              "non-small cell lung carcinoma",
+              "neoplasm"
+            ]
+          },
+          "disease_context": "lung",
+          "total_candidates": 12,
+          "matched_candidates": 10,
+          "approved_drugs": 8,
+          "tractability_positive_features": 13,
+          "direct_lung_approved_match": true,
+          "evidence_reasons": [
+            "clinical stage: Approval",
+            "matched disease filter: lung",
+            "approved indication match: lung"
+          ]
+        },
+        {
+          "rank": 5,
+          "gene": "PIK3CA",
+          "ensembl_id": "ENSG00000121879",
+          "top_candidate": {
+            "drug_name": "ALPELISIB",
+            "chembl_id": "CHEMBL2396661",
+            "clinical_stage": "APPROVAL",
+            "clinical_stage_label": "Approval",
+            "score": 22.94,
+            "approved_indications": [
+              "breast cancer"
+            ]
+          },
+          "disease_context": "lung",
+          "total_candidates": 32,
+          "matched_candidates": 7,
+          "approved_drugs": 2,
+          "tractability_positive_features": 10,
+          "direct_lung_approved_match": false,
+          "evidence_reasons": [
+            "clinical stage: Approval",
+            "matched disease filter: lung",
+            "clinical evidence links: 3"
+          ]
+        }
+      ],
+      "filter_hints": {
+        "recommended_primary_filter": "approved lung indication",
+        "secondary_filter": "shared RTK network overlap",
+        "notes": [
+          "direct_lung_approved_match is inferred from the top-candidate evidence strings returned by biocli."
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "label": "NCBI Gene",
+      "url": "https://www.ncbi.nlm.nih.gov/gene/"
+    },
+    {
+      "label": "UniProt",
+      "url": "https://rest.uniprot.org/uniprotkb"
+    },
+    {
+      "label": "KEGG",
+      "url": "https://rest.kegg.jp"
+    },
+    {
+      "label": "STRING",
+      "url": "https://string-db.org/api"
+    },
+    {
+      "label": "Enrichr",
+      "url": "https://maayanlab.cloud/Enrichr/"
+    },
+    {
+      "label": "Open Targets EGFR",
+      "url": "https://platform.opentargets.org/target/ENSG00000146648",
+      "record_ids": [
+        "ENSG00000146648"
+      ]
+    },
+    {
+      "label": "Open Targets ERBB2",
+      "url": "https://platform.opentargets.org/target/ENSG00000141736",
+      "record_ids": [
+        "ENSG00000141736"
+      ]
+    },
+    {
+      "label": "Open Targets PIK3CA",
+      "url": "https://platform.opentargets.org/target/ENSG00000121879",
+      "record_ids": [
+        "ENSG00000121879"
+      ]
+    },
+    {
+      "label": "Open Targets MET",
+      "url": "https://platform.opentargets.org/target/ENSG00000105976",
+      "record_ids": [
+        "ENSG00000105976"
+      ]
+    },
+    {
+      "label": "Open Targets ALK",
+      "url": "https://platform.opentargets.org/target/ENSG00000171094",
+      "record_ids": [
+        "ENSG00000171094"
+      ]
+    }
+  ],
+  "commands_used": [
+    "npm run dev -- aggregate compare-genes EGFR,ERBB2,PIK3CA,MET,ALK --organism human --limit 10 -f json",
+    "printf 'EGFR\\nERBB2\\nPIK3CA\\nMET\\nALK\\n' | npm run dev -- aggregate drug-target --disease lung --limit 5 -f jsonl --input -",
+    "tmpfile=$(mktemp /tmp/biocli-drug-target.XXXXXX) && printf 'EGFR\\nERBB2\\nPIK3CA\\nMET\\nALK\\n' > \"$tmpfile\" && npm run dev -- aggregate drug-target --disease lung --limit 5 -f jsonl --input-file \"$tmpfile\""
+  ],
+  "web_queries": [],
+  "warnings": [
+    "The stdin-based batch attempt for drug-target collapsed into one failed batch item; the final result uses an explicit input-file batch run.",
+    "PIK3CA is included in the ranking, but its top-candidate evidence is less lung-specific than the other four panel genes."
+  ],
+  "errors": [
+    "zsh rejected the temporary variable name `status` during the first temp-file retry.",
+    "The initial stdin-based drug-target batch returned no data for the combined input line."
+  ],
+  "recovery_actions": [
+    "Reran drug-target with a temporary batch input file via --input-file after the stdin batch path failed.",
+    "Parsed the successful JSONL output while skipping the CLI banner line that precedes record lines."
+  ],
+  "runtime": {
+    "wall_clock_ms": 180000,
+    "tool_calls": 16
+  }
+}

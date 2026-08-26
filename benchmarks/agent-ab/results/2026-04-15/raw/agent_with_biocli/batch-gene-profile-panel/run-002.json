@@ -1,0 +1,252 @@
+{
+  "task_id": "batch-gene-profile-panel",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Ran one batch `aggregate/gene-profile` pass for TP53, BRCA1, EGFR, PIK3CA, and NF1. All 5 items succeeded, and the panel is most convergent on EGFR tyrosine kinase inhibitor resistance, with TP53 bridging the widest set of shared pathways.",
+    "result": {
+      "panel": {
+        "gene_symbols": ["TP53", "BRCA1", "EGFR", "PIK3CA", "NF1"],
+        "organism": "Homo sapiens",
+        "biocli_command": "aggregate/gene-profile",
+        "batch_summary": {
+          "total_items": 5,
+          "succeeded": 5,
+          "failed": 0,
+          "completeness": "complete",
+          "duration_seconds": 9.63
+        }
+      },
+      "shared_signals": {
+        "top_pathways": [
+          {
+            "pathway_id": "hsa01521",
+            "name": "EGFR tyrosine kinase inhibitor resistance",
+            "gene_count": 3,
+            "genes": ["EGFR", "PIK3CA", "NF1"]
+          },
+          {
+            "pathway_id": "hsa01522",
+            "name": "Endocrine resistance",
+            "gene_count": 2,
+            "genes": ["TP53", "EGFR"]
+          },
+          {
+            "pathway_id": "hsa01524",
+            "name": "Platinum drug resistance",
+            "gene_count": 2,
+            "genes": ["TP53", "BRCA1"]
+          },
+          {
+            "pathway_id": "hsa04010",
+            "name": "MAPK signaling pathway",
+            "gene_count": 2,
+            "genes": ["TP53", "NF1"]
+          }
+        ],
+        "triage_hint": "Prioritize EGFR, NF1, and TP53 for pathway/interaction follow-up; BRCA1 is most informative for DNA-repair follow-up; PIK3CA mainly anchors the EGFR-resistance axis."
+      },
+      "gene_profiles": [
+        {
+          "symbol": "TP53",
+          "ids": {
+            "ncbiGeneId": "7157",
+            "uniprotAccession": "P04637",
+            "keggId": "hsa:7157",
+            "ensemblGeneId": "ENSG00000141510.20"
+          },
+          "profile_status": "complete",
+          "shared_pathway_hits": 3,
+          "top_pathways": [
+            {"id": "hsa01522", "name": "Endocrine resistance", "source": "KEGG"},
+            {"id": "hsa01524", "name": "Platinum drug resistance", "source": "KEGG"},
+            {"id": "hsa04010", "name": "MAPK signaling pathway", "source": "KEGG"}
+          ],
+          "top_interaction_partners": [
+            {"partner": "SFN", "score": 0.999},
+            {"partner": "EP300", "score": 0.999},
+            {"partner": "HIF1A", "score": 0.999}
+          ],
+          "top_disease_links": [
+            {"id": "ds:H00029", "name": "Vulvar cancer", "source": "KEGG"},
+            {"id": "ds:H00047", "name": "Gallbladder cancer", "source": "KEGG"},
+            {"id": "ds:H00004", "name": "Chronic myeloid leukemia", "source": "KEGG"}
+          ]
+        },
+        {
+          "symbol": "BRCA1",
+          "ids": {
+            "ncbiGeneId": "672",
+            "uniprotAccession": "P38398",
+            "keggId": "hsa:672",
+            "ensemblGeneId": "ENSG00000012048.27"
+          },
+          "profile_status": "complete",
+          "shared_pathway_hits": 1,
+          "top_pathways": [
+            {"id": "hsa01524", "name": "Platinum drug resistance", "source": "KEGG"},
+            {"id": "hsa03440", "name": "Homologous recombination", "source": "KEGG"},
+            {"id": "hsa03460", "name": "Fanconi anemia pathway", "source": "KEGG"}
+          ],
+          "top_interaction_partners": [
+            {"partner": "MDC1", "score": 0.999},
+            {"partner": "PALB2", "score": 0.999},
+            {"partner": "BRCA2", "score": 0.999}
+          ],
+          "top_disease_links": [
+            {"id": "ds:H00019", "name": "Pancreatic cancer SUPERGRP  Solid tumor [DS:H02421]", "source": "KEGG"},
+            {"id": "ds:H00238", "name": "Fanconi anemia", "source": "KEGG"},
+            {"id": "ds:H00027", "name": "Ovarian cancer", "source": "KEGG"}
+          ]
+        },
+        {
+          "symbol": "EGFR",
+          "ids": {
+            "ncbiGeneId": "1956",
+            "uniprotAccession": "P00533",
+            "keggId": "hsa:1956",
+            "ensemblGeneId": "ENSG00000146648.22"
+          },
+          "profile_status": "complete",
+          "shared_pathway_hits": 2,
+          "top_pathways": [
+            {"id": "hsa01521", "name": "EGFR tyrosine kinase inhibitor resistance", "source": "KEGG"},
+            {"id": "hsa01522", "name": "Endocrine resistance", "source": "KEGG"},
+            {"id": "hsa03272", "name": "Virion", "source": "KEGG"}
+          ],
+          "top_interaction_partners": [
+            {"partner": "PTPN11", "score": 0.999},
+            {"partner": "HBEGF", "score": 0.999},
+            {"partner": "NRG1", "score": 0.998}
+          ],
+          "top_disease_links": [
+            {"id": "ds:H00030", "name": "Cervical cancer", "source": "KEGG"},
+            {"id": "ds:H00055", "name": "Laryngeal cancer SUPERGRP  Head and neck cancer [DS:H02420] Solid tumor [DS:H02421]", "source": "KEGG"},
+            {"id": "ds:H00014", "name": "Non-small cell lung cancer SUPERGRP  Solid tumor [DS:H02421]", "source": "KEGG"}
+          ]
+        },
+        {
+          "symbol": "PIK3CA",
+          "ids": {
+            "ncbiGeneId": "5290",
+            "uniprotAccession": "P42336",
+            "keggId": "hsa:5290",
+            "ensemblGeneId": "ENSG00000121879.7"
+          },
+          "profile_status": "complete",
+          "shared_pathway_hits": 1,
+          "top_pathways": [
+            {"id": "hsa00562", "name": "Inositol phosphate metabolism", "source": "KEGG"},
+            {"id": "hsa01100", "name": "Metabolic pathways", "source": "KEGG"},
+            {"id": "hsa01521", "name": "EGFR tyrosine kinase inhibitor resistance", "source": "KEGG"}
+          ],
+          "top_interaction_partners": [
+            {"partner": "PIK3R5", "score": 0.999},
+            {"partner": "PIK3R2", "score": 0.999},
+            {"partner": "IRS1", "score": 0.999}
+          ],
+          "top_disease_links": [
+            {"id": "ds:H00020", "name": "Colorectal cancer SUBGROUP  Familial adenomatous polyposis (FAP) [DS:H01025] Hereditary nonpolyposis colorectal cancer (HNPCC) [DS:H02565] Polymerase proofreading-associated polyposis (PPAP) [DS:H02568] SUPERGRP  Solid tumor [DS:H02421]", "source": "KEGG"},
+            {"id": "ds:H00014", "name": "Non-small cell lung cancer SUPERGRP  Solid tumor [DS:H02421]", "source": "KEGG"},
+            {"id": "ds:H00027", "name": "Ovarian cancer", "source": "KEGG"}
+          ]
+        },
+        {
+          "symbol": "NF1",
+          "ids": {
+            "ncbiGeneId": "4763",
+            "uniprotAccession": "P21359",
+            "keggId": "hsa:4763",
+            "ensemblGeneId": "ENSG00000196712.20"
+          },
+          "profile_status": "complete",
+          "shared_pathway_hits": 2,
+          "top_pathways": [
+            {"id": "hsa01521", "name": "EGFR tyrosine kinase inhibitor resistance", "source": "KEGG"},
+            {"id": "hsa04010", "name": "MAPK signaling pathway", "source": "KEGG"},
+            {"id": "hsa04014", "name": "Ras signaling pathway", "source": "KEGG"}
+          ],
+          "top_interaction_partners": [
+            {"partner": "KRAS", "score": 0.996},
+            {"partner": "NRAS", "score": 0.994},
+            {"partner": "HRAS", "score": 0.994}
+          ],
+          "top_disease_links": [
+            {"id": "ds:H00523", "name": "Noonan syndrome and related disorders SUBGROUP  Noonan syndrome (NS) [DS:H01738] Leopard syndrome (LPRD) [DS:H01984] Cardiofaciocutaneous syndrome (CFCS) [DS:H01745] Costello syndrome (CS) [DS:H01747] Neurofibromatosis-Noonan syndrome (NFNS) [DS:H02189] Noonan-like syndrome with loose anagen hair (NSLH) [DS:H02191] CBL syndrome (CBL) [DS:H02190]", "source": "KEGG"},
+            {"id": "ds:H01437", "name": "Neurofibromatosis type 1; Von Recklinghausen disease SUBGROUP  Familial spinal neurofibromatosis Watson syndrome [DS:H02188] Legius syndrome [DS:H01986] Neurofibromatosis-Noonan syndrome [DS:H02189]", "source": "KEGG"},
+            {"id": "ds:H01510", "name": "Malignant paraganglioma; Pheochromocytoma SUPERGRP  Pheochromocytoma/paraganglioma syndrome [DS:H02538]", "source": "KEGG"}
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/results.jsonl",
+          "contains": "Batch JSONL output with one per-gene envelope per line."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/summary.json",
+          "contains": "Run-level success/failure counts and elapsed time."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/manifest.json",
+          "contains": "Batch manifest with command metadata, cache stats, and artifact filenames."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/methods.md",
+          "contains": "Methods-ready summary generated by biocli from the batch run."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/summary.csv",
+          "contains": "Tabular run summary for quick inspection or spreadsheet use."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/failures.jsonl",
+          "contains": "Empty failure log for this successful batch."
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "label": "NCBI Gene",
+      "url": "https://www.ncbi.nlm.nih.gov/gene/",
+      "record_ids": ["7157", "672", "1956", "5290", "4763"]
+    },
+    {
+      "label": "UniProt",
+      "url": "https://www.uniprot.org/uniprotkb/",
+      "record_ids": ["P04637", "P38398", "P00533", "P42336", "P21359"]
+    },
+    {
+      "label": "KEGG",
+      "url": "https://www.kegg.jp/",
+      "record_ids": ["hsa:7157", "hsa:672", "hsa:1956", "hsa:5290", "hsa:4763"]
+    },
+    {
+      "label": "STRING",
+      "url": "https://string-db.org/api"
+    }
+  ],
+  "commands_used": [
+    "BIOCLI_NO_DEPRECATION=1 biocli aggregate gene-profile TP53,BRCA1,EGFR,PIK3CA,NF1 -f json --outdir /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002",
+    "BIOCLI_NO_DEPRECATION=1 biocli aggregate gene-profile --help",
+    "BIOCLI_NO_DEPRECATION=1 biocli schema aggregate/gene-profile",
+    "jq '.' /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/summary.json",
+    "jq '.' /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/manifest.json",
+    "jq -R 'fromjson | {input, index, succeededAt, symbol:(.result.data.symbol), ids:(.result.ids), top_pathways:(.result.data.agentSummary.topPathways | map(.id+\":\"+.name)), top_partners:(.result.data.agentSummary.topInteractionPartners | map(.partner)), top_diseases:(.result.data.agentSummary.topDiseaseLinks | map(.id+\":\"+.name)), completeness:(.result.completeness), warnings:(.result.warnings)}' /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002/results.jsonl"
+  ],
+  "web_queries": [],
+  "warnings": [
+    "The batch result is based on the CLI's top-ranked pathway, interaction, and disease lists per gene; full per-gene detail remains in the artifact files."
+  ],
+  "errors": [
+    "A first attempt to parse results.jsonl as plain JSON failed because the file is JSONL-encoded text; it was recovered by reparsing each line with `jq -R 'fromjson'`."
+  ],
+  "recovery_actions": [
+    "Re-ran extraction against results.jsonl using JSONL parsing, then derived the compact panel summary from the parsed batch envelopes."
+  ],
+  "runtime": {
+    "wall_clock_ms": 9630,
+    "tool_calls": 16
+  }
+}

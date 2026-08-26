@@ -1,0 +1,198 @@
+{
+  "task_id": "drug-target-egfr",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "EGFR resolves to human epidermal growth factor receptor (NCBI Gene 1956 / ENSG00000146648) and is a viable lung-cancer target, especially in non-small cell lung carcinoma. Open Targets shows strong lung disease links, clear target tractability for small molecules and antibodies, and multiple approved drugs with lung-specific evidence. Top candidates surfaced for lung are afatinib dimaleate, amivantamab, and aumolertinib.",
+    "result": {
+      "target": {
+        "query": "EGFR",
+        "gene_id": "1956",
+        "symbol": "EGFR",
+        "name": "epidermal growth factor receptor",
+        "ensembl_id": "ENSG00000146648",
+        "organism": "Homo sapiens",
+        "biotype": "protein_coding"
+      },
+      "assessment": {
+        "viable_in_lung_cancer": true,
+        "confidence": "high",
+        "rationale": "The target is strongly linked to NSCLC and lung adenocarcinoma, and Open Targets reports approved-drug tractability plus multiple approved lung-cancer drugs."
+      },
+      "disease_links": [
+        {
+          "id": "EFO_0003060",
+          "name": "non-small cell lung carcinoma",
+          "score": 0.8524327529356227
+        },
+        {
+          "id": "MONDO_0008903",
+          "name": "lung cancer",
+          "score": 0.7662576881594817
+        },
+        {
+          "id": "EFO_0000571",
+          "name": "lung adenocarcinoma",
+          "score": 0.7639445728170198
+        }
+      ],
+      "tractability": {
+        "positive_feature_count": 17,
+        "enabled_modalities": [
+          {
+            "modality": "SM",
+            "label": "small molecule",
+            "features": [
+              "Approved Drug",
+              "Structure with Ligand",
+              "High-Quality Ligand",
+              "High-Quality Pocket",
+              "Druggable Family"
+            ]
+          },
+          {
+            "modality": "AB",
+            "label": "antibody",
+            "features": [
+              "Approved Drug",
+              "UniProt loc high conf",
+              "GO CC high conf"
+            ]
+          },
+          {
+            "modality": "PR",
+            "label": "PROTAC / degrader",
+            "features": [
+              "Literature",
+              "UniProt Ubiquitination",
+              "Small Molecule Binder"
+            ]
+          }
+        ]
+      },
+      "candidate_shortlist": [
+        {
+          "drug_name": "AFATINIB DIMALEATE",
+          "chembl_id": "CHEMBL2105712",
+          "stage": "Approval",
+          "modality": "Small molecule inhibitor",
+          "lung_relevance": [
+            "Approved for non-small cell lung carcinoma",
+            "Open Targets ranked it first for the lung filter",
+            "Has a Phase 4 NSCLC clinical trial with NRG1-fusion"
+          ],
+          "evidence": [
+            {
+              "source": "DailyMed",
+              "id": "fd638e5e-8032-e7ca-0179-95e96ab5d387",
+              "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=fd638e5e-8032-e7ca-0179-95e96ab5d387"
+            },
+            {
+              "source": "ClinicalTrials.gov",
+              "id": "NCT04814056",
+              "url": "https://clinicaltrials.gov/study/NCT04814056"
+            }
+          ]
+        },
+        {
+          "drug_name": "AMIVANTAMAB",
+          "chembl_id": "CHEMBL4297774",
+          "stage": "Approval",
+          "modality": "Antibody inhibitor",
+          "lung_relevance": [
+            "Approved for non-small cell lung carcinoma and lung cancer",
+            "Clinical-trial evidence specifically mentions metastatic NSCLC with EGFR exon 20 insertion mutations"
+          ],
+          "evidence": [
+            {
+              "source": "EMA Human Drugs",
+              "id": "emea/h/c/005454",
+              "url": "https://www.ema.europa.eu/en/medicines/human/EPAR/rybrevant"
+            },
+            {
+              "source": "ClinicalTrials.gov",
+              "id": "NCT04599712",
+              "url": "https://clinicaltrials.gov/study/NCT04599712"
+            }
+          ]
+        },
+        {
+          "drug_name": "AUMOLERTINIB",
+          "chembl_id": "CHEMBL4761468",
+          "stage": "Approval",
+          "modality": "Small molecule inhibitor",
+          "lung_relevance": [
+            "Approved for non-small cell lung carcinoma and lung cancer",
+            "Clinical evidence includes first-line EGFR-mutant NSCLC trials"
+          ],
+          "evidence": [
+            {
+              "source": "ATC",
+              "id": "l01eb11",
+              "url": "https://www.whocc.no/atc_ddd_index/?code=L01EB11"
+            },
+            {
+              "source": "ClinicalTrials.gov",
+              "id": "NCT03849768",
+              "url": "https://clinicaltrials.gov/study/NCT03849768"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "name": "NCBI Gene",
+      "id": "1956",
+      "url": "https://www.ncbi.nlm.nih.gov/gene/1956"
+    },
+    {
+      "name": "Open Targets target page",
+      "id": "ENSG00000146648",
+      "url": "https://platform.opentargets.org/target/ENSG00000146648"
+    },
+    {
+      "name": "DailyMed",
+      "id": "fd638e5e-8032-e7ca-0179-95e96ab5d387",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=fd638e5e-8032-e7ca-0179-95e96ab5d387"
+    },
+    {
+      "name": "EMA Human Drugs",
+      "id": "emea/h/c/005454",
+      "url": "https://www.ema.europa.eu/en/medicines/human/EPAR/rybrevant"
+    },
+    {
+      "name": "ClinicalTrials.gov",
+      "id": "NCT04814056",
+      "url": "https://clinicaltrials.gov/study/NCT04814056"
+    }
+  ],
+  "commands_used": [
+    "which ncbicli",
+    "pwd && ls -1",
+    "ncbicli --help",
+    "ncbicli --version",
+    "biocli gene --help",
+    "biocli pubmed --help",
+    "biocli aggregate --help",
+    "biocli aggregate drug-target --help",
+    "biocli aggregate gene-dossier --help",
+    "biocli gene search EGFR -f json",
+    "biocli aggregate drug-target EGFR --disease lung -f json --limit 8 --diseaseLimit 5",
+    "biocli aggregate drug-target EGFR --disease lung -f json | jq '{target:.data.target, tractability:.data.tractability, associatedDiseases:.data.associatedDiseases, topCandidates:(.data.candidates[:5] | map({drugName,chemblId,maxClinicalStageLabel,drugType,approvedIndications,clinicalReports,ranking})), summary:.data.summary, agentSummary:.data.agentSummary}'",
+    "biocli gene info 1956 -f json"
+  ],
+  "web_queries": [],
+  "warnings": [
+    "`ncbicli` is deprecated; public help redirected to `biocli`."
+  ],
+  "errors": [],
+  "recovery_actions": [
+    "Switched from the deprecated `ncbicli` entrypoint to `biocli` after the help output warned about deprecation."
+  ],
+  "runtime": {
+    "wall_clock_ms": 210000,
+    "tool_calls": 13
+  }
+}

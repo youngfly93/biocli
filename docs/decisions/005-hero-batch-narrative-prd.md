@@ -372,11 +372,11 @@ The same core wording should appear in:
 
 ## Dependencies
 
-- [003-batch-pipeline-prd.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/docs/decisions/003-batch-pipeline-prd.md)
-- [004-batch-pipeline-engineering-backlog.md](/Volumes/KINGSTON/work/research/biocli/ncbicli/docs/decisions/004-batch-pipeline-engineering-backlog.md)
+- [003-batch-pipeline-prd.md](../../docs/decisions/003-batch-pipeline-prd.md)
+- [004-batch-pipeline-engineering-backlog.md](../../docs/decisions/004-batch-pipeline-engineering-backlog.md)
 - Current hero workflows:
-- [drug-target.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/drug-target.ts)
-- [tumor-gene-dossier.ts](/Volumes/KINGSTON/work/research/biocli/ncbicli/src/clis/aggregate/tumor-gene-dossier.ts)
+- [drug-target.ts](../../src/clis/aggregate/drug-target.ts)
+- [tumor-gene-dossier.ts](../../src/clis/aggregate/tumor-gene-dossier.ts)
 
 ## Open Questions
 

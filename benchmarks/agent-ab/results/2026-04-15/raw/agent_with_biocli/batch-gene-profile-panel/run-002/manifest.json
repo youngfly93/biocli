@@ -1,0 +1,30 @@
+{
+  "command": "aggregate/gene-profile",
+  "totalItems": 5,
+  "succeeded": 5,
+  "failed": 0,
+  "startedAt": "2026-04-15T06:42:12.878Z",
+  "finishedAt": "2026-04-15T06:42:22.508Z",
+  "durationSeconds": 9.63,
+  "biocliVersion": "0.7.1",
+  "outdir": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-gene-profile-panel/run-002",
+  "inputSource": "inline",
+  "inputFormat": "auto",
+  "concurrency": 4,
+  "retries": 0,
+  "failFast": false,
+  "cache": {
+    "policy": "default",
+    "hits": 0,
+    "misses": 5,
+    "writes": 5
+  },
+  "files": {
+    "resultsJsonl": "results.jsonl",
+    "failuresJsonl": "failures.jsonl",
+    "summaryJson": "summary.json",
+    "manifestJson": "manifest.json",
+    "summaryCsv": "summary.csv",
+    "methodsMd": "methods.md"
+  }
+}

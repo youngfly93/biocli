@@ -48,18 +48,21 @@ All of the following should be true before publishing.
 ### Product and Docs
 
 - [ ] `package.json` version is updated.
+- [ ] `package-lock.json`, `CITATION.cff`, `CHANGELOG.md`, and any maintained conda recipe use the same release version.
 - [ ] `README.md` reflects the current hero workflows, batch-first examples, and benchmark summary.
 - [ ] benchmark claims in `README.md` match files in `benchmarks/results/<date>/`.
 - [ ] `benchmarks/tasks.yaml` uses pinned competitor versions, not `latest`.
 - [ ] no duplicate or stale sections remain in `README.md`.
 - [ ] release notes summary is drafted using [`docs/release-template.md`](docs/release-template.md).
 - [ ] README and release notes lead with task entrypoints, not command count.
+- [ ] ranking-method changes bump their method version and update method docs plus regression fixtures.
 
 ### Repo Hygiene
 
 - [ ] `git status --short` is clean except for intended release edits.
 - [ ] remove accidental `._*` / `.DS_Store` files from the repo tree.
 - [ ] generated benchmark artifacts included in the release are intentional.
+- [ ] `npm run check:repo-hygiene` passes; benchmark runtime homes and large regenerable datasets are not tracked.
 
 Suggested cleanup check:
 
@@ -73,10 +76,20 @@ Run all core checks:
 
 ```bash
 npm run typecheck
+npm run check:repo-hygiene
 npm run test:all
 npm run smoke:core
 npm run build
 ```
+
+Also confirm a clean lockfile install does not report an engine mismatch:
+
+```bash
+npm ci
+npm audit
+```
+
+Audit findings must be reviewed and recorded. Do not apply `npm audit fix --force` without testing the resulting major-version changes.
 
 Optional but recommended before a public release:
 

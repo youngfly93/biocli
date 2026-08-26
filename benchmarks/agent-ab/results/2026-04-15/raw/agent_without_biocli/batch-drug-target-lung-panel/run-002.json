@@ -1,0 +1,154 @@
+{
+  "task_id": "batch-drug-target-lung-panel",
+  "arm": "agent_without_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Heuristic lung-actionability triage for the five-gene panel: EGFR, ALK, MET, and ERBB2 are directly targetable in NSCLC with FDA-approved therapies; PIK3CA is exploratory only and was deprioritized because I found no lung-specific FDA-approved targeted therapy.",
+    "result": {
+      "panel": ["EGFR", "ERBB2", "PIK3CA", "MET", "ALK"],
+      "mutation_specificity_required": true,
+      "ranked_targets": [
+        {
+          "gene": "EGFR",
+          "priority": 1,
+          "score": 0.98,
+          "tier": "high",
+          "status": "actionable",
+          "top_drug_candidate": "osimertinib",
+          "approved_lung_filters": ["EGFR exon 19 deletions", "EGFR exon 21 L858R mutations"],
+          "evidence_basis": "Multiple FDA-approved NSCLC indications; strongest broad panel utility."
+        },
+        {
+          "gene": "ALK",
+          "priority": 2,
+          "score": 0.95,
+          "tier": "high",
+          "status": "actionable",
+          "top_drug_candidate": "alectinib",
+          "approved_lung_filters": ["ALK-positive NSCLC / ALK rearrangement"],
+          "evidence_basis": "FDA-approved for both adjuvant and metastatic ALK-positive NSCLC."
+        },
+        {
+          "gene": "MET",
+          "priority": 3,
+          "score": 0.92,
+          "tier": "high",
+          "status": "actionable",
+          "top_drug_candidate": "capmatinib",
+          "approved_lung_filters": ["MET exon 14 skipping"],
+          "evidence_basis": "FDA-approved for metastatic NSCLC with MET exon 14 skipping."
+        },
+        {
+          "gene": "ERBB2",
+          "priority": 4,
+          "score": 0.9,
+          "tier": "high",
+          "status": "actionable",
+          "top_drug_candidate": "sevabertinib",
+          "approved_lung_filters": ["HER2 (ERBB2) tyrosine kinase domain activating mutations"],
+          "evidence_basis": "FDA accelerated approval in 2025 for non-squamous NSCLC with HER2 TKD activating mutations."
+        },
+        {
+          "gene": "PIK3CA",
+          "priority": 5,
+          "score": 0.25,
+          "tier": "exploratory",
+          "status": "deprioritized",
+          "top_drug_candidate": null,
+          "approved_lung_filters": [],
+          "evidence_basis": "Lung relevance exists, but I found no lung-specific FDA-approved targeted therapy; treat as pathway-exploratory rather than ranked therapeutic target."
+        }
+      ],
+      "shortlist": [
+        {
+          "gene": "EGFR",
+          "drug": "osimertinib",
+          "rank_reason": "Broadest and most established EGFR-mutant NSCLC coverage."
+        },
+        {
+          "gene": "ALK",
+          "drug": "alectinib",
+          "rank_reason": "Standard ALK-positive NSCLC option with adjuvant and metastatic labeling."
+        },
+        {
+          "gene": "MET",
+          "drug": "capmatinib",
+          "rank_reason": "Direct MET exon 14 skipping target with regular FDA approval."
+        },
+        {
+          "gene": "ERBB2",
+          "drug": "sevabertinib",
+          "rank_reason": "Latest HER2-mutant NSCLC option identified in public FDA evidence."
+        },
+        {
+          "gene": "ERBB2",
+          "drug": "fam-trastuzumab deruxtecan-nxki",
+          "rank_reason": "Prior approved HER2-mutant NSCLC option; fallback if an ADC is preferred."
+        }
+      ],
+      "filter_flags": {
+        "keep": ["EGFR", "ALK", "MET", "ERBB2"],
+        "deprioritize": ["PIK3CA"],
+        "mutation_specificity": true,
+        "notes": [
+          "EGFR is only actionable here for exon 19 deletion or exon 21 L858R disease.",
+          "ALK is actionable only for ALK-positive / rearranged tumors.",
+          "MET is actionable only for MET exon 14 skipping alterations.",
+          "ERBB2 is actionable only for HER2 (ERBB2) activating mutations, especially TKD activating mutations."
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "label": "FDA osimertinib EGFR-mutated NSCLC approval",
+      "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-chemotherapy-egfr-mutated-non-small-cell-lung-cancer",
+      "record_ids": ["2024-02-16", "EGFR exon 19 deletions", "EGFR exon 21 L858R mutations"]
+    },
+    {
+      "label": "FDA alectinib (ALECENSA) label for ALK-positive NSCLC",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/208434s015lbl.pdf",
+      "record_ids": ["ALK-positive metastatic NSCLC", "ALK-positive adjuvant NSCLC"]
+    },
+    {
+      "label": "FDA capmatinib NSCLC approval",
+      "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-capmatinib-metastatic-non-small-cell-lung-cancer",
+      "record_ids": ["2022-08-10", "MET exon 14 skipping"]
+    },
+    {
+      "label": "FDA sevabertinib HER2-mutant NSCLC approval",
+      "url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-grants-accelerated-approval-sevabertinib-non-squamous-non-small-cell-lung-cancer",
+      "record_ids": ["2025-11-19", "HER2 (ERBB2) tyrosine kinase domain activating mutations"]
+    },
+    {
+      "label": "NCBI/PMC review of PI3K pathway alterations in NSCLC",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4397718/",
+      "record_ids": ["PIK3CA alterations in lung cancer", "exploratory only"]
+    }
+  ],
+  "commands_used": [
+    "pwd && ls -la /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_without_biocli/batch-drug-target-lung-panel",
+    "find /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_without_biocli/batch-drug-target-lung-panel -maxdepth 2 -type f | sort"
+  ],
+  "web_queries": [
+    "site:fda.gov EGFR non-small cell lung cancer FDA approval osimertinib official",
+    "site:fda.gov ALK non-small cell lung cancer FDA approval alectinib official",
+    "site:fda.gov ERBB2 HER2-mutated non-small cell lung cancer trastuzumab deruxtecan official",
+    "site:fda.gov MET exon 14 skipping non-small cell lung cancer capmatinib official",
+    "site:fda.gov PIK3CA non-small cell lung cancer targeted therapy official",
+    "site:fda.gov sevabertinib HER2 non-small cell lung cancer official",
+    "site:ncbi.nlm.nih.gov PIK3CA gene non-small cell lung cancer ncbi gene"
+  ],
+  "warnings": [
+    "PIK3CA was deprioritized because I found no lung-specific FDA-approved targeted therapy; this is an evidence-based negative result, not proof of absence in all clinical contexts.",
+    "The actionability calls are mutation-class specific and should be filtered before ranking patient-level samples."
+  ],
+  "errors": [],
+  "recovery_actions": [
+    "When a lung-specific PIK3CA drug approval was not found, I switched to an evidence-supported deprioritization using a public NSCLC pathway review instead of inventing a target-drug match."
+  ],
+  "runtime": {
+    "wall_clock_ms": 95000,
+    "tool_calls": 10
+  }
+}

@@ -26,6 +26,10 @@ export interface ReportArgs {
   date: string;
 }
 
+export function pipelineWorkRoot(date: string): string {
+  return join('.work', 'benchmarks', 'pipeline', date);
+}
+
 export interface TaskSummary {
   taskId: string;
   title: string;

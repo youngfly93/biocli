@@ -1,0 +1,20 @@
+{
+  "rubricVersion": "agent-ab-v1",
+  "operationalScale": {
+    "min": 0,
+    "max": 2
+  },
+  "operationalDimensions": [
+    "completion",
+    "structure",
+    "parseability",
+    "recovery",
+    "efficiency"
+  ],
+  "scorecard": "scorecard.csv",
+  "evidenceReview": {
+    "status": "not_completed",
+    "file": null
+  },
+  "notes": "The 24 operational score rows are retained as reviewed. Factual accuracy, source verifiability, and safety have not yet received a separate blinded evidence review."
+}

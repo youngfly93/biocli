@@ -1,0 +1,95 @@
+{
+  "task_id": "recovery-invalid-study-cbioportal",
+  "arm": "agent_without_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "The provided study id `bogus_study` was invalid, so I recovered by switching to the public cBioPortal lung adenocarcinoma cohort `luad_tcga_pan_can_atlas_2018` and re-running the TP53 cohort analysis.",
+    "result": {
+      "invalid_study_id": "bogus_study",
+      "invalid_study_error": "Study not found",
+      "recovered_study_id": "luad_tcga_pan_can_atlas_2018",
+      "recovered_study_name": "Lung Adenocarcinoma (TCGA, PanCancer Atlas)",
+      "prevalence": {
+        "mutated_samples": 295,
+        "sequenced_samples": 566,
+        "fraction": 0.521201413
+      },
+      "mutation_or_comutation_clue": {
+        "type": "co-mutation",
+        "gene": "KRAS",
+        "co_mutated_samples": 62
+      },
+      "mutation_example": "Representative TP53 missense variants in the cohort include V272G and Y205C."
+    }
+  },
+  "sources": [
+    {
+      "label": "Invalid study check",
+      "url": "https://www.cbioportal.org/api/studies/bogus_study",
+      "record_ids": [
+        "bogus_study"
+      ]
+    },
+    {
+      "label": "cBioPortal study index",
+      "url": "https://www.cbioportal.org/api/studies?projection=SUMMARY&pageSize=1000&pageNumber=0",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018",
+        "luad_tcga_pub"
+      ]
+    },
+    {
+      "label": "LUAD PanCancer Atlas study metadata",
+      "url": "https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018"
+      ]
+    },
+    {
+      "label": "TP53 mutation profile",
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?entrezGeneId=7157&sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&pageSize=1000&pageNumber=0",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018_mutations",
+        "luad_tcga_pan_can_atlas_2018_sequenced",
+        "7157"
+      ]
+    },
+    {
+      "label": "KRAS mutation overlap",
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?entrezGeneId=3845&sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&pageSize=1000&pageNumber=0",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018_mutations",
+        "luad_tcga_pan_can_atlas_2018_sequenced",
+        "3845"
+      ]
+    }
+  ],
+  "commands_used": [
+    "curl https://www.cbioportal.org/api/studies/bogus_study",
+    "curl https://www.cbioportal.org/api/studies?projection=SUMMARY&pageSize=1000&pageNumber=0",
+    "curl https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018",
+    "curl https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018/molecular-profiles",
+    "curl https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018/sample-lists",
+    "node fetch and count TP53 and KRAS mutation records from cBioPortal API"
+  ],
+  "web_queries": [
+    "site:cbioportal.org lung adenocarcinoma study cBioPortal TP53 study id",
+    "site:cbioportal.org cBioPortal lung adenocarcinoma study TP53 prevalence",
+    "site:cbioportal.org/api studies lung adenocarcinoma TP53 cBioPortal",
+    "site:github.com/cBioPortal/datahub lung adenocarcinoma study id cbioportal",
+    "site:github.com/cBioPortal/datahub LUAD study id cbioportal",
+    "site:github.com/cBioPortal/datahub \"Lung Adenocarcinoma\" \"meta_study.txt\""
+  ],
+  "warnings": [],
+  "errors": [
+    "The provided study id bogus_study was invalid and returned a 404 from cBioPortal."
+  ],
+  "recovery_actions": [
+    "Verified that bogus_study was invalid by checking the public cBioPortal API.",
+    "Recovered by querying the public cBioPortal study index, selecting the real LUAD cohort luad_tcga_pan_can_atlas_2018, and re-running the TP53 analysis on that study."
+  ],
+  "runtime": {
+    "wall_clock_ms": 120000,
+    "tool_calls": 9
+  }
+}

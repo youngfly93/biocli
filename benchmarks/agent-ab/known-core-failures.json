@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "description": "Immutable repeat-001 artifacts retained as evidence of early benchmark-contract failures. New failures are not allowlisted.",
+  "failures": [
+    {
+      "path": "benchmarks/agent-ab/results/2026-04-15/raw/agent_without_biocli/batch-drug-target-lung-panel/run-001.json",
+      "sha256": "0fe641078a627c12c51f84ddbe4cac0907d9f4fd6119d5efdd782bfd9a137554"
+    },
+    {
+      "path": "benchmarks/agent-ab/results/2026-04-15/raw/agent_without_biocli/drug-target-egfr/run-001.json",
+      "sha256": "9c937aac9aac4115506de3d0240f0bc6d71e1d8bc5602ad8d99ea2baf425a49e"
+    }
+  ]
+}

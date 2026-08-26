@@ -1,0 +1,85 @@
+{
+  "task_id": "tumor-gene-dossier-tp53-luad",
+  "arm": "agent_without_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Using the cBioPortal LUAD PanCancer Atlas cohort (luad_tcga_pan_can_atlas_2018), TP53 is altered in 295 of 566 sequenced samples (52.1%). The cohort shows mostly missense changes, with recurrent truncating/splice alterations. A concrete co-mutation example is TCGA-69-7980-01, which carries both TP53 and KRAS alterations.",
+    "result": {
+      "study_id": "luad_tcga_pan_can_atlas_2018",
+      "study_name": "Lung Adenocarcinoma (TCGA, PanCancer Atlas)",
+      "cohort_size_sequenced": 566,
+      "tp53": {
+        "altered_samples": 295,
+        "prevalence_pct": 52.1,
+        "mutation_records": 314,
+        "representative_alterations": [
+          "X125_splice",
+          "R273L",
+          "R158L",
+          "G245V",
+          "R175H",
+          "R213*",
+          "A159P"
+        ],
+        "dominant_classes": [
+          "Missense_Mutation",
+          "Nonsense_Mutation",
+          "Frame_Shift_Del",
+          "Splice_Site",
+          "Splice_Region"
+        ]
+      },
+      "co_mutation_clue": {
+        "sample_id": "TCGA-69-7980-01",
+        "shared_sample_alterations": [
+          "KRAS G12A",
+          "TP53 A161V",
+          "TP53 X125_splice"
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "label": "cBioPortal study metadata",
+      "url": "https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018"
+      ]
+    },
+    {
+      "label": "cBioPortal TP53 mutation list for LUAD sequenced samples",
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7157&projection=SUMMARY&pageSize=10000",
+      "record_ids": [
+        "7157",
+        "luad_tcga_pan_can_atlas_2018_sequenced"
+      ]
+    },
+    {
+      "label": "cBioPortal sample-level co-mutation fetch",
+      "url": "https://www.cbioportal.org/api/mutations/fetch",
+      "record_ids": [
+        "TCGA-69-7980-01",
+        "7157",
+        "3845"
+      ]
+    }
+  ],
+  "commands_used": [
+    "curl -fsSL https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018",
+    "curl -fsSL https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018/sample-lists",
+    "curl -fsSL https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7157&projection=SUMMARY&pageSize=10000",
+    "python requests queries against cBioPortal mutations endpoints"
+  ],
+  "web_queries": [
+    "site:cbioportal.org \"luad_tcga_pan_can_atlas_2018\" TP53",
+    "site:docs.cbioportal.org cBioPortal API mutations endpoint"
+  ],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 0,
+    "tool_calls": 0
+  }
+}

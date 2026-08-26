@@ -1,0 +1,403 @@
+{
+  "task_id": "batch-drug-target-lung-panel",
+  "arm": "agent_without_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "EGFR, ALK, and MET are the strongest actionable lung targets in the panel; ERBB2 is also actionable but narrower, while PIK3CA is lowest priority and mainly investigational/resistance-linked.",
+    "result": {
+      "panel": [
+        "EGFR",
+        "ERBB2",
+        "PIK3CA",
+        "MET",
+        "ALK"
+      ],
+      "method": "Evidence-weighted lung-targetability triage using official NCBI Gene records and FDA approval pages for lung-targeted therapies.",
+      "overall_shortlist": [
+        {
+          "rank": 1,
+          "gene": "EGFR",
+          "gene_id": "1956",
+          "canonical_name": "epidermal growth factor receptor",
+          "actionability": "very strong",
+          "top_candidates": [
+            "osimertinib",
+            "amivantamab",
+            "afatinib"
+          ],
+          "why": "Multiple FDA-approved EGFR-mutant NSCLC indications across first-line, adjuvant, and exon 20 insertion settings."
+        },
+        {
+          "rank": 2,
+          "gene": "ALK",
+          "gene_id": "238",
+          "canonical_name": "ALK receptor tyrosine kinase",
+          "actionability": "very strong",
+          "top_candidates": [
+            "lorlatinib",
+            "alectinib",
+            "brigatinib"
+          ],
+          "why": "Multiple FDA-approved ALK inhibitors with metastatic and adjuvant NSCLC coverage."
+        },
+        {
+          "rank": 3,
+          "gene": "MET",
+          "gene_id": "4233",
+          "canonical_name": "MET proto-oncogene, receptor tyrosine kinase",
+          "actionability": "strong",
+          "top_candidates": [
+            "capmatinib",
+            "tepotinib"
+          ],
+          "why": "Two FDA-approved MET exon 14 skipping therapies for metastatic NSCLC."
+        },
+        {
+          "rank": 4,
+          "gene": "ERBB2",
+          "gene_id": "2064",
+          "canonical_name": "erb-b2 receptor tyrosine kinase 2",
+          "actionability": "strong but narrower",
+          "top_candidates": [
+            "zongertinib",
+            "fam-trastuzumab deruxtecan-nxki"
+          ],
+          "why": "FDA-approved HER2-mutant NSCLC options, especially HER2 TKD activating mutations and activating ERBB2 mutations."
+        },
+        {
+          "rank": 5,
+          "gene": "PIK3CA",
+          "gene_id": "5290",
+          "canonical_name": "phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha",
+          "actionability": "low / investigational",
+          "top_candidates": [
+            "alpelisib (pathway-level, not lung-approved)"
+          ],
+          "why": "No lung-approved direct targeted therapy; evidence is mainly resistance-linked and pathway-level."
+        }
+      ],
+      "gene_results": [
+        {
+          "gene": "EGFR",
+          "gene_id": "1956",
+          "canonical_name": "epidermal growth factor receptor",
+          "priority": "tier_1",
+          "lung_actionability": "strong",
+          "target_type": "oncogenic driver / approved targeted therapy",
+          "top_candidates": [
+            {
+              "drug": "osimertinib",
+              "status": "FDA-approved",
+              "indication": "EGFR exon 19 deletion or exon 21 L858R la/mNSCLC; adjuvant after resection; metastatic T790M-positive NSCLC after prior EGFR TKI",
+              "rationale": "Broadest standard-of-care coverage in EGFR-mutant NSCLC.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-chemotherapy-egfr-mutated-non-small-cell-lung-cancer",
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-adjuvant-therapy-non-small-cell-lung-cancer-egfr-mutations",
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/osimertinib-tagrisso"
+              ]
+            },
+            {
+              "drug": "amivantamab-vmjw",
+              "status": "FDA-approved",
+              "indication": "EGFR exon 20 insertion-mutated NSCLC; also used with carboplatin/pemetrexed for EGFR exon 19 deletion or L858R NSCLC after EGFR TKI",
+              "rationale": "Strong lung-targeted EGFR activity with a distinct exon 20 insertion niche.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-egfr-exon-20-insertion-mutated-non-small-cell-lung-cancer-indications",
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-carboplatin-and-pemetrexed-non-small-cell-lung-cancer-egfr-exon-19"
+              ]
+            },
+            {
+              "drug": "afatinib",
+              "status": "FDA-approved",
+              "indication": "Previously untreated metastatic NSCLC with non-resistant EGFR mutations",
+              "rationale": "Established EGFR TKI option for non-resistant EGFR variants.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-broadens-afatinib-indication-previously-untreated-metastatic-nsclc-other-non-resistant-egfr"
+              ]
+            }
+          ],
+          "evidence": [
+            "https://www.ncbi.nlm.nih.gov/gene/1956",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-chemotherapy-egfr-mutated-non-small-cell-lung-cancer",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-egfr-exon-20-insertion-mutated-non-small-cell-lung-cancer-indications",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-broadens-afatinib-indication-previously-untreated-metastatic-nsclc-other-non-resistant-egfr"
+          ],
+          "notes": "Highest-confidence panel target; multiple approved drug classes and biomarker-defined NSCLC indications."
+        },
+        {
+          "gene": "ALK",
+          "gene_id": "238",
+          "canonical_name": "ALK receptor tyrosine kinase",
+          "priority": "tier_1",
+          "lung_actionability": "strong",
+          "target_type": "oncogenic fusion driver / approved targeted therapy",
+          "top_candidates": [
+            {
+              "drug": "lorlatinib",
+              "status": "FDA-approved",
+              "indication": "Metastatic ALK-positive NSCLC",
+              "rationale": "Potent later-generation ALK inhibitor with CNS activity.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-lorlatinib-metastatic-alk-positive-nsclc"
+              ]
+            },
+            {
+              "drug": "alectinib",
+              "status": "FDA-approved",
+              "indication": "ALK-positive metastatic NSCLC; adjuvant treatment following resection",
+              "rationale": "Front-line and adjuvant ALK option with strong NSCLC evidence.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alectinib-adjuvant-treatment-alk-positive-non-small-cell-lung-cancer",
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alectinib-adjuvant-treatment-alk-positive-non-small-cell-lung-cancer"
+              ]
+            },
+            {
+              "drug": "brigatinib",
+              "status": "FDA-approved",
+              "indication": "ALK-positive metastatic NSCLC",
+              "rationale": "Established ALK-targeted option for metastatic disease.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-brigatinib-alk-positive-metastatic-nsclc"
+              ]
+            }
+          ],
+          "evidence": [
+            "https://www.ncbi.nlm.nih.gov/gene/238",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-lorlatinib-metastatic-alk-positive-nsclc",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alectinib-adjuvant-treatment-alk-positive-non-small-cell-lung-cancer",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-brigatinib-alk-positive-metastatic-nsclc",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-ensartinib-alk-positive-locally-advanced-or-metastatic-non-small-cell-lung-cancer"
+          ],
+          "notes": "Strong fusion-driver target; multiple next-generation ALK inhibitors available."
+        },
+        {
+          "gene": "MET",
+          "gene_id": "4233",
+          "canonical_name": "MET proto-oncogene, receptor tyrosine kinase",
+          "priority": "tier_1",
+          "lung_actionability": "strong",
+          "target_type": "oncogenic driver / approved targeted therapy",
+          "top_candidates": [
+            {
+              "drug": "capmatinib",
+              "status": "FDA-approved",
+              "indication": "Metastatic NSCLC with MET exon 14 skipping",
+              "rationale": "Standard MET exon 14 skipping inhibitor in lung cancer.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-capmatinib-metastatic-non-small-cell-lung-cancer"
+              ]
+            },
+            {
+              "drug": "tepotinib",
+              "status": "FDA-approved",
+              "indication": "Metastatic NSCLC with MET exon 14 skipping",
+              "rationale": "Second approved MET exon 14 skipping option.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-tepotinib-metastatic-non-small-cell-lung-cancer"
+              ]
+            }
+          ],
+          "evidence": [
+            "https://www.ncbi.nlm.nih.gov/gene/4233",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-capmatinib-metastatic-non-small-cell-lung-cancer",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-tepotinib-metastatic-non-small-cell-lung-cancer"
+          ],
+          "notes": "Strong but biomarker-narrow target: highest confidence is MET exon 14 skipping."
+        },
+        {
+          "gene": "ERBB2",
+          "gene_id": "2064",
+          "canonical_name": "erb-b2 receptor tyrosine kinase 2",
+          "priority": "tier_2",
+          "lung_actionability": "strong but narrower",
+          "target_type": "oncogenic driver / approved targeted therapy",
+          "top_candidates": [
+            {
+              "drug": "zongertinib",
+              "status": "FDA-approved",
+              "indication": "Unresectable or metastatic non-squamous NSCLC with HER2 (ERBB2) tyrosine kinase domain activating mutations",
+              "rationale": "Newest HER2-mutant lung option with mutation-specific labeling.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-grants-accelerated-approval-zongertinib-non-squamous-nsclc-her2-tkd-activating-mutations"
+              ]
+            },
+            {
+              "drug": "fam-trastuzumab deruxtecan-nxki",
+              "status": "FDA-approved",
+              "indication": "Unresectable or metastatic NSCLC with activating HER2 (ERBB2) mutations after prior systemic therapy",
+              "rationale": "Established HER2-mutant NSCLC therapy with broad clinical use.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-grants-accelerated-approval-fam-trastuzumab-deruxtecan-nxki-her2-mutant-non-small-cell-lung"
+              ]
+            }
+          ],
+          "evidence": [
+            "https://www.ncbi.nlm.nih.gov/gene/2064",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-grants-accelerated-approval-zongertinib-non-squamous-nsclc-her2-tkd-activating-mutations",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-grants-accelerated-approval-fam-trastuzumab-deruxtecan-nxki-her2-mutant-non-small-cell-lung"
+          ],
+          "notes": "Actionable in lung cancer, but narrower than EGFR/ALK/MET because the strongest labels are mutation-subtype specific."
+        },
+        {
+          "gene": "PIK3CA",
+          "gene_id": "5290",
+          "canonical_name": "phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha",
+          "priority": "tier_3",
+          "lung_actionability": "low / investigational",
+          "target_type": "pathway driver / resistance-linked",
+          "top_candidates": [
+            {
+              "drug": "alpelisib",
+              "status": "FDA-approved outside lung; not a standard lung target",
+              "indication": "Approved for PIK3CA-mutated breast cancer and PROS, not lung cancer",
+              "rationale": "PI3K-pathway inhibitor with lung relevance mainly as an experimental or resistance-context option.",
+              "evidence_urls": [
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alpelisib-metastatic-breast-cancer",
+                "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alpelisib-pik3ca-related-overgrowth-spectrum",
+                "https://pubmed.ncbi.nlm.nih.gov/38432445/"
+              ]
+            }
+          ],
+          "evidence": [
+            "https://www.ncbi.nlm.nih.gov/gene/5290",
+            "https://pubmed.ncbi.nlm.nih.gov/38432445/",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alpelisib-metastatic-breast-cancer",
+            "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alpelisib-pik3ca-related-overgrowth-spectrum"
+          ],
+          "notes": "Low-confidence direct target in lung cancer; PIK3CA is more often a resistance marker or pathway-level hypothesis than a standard actionable NSCLC driver."
+        }
+      ],
+      "global_shortlist": [
+        {
+          "rank": 1,
+          "gene": "EGFR",
+          "drug": "osimertinib",
+          "status": "FDA-approved",
+          "why": "Broad EGFR-mutant NSCLC coverage, including first-line and adjuvant settings."
+        },
+        {
+          "rank": 2,
+          "gene": "ALK",
+          "drug": "lorlatinib",
+          "status": "FDA-approved",
+          "why": "Potent ALK inhibitor with metastatic NSCLC approval and CNS activity."
+        },
+        {
+          "rank": 3,
+          "gene": "MET",
+          "drug": "capmatinib",
+          "status": "FDA-approved",
+          "why": "Standard MET exon 14 skipping therapy in metastatic NSCLC."
+        },
+        {
+          "rank": 4,
+          "gene": "MET",
+          "drug": "tepotinib",
+          "status": "FDA-approved",
+          "why": "Second approved MET exon 14 skipping option with the same biomarker-defined lung niche."
+        },
+        {
+          "rank": 5,
+          "gene": "ERBB2",
+          "drug": "zongertinib",
+          "status": "FDA-approved",
+          "why": "Newest mutation-specific HER2 NSCLC therapy for ERBB2 TKD activating mutations."
+        },
+        {
+          "rank": 6,
+          "gene": "EGFR",
+          "drug": "amivantamab-vmjw",
+          "status": "FDA-approved",
+          "why": "Strong EGFR exon 20 insertion therapy and EGFR-mutant combination option."
+        },
+        {
+          "rank": 7,
+          "gene": "ALK",
+          "drug": "alectinib",
+          "status": "FDA-approved",
+          "why": "Front-line/adjuvant ALK option with strong NSCLC evidence."
+        },
+        {
+          "rank": 8,
+          "gene": "ALK",
+          "drug": "brigatinib",
+          "status": "FDA-approved",
+          "why": "Established metastatic ALK therapy."
+        },
+        {
+          "rank": 9,
+          "gene": "ERBB2",
+          "drug": "fam-trastuzumab deruxtecan-nxki",
+          "status": "FDA-approved",
+          "why": "Validated HER2-mutant NSCLC therapy after prior systemic treatment."
+        },
+        {
+          "rank": 10,
+          "gene": "EGFR",
+          "drug": "afatinib",
+          "status": "FDA-approved",
+          "why": "Established EGFR TKI option for non-resistant EGFR mutations."
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_without_biocli/batch-drug-target-lung-panel/run-001.json",
+          "purpose": "Structured benchmark output for downstream ranking and filtering"
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_without_biocli/batch-drug-target-lung-panel/run-001.md",
+          "purpose": "Short notes/transcript summary for the run"
+        }
+      ]
+    },
+    "sources": [
+      "https://www.ncbi.nlm.nih.gov/gene/1956",
+      "https://www.ncbi.nlm.nih.gov/gene/2064",
+      "https://www.ncbi.nlm.nih.gov/gene/5290",
+      "https://www.ncbi.nlm.nih.gov/gene/4233",
+      "https://www.ncbi.nlm.nih.gov/gene/238",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-chemotherapy-egfr-mutated-non-small-cell-lung-cancer",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-osimertinib-adjuvant-therapy-non-small-cell-lung-cancer-egfr-mutations",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-egfr-exon-20-insertion-mutated-non-small-cell-lung-cancer-indications",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-amivantamab-vmjw-carboplatin-and-pemetrexed-non-small-cell-lung-cancer-egfr-exon-19",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-broadens-afatinib-indication-previously-untreated-metastatic-nsclc-other-non-resistant-egfr",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-lorlatinib-metastatic-alk-positive-nsclc",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alectinib-adjuvant-treatment-alk-positive-non-small-cell-lung-cancer",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-brigatinib-alk-positive-metastatic-nsclc",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-capmatinib-metastatic-non-small-cell-lung-cancer",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-tepotinib-metastatic-non-small-cell-lung-cancer",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-grants-accelerated-approval-zongertinib-non-squamous-nsclc-her2-tkd-activating-mutations",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-grants-accelerated-approval-fam-trastuzumab-deruxtecan-nxki-her2-mutant-non-small-cell-lung",
+      "https://pubmed.ncbi.nlm.nih.gov/38432445/",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alpelisib-metastatic-breast-cancer",
+      "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-alpelisib-pik3ca-related-overgrowth-spectrum"
+    ],
+    "commands_used": [
+      "web.search_query: FDA/NCBI/PubMed evidence collection for EGFR, ALK, MET, ERBB2, and PIK3CA",
+      "web.search_query: official approval pages for lung-targeted therapies across the panel"
+    ],
+    "web_queries": [
+      "site:fda.gov osimertinib NSCLC label EGFR FDA",
+      "site:fda.gov alectinib NSCLC label ALK FDA",
+      "site:fda.gov capmatinib MET exon 14 skipping NSCLC FDA",
+      "site:fda.gov trastuzumab deruxtecan NSCLC HER2 label FDA",
+      "site:fda.gov tepotinib metastatic non-small cell lung cancer FDA",
+      "site:fda.gov HER2 TKD activating mutations NSCLC FDA",
+      "site:fda.gov HER2-mutant non-small cell lung cancer FDA",
+      "site:fda.gov afatinib EGFR non-small cell lung cancer FDA",
+      "site:fda.gov lorlatinib ALK-positive NSCLC FDA",
+      "site:fda.gov brigatinib ALK-positive NSCLC FDA",
+      "site:fda.gov alpelisib PIK3CA lung cancer FDA",
+      "site:pubmed.ncbi.nlm.nih.gov PIK3CA mutation resistance EGFR TKI non-small cell lung cancer review"
+    ],
+    "warnings": [
+      "PIK3CA has no lung-specific FDA-approved targeted therapy in this panel; it is treated as low-priority and mainly investigational/resistance-linked."
+    ],
+    "errors": [],
+    "recovery_actions": [],
+    "runtime": {
+      "wall_clock_ms": 180000,
+      "tool_calls": 14
+    }
+  }
+}

@@ -46,6 +46,14 @@ Each task writes:
 - a shared `summary.json` at the cache-mode root
 - a date-level `report.md` / `report.json` once the report script is run
 
+Runtime homes, response caches, and downloaded reference datasets are written to:
+
+```text
+.work/benchmarks/pipeline/YYYY-MM-DD/cache-home/
+```
+
+They are regenerable execution state and are intentionally excluded from Git. Published benchmark evidence keeps summaries, logs, run manifests/artifacts, and a small checksum/source manifest for any externalized reference snapshot.
+
 The summary records:
 
 - task status and exit code

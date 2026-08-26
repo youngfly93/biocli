@@ -1,0 +1,191 @@
+{
+  "task_id": "batch-drug-target-lung-panel",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Batch triage of EGFR, ERBB2, PIK3CA, MET, and ALK against lung disease returned five complete Open Targets results and a ranked shortlist led by EGFR and ERBB2.",
+    "result": {
+      "panel": {
+        "name": "lung-focused target triage panel",
+        "diseaseFilter": "lung",
+        "genes": [
+          "EGFR",
+          "ERBB2",
+          "PIK3CA",
+          "MET",
+          "ALK"
+        ],
+        "rankingRule": "approvedDrugs desc, clinicalCandidates desc, totalCandidates desc",
+        "batch": {
+          "command": "aggregate/drug-target",
+          "totalItems": 5,
+          "succeeded": 5,
+          "failed": 0,
+          "durationSeconds": 4.562,
+          "startedAt": "2026-04-15T04:07:31.500Z",
+          "finishedAt": "2026-04-15T04:07:36.062Z",
+          "biocliVersion": "0.7.1",
+          "inputSource": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/genes.txt",
+          "inputFormat": "text",
+          "outdir": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/run-001-artifacts",
+          "cache": {
+            "policy": "default",
+            "hits": 0,
+            "misses": 5,
+            "writes": 5
+          },
+          "snapshots": [
+            {
+              "dataset": "GDSC",
+              "source": "local-dataset",
+              "path": "/Users/yangfei/.biocli/datasets/gdsc",
+              "release": "8.5",
+              "fetchedAt": "2026-04-11T02:40:51.103Z",
+              "staleAfterDays": 90,
+              "refreshed": false
+            }
+          ],
+          "summary": {
+            "totalItems": 5,
+            "succeeded": 5,
+            "failed": 0,
+            "durationSeconds": 4.562
+          }
+        },
+        "rankedShortlist": [
+          {
+            "rank": 1,
+            "gene": "EGFR",
+            "geneName": "epidermal growth factor receptor",
+            "ensemblId": "ENSG00000146648",
+            "topCandidate": "AFATINIB DIMALEATE",
+            "topCandidateStage": "APPROVAL",
+            "topCandidateScore": 20.5,
+            "approvedDrugs": 25,
+            "clinicalCandidates": 44,
+            "totalCandidates": 79,
+            "matchedCandidates": 45,
+            "topFinding": "EGFR has approval candidates aligned with lung, led by AFATINIB DIMALEATE.",
+            "completeness": "complete"
+          },
+          {
+            "rank": 2,
+            "gene": "ERBB2",
+            "geneName": "erb-b2 receptor tyrosine kinase 2",
+            "ensemblId": "ENSG00000141736",
+            "topCandidate": "AFATINIB DIMALEATE",
+            "topCandidateStage": "APPROVAL",
+            "topCandidateScore": 20.5,
+            "approvedDrugs": 11,
+            "clinicalCandidates": 19,
+            "totalCandidates": 47,
+            "matchedCandidates": 19,
+            "topFinding": "ERBB2 has approval candidates aligned with lung, led by AFATINIB DIMALEATE.",
+            "completeness": "complete"
+          },
+          {
+            "rank": 3,
+            "gene": "MET",
+            "geneName": "MET proto-oncogene, receptor tyrosine kinase",
+            "ensemblId": "ENSG00000105976",
+            "topCandidate": "AMIVANTAMAB",
+            "topCandidateStage": "APPROVAL",
+            "topCandidateScore": 20.5,
+            "approvedDrugs": 8,
+            "clinicalCandidates": 17,
+            "totalCandidates": 36,
+            "matchedCandidates": 17,
+            "topFinding": "MET has approval candidates aligned with lung, led by AMIVANTAMAB.",
+            "completeness": "complete"
+          },
+          {
+            "rank": 4,
+            "gene": "ALK",
+            "geneName": "ALK receptor tyrosine kinase",
+            "ensemblId": "ENSG00000171094",
+            "topCandidate": "ALECTINIB",
+            "topCandidateStage": "APPROVAL",
+            "topCandidateScore": 20.5,
+            "approvedDrugs": 8,
+            "clinicalCandidates": 10,
+            "totalCandidates": 12,
+            "matchedCandidates": 10,
+            "topFinding": "ALK has approval candidates aligned with lung, led by ALECTINIB.",
+            "completeness": "complete"
+          },
+          {
+            "rank": 5,
+            "gene": "PIK3CA",
+            "geneName": "phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha",
+            "ensemblId": "ENSG00000121879",
+            "topCandidate": "ALPELISIB",
+            "topCandidateStage": "APPROVAL",
+            "topCandidateScore": 20.5,
+            "approvedDrugs": 2,
+            "clinicalCandidates": 7,
+            "totalCandidates": 32,
+            "matchedCandidates": 7,
+            "topFinding": "PIK3CA has approval candidates aligned with lung, led by ALPELISIB.",
+            "completeness": "complete"
+          }
+        ]
+      },
+      "artifacts": [
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/run-001-artifacts/results.jsonl",
+          "purpose": "Full per-gene structured Open Targets results for downstream parsing."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/run-001-artifacts/summary.csv",
+          "purpose": "Flat sortable table for ranking and filtering the 5-gene panel."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/run-001-artifacts/summary.json",
+          "purpose": "Batch-level success/failure counts and duration."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/run-001-artifacts/manifest.json",
+          "purpose": "Run metadata, cache/snapshot info, and input provenance."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/run-001-artifacts/methods.md",
+          "purpose": "Human-readable methods summary for the batch run."
+        },
+        {
+          "path": "/Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/genes.txt",
+          "purpose": "Input gene panel used for the batch run."
+        }
+      ],
+      "downstreamFilters": {
+        "recommendedSortOrder": [
+          "approvedDrugs desc",
+          "clinicalCandidates desc",
+          "totalCandidates desc"
+        ],
+        "recommendedFilters": {
+          "disease": "lung",
+          "completeness": "complete"
+        },
+        "useCase": "Start from the ranked shortlist and filter on drug stage, candidate breadth, or top candidate name."
+      },
+      "sources": [
+        "Open Targets"
+      ]
+    }
+  },
+  "sources": [
+    "Open Targets"
+  ],
+  "commands_used": [
+    "biocli aggregate drug-target --input-file /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/genes.txt --input-format text --disease lung --jsonl --outdir /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/run-001-artifacts",
+    "jq -s '.[] | {input, gene:.result.data.target.symbol, totalCandidates:.result.data.summary.totalCandidates, matchedCandidates:.result.data.summary.matchedCandidates, approvedDrugs:.result.data.summary.approvedDrugs, clinicalCandidates:.result.data.summary.clinicalCandidates, topCandidate:(.result.data.agentSummary.topCandidates[0].drugName)}' /Volumes/KINGSTON/work/research/biocli/ncbicli/benchmarks/agent-ab/results/2026-04-15/raw/agent_with_biocli/batch-drug-target-lung-panel/run-001-artifacts/results.jsonl"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [],
+  "recovery_actions": [],
+  "runtime": {
+    "wall_clock_ms": 4562,
+    "tool_calls": 2
+  }
+}

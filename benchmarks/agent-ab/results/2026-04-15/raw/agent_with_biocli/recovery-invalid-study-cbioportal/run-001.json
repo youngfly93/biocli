@@ -1,0 +1,87 @@
+{
+  "task_id": "recovery-invalid-study-cbioportal",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "Recovered from invalid study id bogus_study by finding a real LUAD cBioPortal study and rerunning TP53 tumor-cohort analysis.",
+    "result": {
+      "invalid_study_id": "bogus_study",
+      "recovered_study_id": "luad_tcga_pan_can_atlas_2018",
+      "study_name": "Lung Adenocarcinoma (TCGA, PanCancer Atlas)",
+      "gene": {
+        "symbol": "TP53",
+        "name": "tumor protein p53",
+        "cbioportal_entrez_gene_id": "7157"
+      },
+      "cohort": {
+        "disease": "lung adenocarcinoma",
+        "sample_count": 566,
+        "altered_samples": 295,
+        "mutation_frequency_pct": 52.12
+      },
+      "exemplar_alterations": [
+        {
+          "protein_change": "X125_splice",
+          "mutation_type": "Splice_Region"
+        },
+        {
+          "protein_change": "R158L",
+          "mutation_type": "Missense_Mutation"
+        },
+        {
+          "protein_change": "R273L",
+          "mutation_type": "Missense_Mutation"
+        }
+      ],
+      "co_mutation_clue": {
+        "top_partner_gene": "TTN",
+        "other_prominent_partners": [
+          "MUC16",
+          "RYR2"
+        ],
+        "interpretation": "large-gene / TMB-like co-mutation signal"
+      }
+    }
+  },
+  "sources": [
+    {
+      "source": "cBioPortal study search",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018"
+      ],
+      "url": "https://www.cbioportal.org/study/summary?id=luad_tcga_pan_can_atlas_2018"
+    },
+    {
+      "source": "cBioPortal study API",
+      "record_ids": [
+        "luad_tcga_pan_can_atlas_2018"
+      ],
+      "url": "https://www.cbioportal.org/api/studies/luad_tcga_pan_can_atlas_2018"
+    },
+    {
+      "source": "cBioPortal TP53 mutations API",
+      "record_ids": [
+        "7157"
+      ],
+      "url": "https://www.cbioportal.org/api/molecular-profiles/luad_tcga_pan_can_atlas_2018_mutations/mutations?sampleListId=luad_tcga_pan_can_atlas_2018_sequenced&entrezGeneId=7157"
+    }
+  ],
+  "commands_used": [
+    "biocli aggregate tumor-gene-dossier TP53 --study bogus_study -f json",
+    "biocli cbioportal studies luad -f json --limit 20",
+    "biocli aggregate tumor-gene-dossier TP53 --study luad_tcga_pan_can_atlas_2018 -f json"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [
+    "cBioPortal returned HTTP 404 for bogus_study"
+  ],
+  "recovery_actions": [
+    "Ran biocli cbioportal studies luad -f json --limit 20 to find a valid lung adenocarcinoma study id.",
+    "Re-ran TP53 tumor-gene-dossier with recovered study id luad_tcga_pan_can_atlas_2018."
+  ],
+  "runtime": {
+    "wall_clock_ms": 10000,
+    "tool_calls": 3
+  }
+}

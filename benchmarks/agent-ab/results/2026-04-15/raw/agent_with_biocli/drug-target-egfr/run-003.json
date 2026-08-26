@@ -1,0 +1,224 @@
+{
+  "task_id": "drug-target-egfr",
+  "arm": "agent_with_biocli",
+  "status": "completed",
+  "final_answer": {
+    "summary": "EGFR is a high-confidence, highly tractable lung-cancer target. It resolves to human EGFR / epidermal growth factor receptor (NCBI Gene 1956, UniProt P00533, Ensembl ENSG00000146648), has strong Open Targets lung associations, and has multiple approved lung/NSCLC therapies.",
+    "result": {
+      "resolved_target": {
+        "symbol": "EGFR",
+        "name": "epidermal growth factor receptor",
+        "organism": "Homo sapiens",
+        "ncbi_gene_id": "1956",
+        "ensembl_gene_id": "ENSG00000146648",
+        "uniprot_accession": "P00533"
+      },
+      "assessment": {
+        "viable_in_lung_cancer": true,
+        "confidence": "high",
+        "rationale": [
+          "Open Targets links EGFR most strongly to non-small cell lung carcinoma, lung cancer, and lung adenocarcinoma.",
+          "Open Targets tractability is strong (17 positive features), with small-molecule and antibody modalities enabled.",
+          "Multiple approved EGFR-directed drugs have explicit NSCLC/lung-cancer evidence, and EGFR inhibitors show lung adenocarcinoma cell-line sensitivity in GDSC."
+        ]
+      },
+      "disease_links": [
+        {
+          "disease": "non-small cell lung carcinoma",
+          "disease_id": "EFO_0003060",
+          "score": 0.8524327529356227
+        },
+        {
+          "disease": "lung cancer",
+          "disease_id": "MONDO_0008903",
+          "score": 0.7662576881594817
+        },
+        {
+          "disease": "lung adenocarcinoma",
+          "disease_id": "EFO_0000571",
+          "score": 0.7639445728170198
+        }
+      ],
+      "tractability": {
+        "positive_feature_count": 17,
+        "enabled_modalities": [
+          "antibody",
+          "other modality",
+          "PROTAC / degrader",
+          "small molecule"
+        ],
+        "interpretation": "EGFR is a clear druggable target in lung cancer, with the strongest evidence for small-molecule kinase inhibition and additional antibody tractability."
+      },
+      "candidate_drugs": [
+        {
+          "drug_name": "osimertinib",
+          "priority": "high",
+          "modality": "small molecule",
+          "status": "approved",
+          "lung_cancer_evidence": [
+            "Approved for non-small cell lung carcinoma and EGFR-positive NSCLC.",
+            "GDSC LUAD sensitivity signal, with strong hits in HCC-827, PC-14, and NCI-H1975.",
+            "Clinical evidence link: NCT03853551 (EGFR T790M-positive NSCLC)."
+          ]
+        },
+        {
+          "drug_name": "erlotinib",
+          "priority": "high",
+          "modality": "small molecule",
+          "status": "approved",
+          "lung_cancer_evidence": [
+            "Approved for non-small cell lung carcinoma, lung cancer, and lung adenocarcinoma.",
+            "GDSC LUAD sensitivity signal, with strong hits in NCI-H1648 and HCC-827.",
+            "Clinical evidence links: EMA Tarceva and ATC L01EB02."
+          ]
+        },
+        {
+          "drug_name": "gefitinib",
+          "priority": "high",
+          "modality": "small molecule",
+          "status": "approved",
+          "lung_cancer_evidence": [
+            "Approved for non-small cell lung carcinoma, lung cancer, and lung adenocarcinoma.",
+            "GDSC LUAD sensitivity signal, with strong hits in H3255 and HCC-827.",
+            "Clinical evidence links: ATC L01EB01 and NSCLC expanded-access / trial evidence."
+          ]
+        },
+        {
+          "drug_name": "amivantamab",
+          "priority": "high",
+          "modality": "antibody",
+          "status": "approved",
+          "lung_cancer_evidence": [
+            "Approved for non-small cell lung carcinoma and lung cancer.",
+            "Clinical evidence explicitly targets metastatic NSCLC with EGFR exon 20 insertion mutations.",
+            "Clinical evidence links: EMA Rybrevant and NCT04599712."
+          ]
+        }
+      ],
+      "supporting_evidence": [
+        {
+          "type": "pathway",
+          "value": "KEGG hsa05223 Non-small cell lung cancer"
+        },
+        {
+          "type": "pathway",
+          "value": "KEGG hsa01521 EGFR tyrosine kinase inhibitor resistance"
+        },
+        {
+          "type": "literature",
+          "value": "PubMed 38636443 and 38892105 support contemporary EGFR-TKI use in NSCLC and EGFR exon 20 insertion disease."
+        }
+      ],
+      "notes": [
+        "Disease-aware Open Targets ranking also surfaced amivantamab, aumolertinib, brigatinib, cetuximab, and erlotinib; the shortlist here prioritizes direct EGFR-directed lung-cancer agents."
+      ]
+    }
+  },
+  "sources": [
+    {
+      "label": "Open Targets EGFR target page",
+      "url": "https://platform.opentargets.org/target/ENSG00000146648",
+      "record_ids": [
+        "ENSG00000146648"
+      ]
+    },
+    {
+      "label": "NCBI Gene EGFR",
+      "url": "https://www.ncbi.nlm.nih.gov/gene/1956",
+      "record_ids": [
+        "1956"
+      ]
+    },
+    {
+      "label": "UniProt EGFR",
+      "url": "https://www.uniprot.org/uniprotkb/P00533",
+      "record_ids": [
+        "P00533"
+      ]
+    },
+    {
+      "label": "PubMed 38636443",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38636443/",
+      "record_ids": [
+        "38636443"
+      ]
+    },
+    {
+      "label": "PubMed 38892105",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38892105/",
+      "record_ids": [
+        "38892105"
+      ]
+    },
+    {
+      "label": "EMA Tarceva",
+      "url": "https://www.ema.europa.eu/en/medicines/human/EPAR/tarceva",
+      "record_ids": [
+        "emea/h/c/000618"
+      ]
+    },
+    {
+      "label": "ATC gefitinib",
+      "url": "https://www.whocc.no/atc_ddd_index/?code=L01EB01",
+      "record_ids": [
+        "l01eb01"
+      ]
+    },
+    {
+      "label": "ATC erlotinib",
+      "url": "https://www.whocc.no/atc_ddd_index/?code=L01EB02",
+      "record_ids": [
+        "l01eb02"
+      ]
+    },
+    {
+      "label": "ATC osimertinib",
+      "url": "https://www.whocc.no/atc_ddd_index/?code=L01EB04",
+      "record_ids": [
+        "l01eb04"
+      ]
+    },
+    {
+      "label": "EMA Rybrevant",
+      "url": "https://www.ema.europa.eu/en/medicines/human/EPAR/rybrevant",
+      "record_ids": [
+        "emea/h/c/005454"
+      ]
+    },
+    {
+      "label": "ClinicalTrials NCT04599712",
+      "url": "https://clinicaltrials.gov/study/NCT04599712",
+      "record_ids": [
+        "NCT04599712"
+      ]
+    },
+    {
+      "label": "ClinicalTrials NCT03853551",
+      "url": "https://clinicaltrials.gov/study/NCT03853551",
+      "record_ids": [
+        "NCT03853551"
+      ]
+    }
+  ],
+  "commands_used": [
+    "biocli --help",
+    "biocli gene search EGFR -f json",
+    "biocli gene info 1956 -f json",
+    "biocli aggregate gene-dossier EGFR -f json",
+    "biocli aggregate drug-target EGFR -f json",
+    "biocli aggregate drug-target EGFR --disease lung cancer --limit 5 --diseaseLimit 5 -f json",
+    "biocli aggregate drug-target EGFR --disease \"lung cancer\" --limit 5 --diseaseLimit 5 -f json"
+  ],
+  "web_queries": [],
+  "warnings": [],
+  "errors": [
+    "biocli aggregate drug-target EGFR --disease lung cancer --limit 5 --diseaseLimit 5 -f json failed with: too many arguments for 'drug-target'. Expected 1 argument but got 2."
+  ],
+  "recovery_actions": [
+    "Retried the drug-target query with the disease filter quoted as --disease \"lung cancer\", which resolved the parse error."
+  ],
+  "runtime": {
+    "wall_clock_ms": 45000,
+    "tool_calls": 12
+  }
+}
