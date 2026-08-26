@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the `v0.7.1` runtime and the current unreleased development baseline.
+This document describes the `v0.8.0` runtime.
 
 ## Runtime map
 

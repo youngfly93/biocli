@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0] - 2026-08-26
+
+This release is about trust in batch output. The per-item `completeness` field
+was always correct, but the summary, recovery, and reporting layers ignored it,
+so an incomplete run could present itself as fully successful.
+
+### Behavior Changes
+
+These are bug fixes, but they change observable output. Check any script or
+agent that relies on the old behavior.
+
+- `-f table` is now honored when passed explicitly. Previously a command's
+  `defaultFormat` replaced it, so `aggregate <cmd> -f table` emitted JSON. If a
+  script passed `-f table` and parsed JSON, switch it to `-f json`.
+- An unknown `-f` value now exits `2` instead of silently rendering a table
+  with exit `0`.
+- `-f csv` and `-f md` now render nested fields as `; `-joined labels instead of
+  `[object Object]`.
+- `summary.json` and `manifest.json` gain `degraded` and `completeness` for
+  commands that report completeness. Existing fields are unchanged.
 
 ### Added
 
