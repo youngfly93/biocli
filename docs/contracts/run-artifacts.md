@@ -99,13 +99,31 @@ Shape:
 - `totalItems`
 - `succeeded`
 - `failed`
+- `degraded` (only when the command reports completeness)
+- `completeness` (only when the command reports completeness)
 - `startedAt`
 - `finishedAt`
 - `durationSeconds`
 
+Rules:
+
+- `succeeded` counts items that did not hard-fail. It does **not** mean the data
+  is complete: an item can succeed while an upstream rate limit, a skipped
+  cross-reference, or an unresolvable identifier leaves the result incomplete.
+- `degraded` is the number of succeeded items whose `completeness` is `partial`
+  or `degraded`. Read it together with `succeeded`, never `succeeded` alone.
+- `completeness` breaks that down as `{ complete, partial, degraded }`.
+  `partial` means some sources answered and the row is usually still usable;
+  `degraded` means essentially nothing resolved and the row should be treated
+  as missing.
+- Both fields are emitted only when at least one result carries a
+  `completeness` field, so summaries for commands without it keep their
+  existing shape.
+
 Use it when:
 
 - a scheduler or agent needs a quick health check for the whole run
+- a delivery pipeline needs to gate on data coverage rather than only on errors
 
 ### `summary.csv`
 
@@ -189,6 +207,31 @@ the new manifest should include a structured `resume` section with:
 - `skippedCompleted`
 - `previousSucceeded`
 - `previousFailed`
+
+`skippedCompleted` reports what this rerun actually skipped, which is not always
+the size of the previous success list.
+
+### Recovering Incomplete Items
+
+`--resume` skips every checkpointed success, including ones that returned
+incomplete data. On its own it can therefore never repair a degraded row: the
+row stays frozen in the run directory.
+
+`--retry-degraded` resumes **and** reschedules checkpointed items whose
+`completeness` is `partial` or `degraded`. It implies `--resume`, requires
+`--outdir` or `--resume-from`, and always bypasses cache reads so a retry is
+never answered by the cache entry that produced the degraded result.
+
+A rerun that improves an item overwrites its checkpoint record. A rerun that
+does not improve it leaves the previous record in place, and the run-end warning
+fires again.
+
+### Failing On Incomplete Coverage
+
+`--strict` exits with `65` (`EX_DATAERR`) when any item returned incomplete
+data. Use it to gate a delivery pipeline on coverage rather than only on hard
+errors. Without it, incomplete items are reported on stderr and in
+`summary.json` but do not change the exit code.
 
 ## Cache And Snapshot Metadata
 

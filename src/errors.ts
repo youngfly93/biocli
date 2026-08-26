@@ -25,6 +25,7 @@ export const EXIT_CODES = {
   SUCCESS:         0,
   GENERIC_ERROR:   1,
   USAGE_ERROR:     2,   // Bad arguments / command misuse
+  INCOMPLETE_DATA:65,   // Degraded results under --strict (EX_DATAERR)
   EMPTY_RESULT:   66,   // No data / not found           (EX_NOINPUT)
   SERVICE_UNAVAIL:69,   // Adapter load failure           (EX_UNAVAILABLE)
   TEMPFAIL:       75,   // Timeout / rate limit           (EX_TEMPFAIL)

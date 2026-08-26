@@ -27,11 +27,28 @@ export interface BatchFailureRecord {
   exitCode?: number;
 }
 
+/**
+ * Per-item completeness tally for commands whose results carry a
+ * `completeness` field. Absent for commands that do not report it.
+ */
+export interface BatchCompletenessBreakdown {
+  complete: number;
+  partial: number;
+  degraded: number;
+}
+
 export interface BatchRunSummary {
   command: string;
   totalItems: number;
   succeeded: number;
   failed: number;
+  /**
+   * Items that completed without a hard failure but returned incomplete data
+   * (`partial` or `degraded`). Emitted only when the command reports
+   * completeness, so `succeeded` alone can never imply full coverage.
+   */
+  degraded?: number;
+  completeness?: BatchCompletenessBreakdown;
   startedAt: string;
   finishedAt: string;
   durationSeconds: number;

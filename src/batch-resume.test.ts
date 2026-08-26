@@ -180,4 +180,64 @@ describe('createBatchArtifactSession', () => {
       rmSync(outdir, { recursive: true, force: true });
     }
   });
+
+  it('reruns previously incomplete items only when retryDegraded is set', () => {
+    const outdir = mkdtempSync(join(tmpdir(), 'biocli-batch-retry-degraded-'));
+    try {
+      const first = createBatchArtifactSession({ outdir, resume: false });
+      first.recordSuccess({
+        input: 'EGFR',
+        index: 0,
+        attempts: 1,
+        succeededAt: '2026-04-13T00:00:01.000Z',
+        result: { query: 'EGFR', completeness: 'partial', warnings: ['NCBI: 429'] },
+      });
+      first.recordSuccess({
+        input: 'KRAS',
+        index: 1,
+        attempts: 1,
+        succeededAt: '2026-04-13T00:00:02.000Z',
+        result: { query: 'KRAS', completeness: 'complete', warnings: [] },
+      });
+      first.finalize({
+        command: 'aggregate/gene-profile',
+        totalItems: 2,
+        startedAt: '2026-04-13T00:00:00.000Z',
+        finishedAt: '2026-04-13T00:00:03.000Z',
+      });
+
+      const items = [{ input: 'EGFR', index: 0 }, { input: 'KRAS', index: 1 }];
+
+      // Plain resume treats the partial item as done — this is the gap that
+      // made a degraded row permanent in a run directory.
+      const plainResume = createBatchArtifactSession({ outdir, resume: true });
+      expect(plainResume.pendingEntries(items)).toEqual([]);
+      expect(plainResume.skippedCompletedCount).toBe(2);
+
+      const retry = createBatchArtifactSession({ outdir, resume: true, retryDegraded: true });
+      expect(retry.pendingEntries(items).map(entry => entry.input)).toEqual(['EGFR']);
+      expect(retry.skippedCompletedCount).toBe(1);
+
+      // The manifest must report what was actually skipped, not the whole
+      // previous success list.
+      retry.recordSuccess({
+        input: 'EGFR',
+        index: 0,
+        attempts: 1,
+        succeededAt: '2026-04-13T00:00:05.000Z',
+        result: { query: 'EGFR', completeness: 'complete', warnings: [] },
+      });
+      const { manifest } = retry.finalize({
+        command: 'aggregate/gene-profile',
+        totalItems: 2,
+        startedAt: '2026-04-13T00:00:04.000Z',
+        finishedAt: '2026-04-13T00:00:06.000Z',
+      });
+      expect(manifest.resume?.skippedCompleted).toBe(1);
+      expect(manifest.degraded).toBe(0);
+    } finally {
+      rmSync(outdir, { recursive: true, force: true });
+    }
+  });
+
 });

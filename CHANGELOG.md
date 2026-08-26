@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Batch coverage is now visible and recoverable** — a batch item could
+  previously succeed while returning incomplete data (an upstream 429, a skipped
+  cross-reference, an unresolvable symbol), and nothing at the top level said so:
+  `summary.json` reported `succeeded: N, failed: 0`, `failures.jsonl` stayed
+  empty, and `--resume` skipped the degraded row forever.
+  - `summary.json` and `manifest.json` gain `degraded` and a
+    `completeness: { complete, partial, degraded }` breakdown, emitted only when
+    the command reports completeness so other summaries keep their shape
+  - a run-end stderr warning names the affected inputs
+  - `--retry-degraded` resumes and reruns only the incomplete items, bypassing
+    cache reads so a retry is never answered by the entry that produced it
+  - `--strict` exits `65` (`EX_DATAERR`) when coverage is incomplete
 - Versioned `aggregate drug-target` ranking method
   (`biocli-drug-target-ranking-v1`) with auditable score components and a
   methods document covering weights, evidence selection, and limitations
@@ -36,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `aggregate drug-target --report-limit` now controls presentation only; all
   unique reports returned by Open Targets are used consistently for ranking and
   source counts
+- `manifest.json` `resume.skippedCompleted` now reports what the rerun actually
+  skipped instead of the size of the previous success list
 
 ## [0.7.1] - 2026-04-14
 

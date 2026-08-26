@@ -90,6 +90,8 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
     .option('--jsonl', 'Render batch results as JSONL on stdout', false)
     .option('--resume', 'Resume a batch run from an existing outdir checkpoint', false)
     .option('--resume-from <path>', 'Resume a batch run from a prior manifest.json or run directory')
+    .option('--retry-degraded', 'Resume and also rerun checkpointed items that returned incomplete data', false)
+    .option('--strict', 'Exit non-zero when any batch item returns incomplete data', false)
     .option('--fail-fast', 'Stop scheduling new batch items after the first terminal failure', false)
     .option('--max-errors <n>', 'Stop scheduling new batch items after N terminal failures')
     .option('--skip-cached', 'Reuse cached per-item results in aggregate batch runs when available', false)
@@ -191,7 +193,8 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
       const outdir = typeof optionsRecord.outdir === 'string' ? optionsRecord.outdir : undefined;
       const wantsJsonl = optionsRecord.jsonl === true;
       const resumeFrom = typeof optionsRecord.resumeFrom === 'string' ? optionsRecord.resumeFrom : undefined;
-      const resume = optionsRecord.resume === true || Boolean(resumeFrom);
+      const retryDegraded = optionsRecord.retryDegraded === true;
+      const resume = optionsRecord.resume === true || Boolean(resumeFrom) || retryDegraded;
       kwargs.__batch = {
         inputFile,
         inputFormat: typeof optionsRecord.inputFormat === 'string' ? optionsRecord.inputFormat : 'auto',
@@ -201,6 +204,8 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
         jsonl: wantsJsonl,
         resume,
         resumeFrom,
+        retryDegraded,
+        strict: optionsRecord.strict === true,
         failFast,
         maxErrors,
         retries: retryCount,
@@ -242,6 +247,8 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
             outdir,
             resume,
             resumeFrom,
+            retryDegraded,
+            strict: optionsRecord.strict === true,
             inputSource: inputFile ?? (resume ? undefined : primaryArg.name),
             inputFormat: typeof optionsRecord.inputFormat === 'string' ? optionsRecord.inputFormat : 'auto',
             key: typeof optionsRecord.key === 'string' ? optionsRecord.key : undefined,

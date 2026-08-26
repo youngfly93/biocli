@@ -20,6 +20,10 @@ export interface AggregateBatchOptions {
   retries?: number;
   resume?: boolean;
   resumeFrom?: string;
+  /** Resume, but also rerun checkpointed items that returned incomplete data. */
+  retryDegraded?: boolean;
+  /** Exit non-zero when any item returns incomplete data. */
+  strict?: boolean;
   skipCached?: boolean;
   forceRefresh?: boolean;
   noCache?: boolean;
@@ -65,6 +69,8 @@ export async function runAggregateBatch<T>(opts: {
     outdir: opts.batch.outdir,
     resume: opts.batch.resume,
     resumeFrom: opts.batch.resumeFrom,
+    retryDegraded: opts.batch.retryDegraded,
+    strict: opts.batch.strict,
     inputSource: opts.batch.inputFile,
     inputFormat: opts.batch.inputFormat,
     key: opts.batch.key,

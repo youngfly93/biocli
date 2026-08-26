@@ -1,5 +1,6 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { isIncompleteResult } from './batch-completeness.js';
 import { writeBatchArtifacts } from './batch-output.js';
 import type {
   BatchCacheSummary,
@@ -101,6 +102,8 @@ export function createBatchArtifactSession<T = unknown>(opts: {
   resume?: boolean;
   resumeFrom?: string;
   command?: string;
+  /** Treat previously incomplete results as pending so they are rerun. */
+  retryDegraded?: boolean;
 }): BatchArtifactSession<T> {
   const resolved = resolveResumeTarget(opts.outdir, opts.resumeFrom);
   if (resolved.previousManifest && opts.command && resolved.previousManifest.command !== opts.command) {
@@ -115,7 +118,11 @@ export function createBatchArtifactSession<T = unknown>(opts: {
   const failuresPath = join(resolved.outdir, 'failures.jsonl');
   const previousSuccesses = opts.resume ? readJsonl<BatchSuccessRecord<T>>(resultsPath) : [];
   const previousFailures = opts.resume ? readJsonl<BatchFailureRecord>(failuresPath) : [];
-  const completedKeys = new Set(previousSuccesses.map(entry => checkpointKey(entry.index, entry.input)));
+  const completedKeys = new Set(
+    previousSuccesses
+      .filter(entry => !(opts.retryDegraded && isIncompleteResult(entry.result)))
+      .map(entry => checkpointKey(entry.index, entry.input)),
+  );
   const newSuccesses: BatchSuccessRecord<T>[] = [];
   const newFailures: BatchFailureRecord[] = [];
 
@@ -130,7 +137,7 @@ export function createBatchArtifactSession<T = unknown>(opts: {
     previousManifest: resolved.previousManifest,
     previousSuccesses,
     previousFailures,
-    skippedCompletedCount: previousSuccesses.length,
+    skippedCompletedCount: completedKeys.size,
     pendingEntries(items) {
       return items.filter(entry => !completedKeys.has(checkpointKey(entry.index, entry.input)));
     },
@@ -191,7 +198,7 @@ export function createBatchArtifactSession<T = unknown>(opts: {
           ? {
               resumed: true,
               source: resolved.resumeSource ?? resolved.outdir,
-              skippedCompleted: previousSuccesses.length,
+              skippedCompleted: completedKeys.size,
               previousSucceeded: resolved.previousManifest?.succeeded ?? previousSuccesses.length,
               previousFailed: resolved.previousManifest?.failed ?? previousFailures.length,
             }

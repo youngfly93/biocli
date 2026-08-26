@@ -130,4 +130,68 @@ describe('writeBatchArtifacts', () => {
       rmSync(outdir, { recursive: true, force: true });
     }
   });
+
+  it('adds degraded counts to summary and manifest when results report completeness', () => {
+    const outdir = mkdtempSync(join(tmpdir(), 'biocli-batch-degraded-'));
+    try {
+      const manifest = writeBatchArtifacts({
+        outdir,
+        command: 'aggregate/gene-profile',
+        summary: {
+          command: 'aggregate/gene-profile',
+          totalItems: 3,
+          succeeded: 3,
+          failed: 0,
+          startedAt: '2026-04-12T00:00:00.000Z',
+          finishedAt: '2026-04-12T00:00:03.000Z',
+          durationSeconds: 3,
+        },
+        successes: [
+          { input: 'EGFR', index: 0, attempts: 1, succeededAt: '2026-04-12T00:00:01.000Z', result: { symbol: 'EGFR', completeness: 'complete' } },
+          { input: 'KRAS', index: 1, attempts: 1, succeededAt: '2026-04-12T00:00:02.000Z', result: { symbol: 'KRAS', completeness: 'partial' } },
+          { input: 'ZZZFAKE1', index: 2, attempts: 1, succeededAt: '2026-04-12T00:00:03.000Z', result: { symbol: 'ZZZFAKE1', completeness: 'degraded' } },
+        ],
+        failures: [],
+      });
+
+      const summary = JSON.parse(readFileSync(join(outdir, 'summary.json'), 'utf-8'));
+      expect(summary.succeeded).toBe(3);
+      expect(summary.failed).toBe(0);
+      expect(summary.degraded).toBe(2);
+      expect(summary.completeness).toEqual({ complete: 1, partial: 1, degraded: 1 });
+      expect(manifest.degraded).toBe(2);
+    } finally {
+      rmSync(outdir, { recursive: true, force: true });
+    }
+  });
+
+  it('leaves the summary shape unchanged when results do not report completeness', () => {
+    const outdir = mkdtempSync(join(tmpdir(), 'biocli-batch-nocompleteness-'));
+    try {
+      writeBatchArtifacts({
+        outdir,
+        command: 'pubmed/fetch',
+        summary: {
+          command: 'pubmed/fetch',
+          totalItems: 1,
+          succeeded: 1,
+          failed: 0,
+          startedAt: '2026-04-12T00:00:00.000Z',
+          finishedAt: '2026-04-12T00:00:01.000Z',
+          durationSeconds: 1,
+        },
+        successes: [
+          { input: '123', index: 0, attempts: 1, succeededAt: '2026-04-12T00:00:01.000Z', result: { pmid: '123' } },
+        ],
+        failures: [],
+      });
+
+      const summary = JSON.parse(readFileSync(join(outdir, 'summary.json'), 'utf-8'));
+      expect(summary).not.toHaveProperty('degraded');
+      expect(summary).not.toHaveProperty('completeness');
+    } finally {
+      rmSync(outdir, { recursive: true, force: true });
+    }
+  });
+
 });

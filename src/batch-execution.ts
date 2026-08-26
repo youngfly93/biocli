@@ -1,8 +1,13 @@
+import {
+  countDegraded,
+  listDegradedInputs,
+  summarizeBatchCompleteness,
+} from './batch-completeness.js';
 import { runBatch, type BatchProgressSnapshot } from './batch-runner.js';
 import { createBatchArtifactSession, type BatchArtifactSession } from './batch-resume.js';
 import { toBatchFailureRecord } from './batch-failures.js';
 import { buildCacheKey, getCachedEntry, setCached } from './cache.js';
-import { ArgumentError } from './errors.js';
+import { ArgumentError, CliError, EXIT_CODES } from './errors.js';
 import type {
   BatchCacheSummary,
   BatchFailureRecord,
@@ -42,9 +47,13 @@ export interface BatchExecutionOptions<T> {
   retries?: number;
   failFast?: boolean;
   maxErrors?: number;
+  /** Exit non-zero when any item succeeded with incomplete data. */
+  strict?: boolean;
   outdir?: string;
   resume?: boolean;
   resumeFrom?: string;
+  /** Resume, but also rerun checkpointed items that returned incomplete data. */
+  retryDegraded?: boolean;
   inputSource?: string;
   inputFormat?: string;
   key?: string;
@@ -61,6 +70,8 @@ export interface BatchExecutionResult<T> {
   successes: BatchSuccessRecord<T>[];
   failures: BatchFailureRecord[];
   skippedCompleted: number;
+  /** Inputs that succeeded but returned `partial` or `degraded` data. */
+  degradedInputs: string[];
   cache?: BatchCacheSummary;
   manifest?: BatchManifest;
 }
@@ -91,10 +102,12 @@ function sortFailures(records: BatchFailureRecord[]): BatchFailureRecord[] {
 }
 
 export async function runBatchExecution<T>(opts: BatchExecutionOptions<T>): Promise<BatchExecutionResult<T>> {
-  const shouldResume = opts.resume === true || Boolean(opts.resumeFrom);
+  const shouldResume = opts.resume === true || Boolean(opts.resumeFrom) || opts.retryDegraded === true;
   if (shouldResume && !opts.outdir && !opts.resumeFrom) {
     throw new ArgumentError(
-      '--resume requires --outdir or --resume-from so completed items can be recovered from checkpoint files.',
+      opts.retryDegraded === true
+        ? '--retry-degraded requires --outdir or --resume-from so the previous run can be read from checkpoint files.'
+        : '--resume requires --outdir or --resume-from so completed items can be recovered from checkpoint files.',
     );
   }
 
@@ -106,6 +119,7 @@ export async function runBatchExecution<T>(opts: BatchExecutionOptions<T>): Prom
         resume: shouldResume,
         resumeFrom: opts.resumeFrom,
         command: opts.command,
+        retryDegraded: opts.retryDegraded,
       })
     : null;
   const pendingItems = session ? session.pendingEntries(indexedItems) : indexedItems;
@@ -125,7 +139,9 @@ export async function runBatchExecution<T>(opts: BatchExecutionOptions<T>): Prom
   const cachedSuccesses: BatchSuccessRecord<T>[] = [];
   const executionItems: IndexedBatchItem[] = [];
 
-  if (opts.cache?.enabled && opts.cache.read) {
+  // Retrying degraded items must never be satisfied from the cache that
+  // produced them, so a retry pass always bypasses cache reads.
+  if (opts.cache?.enabled && opts.cache.read && !opts.retryDegraded) {
     for (const entry of pendingItems) {
       const cacheKey = buildCacheKey(opts.cache.namespace, opts.cache.command, opts.cache.args(entry.input));
       const cached = getCachedEntry<T>(opts.cache.namespace, opts.cache.command, cacheKey, opts.cache.ttlMs);
@@ -243,11 +259,38 @@ export async function runBatchExecution<T>(opts: BatchExecutionOptions<T>): Prom
         failures: directFailures,
       };
 
+  // An item can succeed and still return incomplete data (an upstream 429, a
+  // skipped cross-reference, an unresolvable identifier). Surface that here so
+  // it can never be inferred away from `succeeded` alone.
+  const degradedInputs = listDegradedInputs(finalized.successes);
+  if (degradedInputs.length > 0) {
+    const breakdown = summarizeBatchCompleteness(finalized.successes);
+    const shown = degradedInputs.slice(0, 5).join(', ');
+    const more = degradedInputs.length > 5 ? `, +${degradedInputs.length - 5} more` : '';
+    const counts = breakdown
+      ? ` (${breakdown.partial} partial, ${breakdown.degraded} degraded)`
+      : '';
+    process.stderr.write(
+      `⚠ ${degradedInputs.length}/${opts.items.length} item(s) returned incomplete data${counts}: ${shown}${more}\n`
+      + '  Inspect the completeness column in summary.csv, or rerun with --retry-degraded.\n',
+    );
+
+    if (opts.strict) {
+      throw new CliError(
+        'INCOMPLETE_DATA',
+        `${degradedInputs.length} of ${opts.items.length} batch item(s) returned incomplete data.`,
+        'Rerun with --retry-degraded, or drop --strict to accept partial coverage.',
+        EXIT_CODES.INCOMPLETE_DATA,
+      );
+    }
+  }
+
   return {
     results: finalized.successes.map(entry => entry.result),
     successes: finalized.successes,
     failures: finalized.failures,
     skippedCompleted: session?.skippedCompletedCount ?? 0,
+    degradedInputs,
     cache,
     manifest: finalized.manifest,
   };

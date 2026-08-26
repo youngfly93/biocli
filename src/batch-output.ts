@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { countDegraded, summarizeBatchCompleteness } from './batch-completeness.js';
 import { flattenBatchSuccesses } from './batch-flatteners.js';
 import { formatBatchMethodsMarkdown } from './batch-methods.js';
 import type { BatchSuccess } from './batch-runner.js';
@@ -49,6 +50,23 @@ export function writeBatchArtifacts<T>(opts: {
 }): BatchManifest {
   mkdirSync(opts.outdir, { recursive: true });
 
+  // Enrich the summary so a reader can never infer full coverage from
+  // `succeeded` alone: items can succeed while returning incomplete data.
+  const completeness = summarizeBatchCompleteness(opts.successes);
+  const summary: BatchRunSummary = completeness
+    ? {
+        command: opts.summary.command,
+        totalItems: opts.summary.totalItems,
+        succeeded: opts.summary.succeeded,
+        failed: opts.summary.failed,
+        degraded: countDegraded(completeness),
+        completeness,
+        startedAt: opts.summary.startedAt,
+        finishedAt: opts.summary.finishedAt,
+        durationSeconds: opts.summary.durationSeconds,
+      }
+    : opts.summary;
+
   const files = {
     resultsJsonl: 'results.jsonl',
     failuresJsonl: 'failures.jsonl',
@@ -58,7 +76,7 @@ export function writeBatchArtifacts<T>(opts: {
 
   writeFileSync(join(opts.outdir, files.resultsJsonl), toJsonl(opts.successes));
   writeFileSync(join(opts.outdir, files.failuresJsonl), toJsonl(opts.failures));
-  writeFileSync(join(opts.outdir, files.summaryJson), `${JSON.stringify(opts.summary, null, 2)}\n`);
+  writeFileSync(join(opts.outdir, files.summaryJson), `${JSON.stringify(summary, null, 2)}\n`);
 
   const flattened = flattenBatchSuccesses(opts.command, opts.successes);
   if (flattened) {
@@ -77,7 +95,7 @@ export function writeBatchArtifacts<T>(opts: {
   })}\n`);
 
   const manifest: BatchManifest = {
-    ...opts.summary,
+    ...summary,
     biocliVersion: getVersion(),
     outdir: opts.outdir,
     inputSource: opts.inputSource,
