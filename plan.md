@@ -4,14 +4,15 @@ Last updated: 2026-08-26
 
 ## Current state
 
-- Release target: `v0.9.0`; the minor bump follows `RELEASE_CHECKLIST.md`
-  because `gene-profile.agentSummary.selectionBasis` is a new required agent
-  contract field.
-- Baseline: `v0.8.1` on `main` at `deaf790`; npm `latest` was still `0.7.1` at
-  the pre-release check on 2026-08-26.
-- Round 4 customer-trust safeguards are implemented and locally verified.
-  External publication is now explicitly authorized and follows the repository
-  release checklist.
+- Released: `v0.9.0` at `af1eb72` on 2026-08-26. The GitHub release is public,
+  npm `latest` resolves to `0.9.0`, and a clean registry install passed the
+  packaged verification and live customer-path checks.
+- The minor bump follows `RELEASE_CHECKLIST.md` because
+  `gene-profile.agentSummary.selectionBasis` is a new required agent contract
+  field.
+- Previous baseline: `v0.8.1` on `main` at `deaf790`; npm `latest` was still
+  `0.7.1` at the pre-release check.
+- Round 4 customer-trust safeguards are released and verified.
 
 ## Working agreement
 
@@ -157,6 +158,9 @@ The following paths were already modified or untracked before this optimization 
 - 2026-08-26: GDSC acquisition is opt-in. `drug-target` reads only a complete
   local snapshot and otherwise returns partial completeness with an actionable
   `gdsc prewarm` warning.
+- 2026-08-26: Released `v0.9.0` from `af1eb72`. GitHub CI passed on Node 20 and
+  22, GitHub Release was published, and npm `latest` advanced from `0.7.1` to
+  `0.9.0`.
 
 ## Round 4 verification
 
@@ -176,6 +180,10 @@ The following paths were already modified or untracked before this optimization 
 | `npm audit --json` | 13 findings reviewed: 2 low, 4 moderate, 7 high, 0 critical; unchanged baseline, no force fix |
 | `npm pack` | Passed; `0.9.0` tarball is 281,688 bytes compressed with 293 entries |
 | Clean tarball install | Passed; version `0.9.0`, doctor 17/17, core smoke 6/6 |
+| GitHub CI | Passed on Node 20 and 22 for release commit `af1eb72` |
+| npm registry publication | Published `@yangfei_93sky/biocli@0.9.0` as `latest`; registry shasum `03c47d2b196688a2ef876ca016984c998582b2bf` |
+| Clean registry install | Passed; installed `0.9.0`, packaged verification passed, doctor 17/17, core smoke 6/6 |
+| Registry customer path | Passed; `gene info 7157` resolved TP53 and `gene-dossier TP53` completed with six sources and no warnings |
 | Local conda build | Not run: default `/tmp` cache has 7.3 GiB free, below the helper's 8 GiB safety gate |
 | `git fsck --full` | Passed; only two unreachable dangling trees reported after AppleDouble cleanup |
 | `git diff --check` | Passed |
