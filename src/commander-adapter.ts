@@ -13,11 +13,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { parseBatchInput, mergeBatchResults } from './batch.js';
-import { runBatch } from './batch-runner.js';
-import { toBatchFailureRecord } from './batch-failures.js';
-import { toBatchSuccessRecord } from './batch-output.js';
-import { createBatchArtifactSession } from './batch-resume.js';
-import { buildCacheKey, getCachedEntry, setCached } from './cache.js';
+import { runBatchExecution } from './batch-execution.js';
 import { loadConfig } from './config.js';
 import { type CliCommand, fullName, getRegistry, strategyLabel } from './registry.js';
 import { render as renderOutput } from './output.js';
@@ -25,7 +21,6 @@ import { executeCommand } from './execution.js';
 import { runWithProgressReporter } from './progress.js';
 import { startSpinner } from './spinner.js';
 import { hasResultMeta } from './types.js';
-import type { BatchCacheSummary, BatchSuccessRecord } from './batch-types.js';
 import {
   CliError,
   EXIT_CODES,
@@ -216,27 +211,11 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
 
       let result: unknown;
       if (batchItems && primaryArg) {
-        if (resume && !outdir && !resumeFrom) {
-          throw new ArgumentError('--resume requires --outdir or --resume-from so completed items can be restored.');
-        }
         const databaseId = cmd.database ?? 'ncbi';
         const needsNoContext = databaseId === 'aggregate' || cmd.noContext === true;
         const cacheConfig = loadConfig().cache;
         const cacheEnabled = (cacheConfig?.enabled ?? true) && !noCache && !needsNoContext;
         const cacheTtlMs = (cacheConfig?.ttl ?? 24) * 60 * 60 * 1000;
-        const cache: BatchCacheSummary = {
-          policy: !cacheEnabled
-            ? 'disabled'
-            : optionsRecord.forceRefresh === true
-              ? 'force-refresh'
-              : optionsRecord.skipCached === true
-                ? 'skip-cached'
-                : 'default',
-          hits: 0,
-          misses: 0,
-          writes: 0,
-        };
-        const batchStartedAt = new Date().toISOString();
         const spinnerLabel = `Batch ${fullName(cmd)} (${batchItems.length} items)…`;
         const spinner = startSpinner(spinnerLabel);
         try {
@@ -253,97 +232,44 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
             }
             return cacheArgs;
           };
-          const session = (outdir || resume)
-            ? createBatchArtifactSession({
-                outdir,
-                resume,
-                resumeFrom,
-                command: fullName(cmd),
-              })
-            : null;
-          const pendingItems = session
-            ? session.pendingEntries(batchItems.map((input, index) => ({ input, index })))
-            : batchItems.map((input, index) => ({ input, index }));
-          if (session && session.skippedCompletedCount > 0) {
-            spinner.update(`Resume checkpoint: skipping ${session.skippedCompletedCount} completed item(s)…`);
-          }
-
-          const cachedSuccesses: BatchSuccessRecord[] = [];
-          const executionItems: Array<{ input: string; index: number }> = [];
-          if (cacheEnabled && optionsRecord.forceRefresh !== true) {
-            for (const entry of pendingItems) {
-              const cacheKey = buildCacheKey(databaseId, fullName(cmd), cacheArgsForInput(entry.input));
-              const cached = getCachedEntry(databaseId, fullName(cmd), cacheKey, cacheTtlMs);
-              if (cached) {
-                const record: BatchSuccessRecord = {
-                  input: entry.input,
-                  index: entry.index,
-                  attempts: 0,
-                  succeededAt: new Date().toISOString(),
-                  cache: {
-                    hit: true,
-                    source: 'result-cache',
-                    cachedAt: new Date(cached.cachedAt).toISOString(),
-                  },
-                  result: cached.data,
-                };
-                cachedSuccesses.push(record);
-                session?.recordSuccess(record);
-                cache.hits += 1;
-              } else {
-                executionItems.push(entry);
-                cache.misses += 1;
-              }
-            }
-          } else {
-            executionItems.push(...pendingItems);
-            if (cacheEnabled) cache.misses = executionItems.length;
-          }
-
-          if (cachedSuccesses.length > 0) {
-            spinner.update(`Batch cache: reusing ${cachedSuccesses.length} cached item(s)…`);
-          }
-
-          const batchRun = await runBatch({
-            items: executionItems,
+          const batchExecution = await runBatchExecution({
+            command: fullName(cmd),
+            items: batchItems,
             concurrency,
             retries: retryCount,
             failFast,
             maxErrors,
-            itemLabel: (entry) => entry.input,
-            onProgress: ({ completed, failed, inFlight, total, lastItem }) => {
-              const suffix = lastItem ? ` ${lastItem}` : '';
-              spinner.update(`Batch ${fullName(cmd)} ${completed + cache.hits}/${batchItems.length} done, ${failed} failed, ${inFlight} running…${suffix}`);
-            },
-            onSuccess: async (entry) => {
-              const cacheKey = cacheEnabled
-                ? buildCacheKey(databaseId, fullName(cmd), cacheArgsForInput(entry.item.input))
-                : null;
-              if (cacheEnabled && cacheKey) {
-                try {
-                  setCached(databaseId, fullName(cmd), cacheKey, entry.result, cacheTtlMs);
-                  cache.writes += 1;
-                } catch {
-                  // Non-fatal: batch output should still complete even if the shared cache directory is unavailable.
+            outdir,
+            resume,
+            resumeFrom,
+            inputSource: inputFile ?? (resume ? undefined : primaryArg.name),
+            inputFormat: typeof optionsRecord.inputFormat === 'string' ? optionsRecord.inputFormat : 'auto',
+            key: typeof optionsRecord.key === 'string' ? optionsRecord.key : undefined,
+            cache: cacheEnabled
+              ? {
+                  namespace: databaseId,
+                  command: fullName(cmd),
+                  enabled: true,
+                  ttlMs: cacheTtlMs,
+                  read: optionsRecord.forceRefresh !== true,
+                  policy: optionsRecord.forceRefresh === true
+                    ? 'force-refresh'
+                    : optionsRecord.skipCached === true ? 'skip-cached' : 'default',
+                  args: cacheArgsForInput,
                 }
-              }
-              const record = toBatchSuccessRecord({
-                ...entry,
-                item: entry.item.input,
-                index: entry.item.index,
-              });
-              if (!session) return;
-              session.recordSuccess(record);
+              : undefined,
+            onResume: skipped => {
+              spinner.update(`Resume checkpoint: skipping ${skipped} completed item(s)…`);
             },
-            onFailure: async (entry) => {
-              if (!session) return;
-              session.recordFailure({
-                ...toBatchFailureRecord(fullName(cmd), entry, item => (item as { input: string }).input),
-                index: entry.item.index,
-              });
+            onCacheReuse: hits => {
+              spinner.update(`Batch cache: reusing ${hits} cached item(s)…`);
             },
-            executor: async (entry) => {
-              const batchKwargs = { ...kwargs, [primaryArg.name]: entry.input };
+            onProgress: ({ completed, failed, inFlight, lastItem, cached, totalItems }) => {
+              const suffix = lastItem ? ` ${lastItem}` : '';
+              spinner.update(`Batch ${fullName(cmd)} ${completed + cached}/${totalItems} done, ${failed} failed, ${inFlight} running…${suffix}`);
+            },
+            executor: async (input) => {
+              const batchKwargs = { ...kwargs, [primaryArg.name]: input };
               return runWithProgressReporter(
                 (message) => spinner.update(message),
                 () => executeCommand(cmd, batchKwargs, verbose, { noCache: true }),
@@ -351,50 +277,9 @@ export function registerCommandToProgram(siteCmd: Command, cmd: CliCommand): voi
             },
           });
 
-          const batchFinishedAt = new Date().toISOString();
-          const directSuccesses = [
-            ...cachedSuccesses,
-            ...batchRun.successes.map((entry) => toBatchSuccessRecord({
-              ...entry,
-              item: entry.item.input,
-              index: entry.item.index,
-            })),
-          ].sort((a, b) => a.index - b.index || a.input.localeCompare(b.input));
-          const directFailures = batchRun.failures
-            .map((entry) => ({
-              ...toBatchFailureRecord(fullName(cmd), entry, item => (item as { input: string }).input),
-              index: entry.item.index,
-            }))
-            .sort((a, b) => a.index - b.index || a.input.localeCompare(b.input));
-          const finalized = session
-            ? session.finalize({
-                command: fullName(cmd),
-                totalItems: batchItems.length,
-                startedAt: batchStartedAt,
-                finishedAt: batchFinishedAt,
-                inputSource: inputFile ?? session.previousManifest?.inputSource ?? primaryArg.name,
-                inputFormat: typeof optionsRecord.inputFormat === 'string'
-                  ? optionsRecord.inputFormat
-                  : session.previousManifest?.inputFormat ?? 'auto',
-                key: typeof optionsRecord.key === 'string'
-                  ? optionsRecord.key
-                  : session.previousManifest?.key,
-                concurrency,
-                retries: retryCount,
-                failFast,
-                maxErrors,
-                cache: cacheEnabled ? cache : undefined,
-              })
-            : {
-                manifest: undefined,
-                successes: directSuccesses,
-                failures: directFailures,
-              };
-
-          const batchResults = finalized.successes
-            .map((entry) => entry.result)
+          const batchResults = batchExecution.results
             .filter((value) => value !== null && value !== undefined);
-          const failedItems = finalized.failures.map((entry) => entry.input);
+          const failedItems = batchExecution.failures.map((entry) => entry.input);
 
           if (failedItems.length > 0) {
             console.error(chalk.yellow(`[Batch] ${failedItems.length}/${batchItems.length} failed${retryCount > 0 ? ` (after ${retryCount} retries)` : ''}: ${failedItems.join(', ')}`));

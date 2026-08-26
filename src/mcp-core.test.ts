@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildMcpToolDescription, getMcpToolName, normalizeMcpResult, parseMcpScope } from './mcp-core.js';
+import {
+  buildMcpToolDescription,
+  getMcpToolName,
+  isMcpCommandReadOnly,
+  normalizeMcpResult,
+  parseMcpScope,
+} from './mcp-core.js';
 import type { CliCommand } from './registry.js';
 import { withMeta, wrapResult } from './types.js';
 
@@ -22,6 +28,26 @@ describe('mcp-core', () => {
   it('normalizes tool names from command ids', () => {
     const cmd = makeCommand({ site: 'aggregate', name: 'gene-dossier' });
     expect(getMcpToolName(cmd)).toBe('aggregate_gene_dossier');
+  });
+
+  it('derives MCP read-only hints from command metadata', () => {
+    expect(isMcpCommandReadOnly(makeCommand())).toBe(true);
+    expect(isMcpCommandReadOnly(makeCommand({ readOnly: true }))).toBe(true);
+    expect(isMcpCommandReadOnly(makeCommand({ readOnly: false }))).toBe(false);
+  });
+
+  it.each([
+    ['aggregate', 'workflow-annotate'],
+    ['aggregate', 'workflow-prepare'],
+    ['aggregate', 'workflow-profile'],
+    ['gdsc', 'prewarm'],
+    ['gdsc', 'refresh'],
+    ['geo', 'download'],
+    ['sra', 'download'],
+    ['unimod', 'install'],
+    ['unimod', 'refresh'],
+  ])('marks the registered writer %s/%s as non-read-only', (site, name) => {
+    expect(isMcpCommandReadOnly(makeCommand({ site, name, readOnly: false }))).toBe(false);
   });
 
   it('uses summary-first descriptions for hero workflows with agentSummary', () => {

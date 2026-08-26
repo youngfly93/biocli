@@ -21,15 +21,6 @@ const AGENT_SUMMARY_COMMANDS = new Set([
   'aggregate/tumor-gene-dossier',
 ]);
 
-const MUTATING_COMMANDS = new Set([
-  'aggregate/workflow-annotate',
-  'aggregate/workflow-prepare',
-  'geo/download',
-  'sra/download',
-  'unimod/install',
-  'unimod/refresh',
-]);
-
 export interface NormalizedMcpResult extends Record<string, unknown> {
   command: string;
   resultKind: 'raw' | 'rows' | 'biocli_result';
@@ -123,7 +114,9 @@ export function buildMcpToolDescription(cmd: CliCommand): string {
 }
 
 export function isMcpCommandReadOnly(cmd: CliCommand): boolean {
-  return !MUTATING_COMMANDS.has(fullName(cmd));
+  // Keep MCP annotations aligned with the command manifest. Commands are
+  // read-only by default throughout the CLI; writers opt out explicitly.
+  return cmd.readOnly ?? true;
 }
 
 function isStringRecord(value: unknown): value is Record<string, string> {

@@ -1,8 +1,8 @@
 /**
  * Database backend abstraction layer.
  *
- * Each supported database (NCBI, UniProt, KEGG, STRING, Ensembl, Enrichr)
- * implements the DatabaseBackend interface and registers itself here.
+ * Each supported HTTP/database source implements the DatabaseBackend
+ * interface and is registered during bootstrap.
  * The execution layer uses createHttpContextForDatabase() to get the
  * right HTTP client for each command.
  */
