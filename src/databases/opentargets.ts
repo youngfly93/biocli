@@ -13,6 +13,7 @@ import { buildRetryableApiError, buildRetryableRateLimitError, executeHttpReques
 import type { FetchOptions, HttpContext } from '../types.js';
 import { isEnsemblId } from './ensembl.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
+import { diagnoseNetworkFailure } from '../network-diagnostics.js';
 
 export const OPENTARGETS_BASE_URL =
   process.env.BIOCLI_OPENTARGETS_BASE_URL ?? 'https://api.platform.opentargets.org/api/v4/graphql';
@@ -174,7 +175,11 @@ async function openTargetsFetch(url: string, opts?: FetchOptions): Promise<Respo
     ),
     onNetworkErrorExhausted: (error, attempts) => buildRetryableApiError(
       `Open Targets request failed after ${attempts} attempts: ${error.message}`,
-      buildOpenTargetsHint(opts?.body),
+      diagnoseNetworkFailure(error, {
+        serviceName: 'Open Targets',
+        url: OPENTARGETS_BASE_URL,
+        fallbackHint: buildOpenTargetsHint(opts?.body),
+      }).hint,
     ),
   });
 }

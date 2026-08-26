@@ -12,6 +12,7 @@ import { getAllBackends } from './databases/index.js';
 import { fetchWithIPv4Fallback } from './http-dispatcher.js';
 import { getRegistry } from './registry.js';
 import { unimodPaths, DEFAULT_STALE_AFTER_DAYS } from './datasets/unimod.js';
+import { diagnoseNetworkFailure, type NetworkFailureType } from './network-diagnostics.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ interface CheckResult {
   value: string;
   ok: boolean;
   detail?: string;
+  failureType?: NetworkFailureType | 'http';
   /**
    * Informational "this is a warning" flag. Used by the text formatter to
    * apply yellow to the detail column. JSON output serializes it directly
@@ -146,22 +148,22 @@ async function pingBackend(name: string, endpoint: PingEndpoint): Promise<CheckR
     if (response.ok) {
       return { name, value: origin, ok: true, detail: `${elapsed}ms` };
     }
-    return { name, value: origin, ok: false, detail: `HTTP ${response.status} (${elapsed}ms)` };
+    return { name, value: origin, ok: false, detail: `HTTP ${response.status} (${elapsed}ms)`, failureType: 'http' };
   } catch (err) {
     const elapsed = Date.now() - start;
-    let msg: string;
-    if (err instanceof Error && err.name === 'AbortError') {
-      msg = `timeout`;
-    } else if (err instanceof Error) {
-      // Surface undici cause code (e.g. UND_ERR_CONNECT_TIMEOUT, ENETUNREACH, ECONNREFUSED)
-      // so users can distinguish "actually unreachable" from "IPv6 fallback failed"
-      const cause = (err as Error & { cause?: { code?: string } }).cause;
-      const code = cause?.code;
-      msg = code ? `${err.message} [${code}]` : err.message;
-    } else {
-      msg = String(err);
-    }
-    return { name, value: origin, ok: false, detail: `${msg} (${elapsed}ms)` };
+    const diagnosis = diagnoseNetworkFailure(err, {
+      serviceName: name,
+      url: origin,
+      fallbackHint: `Check ${name} at ${origin} and retry.`,
+    });
+    const codeSuffix = diagnosis.code ? ` [${diagnosis.code}]` : '';
+    return {
+      name,
+      value: origin,
+      ok: false,
+      failureType: diagnosis.type,
+      detail: `${diagnosis.detail}${codeSuffix} (${elapsed}ms)`,
+    };
   }
 }
 
@@ -317,6 +319,7 @@ export function formatDoctorJson(checks: CheckResult[], allPassed: boolean): str
       value: c.value,
       ok: c.ok,
       ...(c.stale ? { stale: true } : {}),
+      ...(c.failureType ? { failureType: c.failureType } : {}),
       ...(c.detail ? { detail: c.detail } : {}),
     })),
   }, null, 2);

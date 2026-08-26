@@ -13,6 +13,7 @@ import { fetchWithIPv4Fallback } from '../http-dispatcher.js';
 import { buildRetryableApiError, buildRetryableRateLimitError, executeHttpRequestWithRetry } from '../retry-policy.js';
 import type { HttpContext, FetchOptions } from '../types.js';
 import { type DatabaseBackend, registerBackend } from './index.js';
+import { diagnoseNetworkFailure } from '../network-diagnostics.js';
 
 export const CBIOPORTAL_BASE_URL =
   process.env.BIOCLI_CBIOPORTAL_BASE_URL ?? 'https://www.cbioportal.org/api';
@@ -165,7 +166,11 @@ async function cbioPortalFetch(url: string, opts?: FetchOptions): Promise<Respon
     ),
     onNetworkErrorExhausted: (error, attempts) => buildRetryableApiError(
       `cBioPortal request failed after ${attempts} attempts: ${error.message}`,
-      `Check cBioPortal at ${CBIOPORTAL_BASE_URL}`,
+      diagnoseNetworkFailure(error, {
+        serviceName: 'cBioPortal',
+        url: CBIOPORTAL_BASE_URL,
+        fallbackHint: `Check cBioPortal at ${CBIOPORTAL_BASE_URL}`,
+      }).hint,
     ),
   });
 }
